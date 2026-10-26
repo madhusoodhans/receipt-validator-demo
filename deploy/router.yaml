@@ -1,0 +1,37 @@
+# vllm-sr Router config for the receipt intake demo (vllm-sr 0.5.0.dev20261015074033, standalone gateway).
+#
+# - D3 (vllm-sr/d3-mini) runs inside the Router's model runtime on the GPU and answers on /v1/systemone.
+# - qwen27b and qwen4b are the two vLLM containers started by deploy/serve_qwen.sh; the Router reaches them by
+#   container name on the vllm-sr-network Docker network. The demo calls them by these names, so no routing
+#   decisions are configured: a concrete model name goes straight to its backend.
+# - The listener binds 127.0.0.1 only. Open the demo page from a laptop through an SSH tunnel (see README.md).
+version: v0.3
+
+listeners:
+  - name: http-8899
+    address: 127.0.0.1
+    port: 8899
+    timeout: 600s
+    systemone:
+      models: [vllm-sr/d3-mini]
+
+global:
+  model_catalog:
+    deployments:
+      d3mini:
+        provider: model_runtime
+        artifact: vllm-sr/d3-mini
+        device: rocm
+
+providers:
+  defaults:
+    model: qwen27b
+  models:
+    - name: qwen27b
+      provider_model_id: qwen27b
+      backend_refs:
+        - {name: primary, provider: vllm, endpoint: "rid-qwen27b:8000", protocol: http}
+    - name: qwen4b
+      provider_model_id: qwen4b
+      backend_refs:
+        - {name: primary, provider: vllm, endpoint: "rid-qwen4b:8000", protocol: http}

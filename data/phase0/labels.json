@@ -1,0 +1,434 @@
+[
+ {
+  "file": "01_good_cord001.jpg",
+  "route": "extract",
+  "problems": [],
+  "source": "cord",
+  "cord_index": 1,
+  "gt": {
+   "menu": [
+    {
+     "nm": "J.STB PROMO",
+     "price": "17500"
+    },
+    {
+     "nm": "Y.B.BAT",
+     "price": "46000"
+    },
+    {
+     "nm": "Y.BASO PROM",
+     "price": "27500"
+    }
+   ],
+   "total": {
+    "total_price": "91000",
+    "cashprice": "91000"
+   }
+  }
+ },
+ {
+  "file": "02_good_cord006.jpg",
+  "route": "extract",
+  "problems": [],
+  "source": "cord",
+  "cord_index": 6,
+  "gt": {
+   "menu": [
+    {
+     "nm": "EGG TART",
+     "cnt": "1",
+     "price": "13,000"
+    },
+    {
+     "nm": "CHOCO CUS ARD PASTRY",
+     "cnt": "2",
+     "price": "24,000"
+    },
+    {
+     "nm": "REDBEAN BREAD",
+     "cnt": "1",
+     "price": "9,000"
+    }
+   ],
+   "total": {
+    "total_price": "46,000",
+    "cashprice": "50,000",
+    "changeprice": "4,000"
+   }
+  }
+ },
+ {
+  "file": "03_good_cord010.jpg",
+  "route": "extract",
+  "problems": [],
+  "source": "cord",
+  "cord_index": 10,
+  "gt": {
+   "menu": {
+    "nm": "CINNAMON SUGAR",
+    "unitprice": "17,000",
+    "cnt": "1 x",
+    "price": "17,000"
+   },
+   "sub_total": {
+    "subtotal_price": "17,000"
+   },
+   "total": {
+    "total_price": "17,000",
+    "cashprice": "20,000",
+    "changeprice": "3,000"
+   }
+  }
+ },
+ {
+  "file": "04_good_cord015.jpg",
+  "route": "extract",
+  "problems": [],
+  "source": "cord",
+  "cord_index": 15,
+  "gt": {
+   "menu": [
+    {
+     "nm": "Lemon Tea (L)",
+     "cnt": "1",
+     "price": "25.000"
+    },
+    {
+     "nm": "Caramel Small",
+     "cnt": "1",
+     "price": "38.000"
+    }
+   ],
+   "total": {
+    "total_price": "63.000",
+    "cashprice": "70.000",
+    "changeprice": "7.000"
+   }
+  }
+ },
+ {
+  "file": "05_good_cord022.jpg",
+  "route": "extract",
+  "problems": [],
+  "source": "cord",
+  "cord_index": 22,
+  "gt": {
+   "menu": [
+    {
+     "nm": "[MD] SOFT STEAMED CHEESEC",
+     "cnt": "2",
+     "price": "20,000"
+    },
+    {
+     "nm": "[MD] SOFT STEAMED CHOCOCA",
+     "cnt": "2",
+     "price": "20,000"
+    }
+   ],
+   "total": {
+    "total_price": "40,000",
+    "cashprice": "100,000",
+    "changeprice": "60,000"
+   }
+  }
+ },
+ {
+  "file": "06_good_cord025.jpg",
+  "route": "extract",
+  "problems": [],
+  "source": "cord",
+  "cord_index": 25,
+  "gt": {
+   "menu": [
+    {
+     "nm": "TWIST STRAWBERRY DONUT",
+     "cnt": "1",
+     "price": "10,000"
+    },
+    {
+     "nm": "TLJ CROQUETTE",
+     "cnt": "1",
+     "price": "17,000"
+    },
+    {
+     "nm": "POTATO PEPPER BAGEL",
+     "cnt": "1",
+     "price": "16,000"
+    }
+   ],
+   "total": {
+    "total_price": "43,000",
+    "cashprice": "50,000",
+    "changeprice": "7,000"
+   }
+  }
+ },
+ {
+  "file": "07_good_cord027.jpg",
+  "route": "extract",
+  "problems": [],
+  "source": "cord",
+  "cord_index": 27,
+  "gt": {
+   "menu": [
+    {
+     "nm": "PKT AYAM",
+     "price": "33,000"
+    },
+    {
+     "nm": "GULAI OTAK",
+     "price": "23,000"
+    }
+   ],
+   "sub_total": {
+    "subtotal_price": "56,000",
+    "tax_price": "5,600"
+   },
+   "total": {
+    "total_price": "61,600",
+    "cashprice": "61,600",
+    "menuqty_cnt": "2.00"
+   }
+  }
+ },
+ {
+  "file": "08_good_cord029.jpg",
+  "route": "extract",
+  "problems": [],
+  "source": "cord",
+  "cord_index": 29,
+  "gt": {
+   "menu": [
+    {
+     "nm": "COLD OCHA",
+     "cnt": "1",
+     "price": "10,909"
+    },
+    {
+     "nm": "BCA PROMO",
+     "cnt": "1",
+     "price": "54,455",
+     "sub": [
+      {
+       "nm": "ABURA UDON SPICY",
+       "cnt": "1",
+       "price": "0"
+      },
+      {
+       "nm": ":-KAKE UDON",
+       "cnt": "1",
+       "price": "0"
+      }
+     ]
+    },
+    {
+     "nm": "SKEWERED SHUMAI",
+     "cnt": "1",
+     "price": "12,727"
+    },
+    {
+     "nm": "SKEWERED TOFU ROLL",
+     "cnt": "1",
+     "price": "12,727"
+    },
+    {
+     "nm": "EBI TEMPURA",
+     "cnt": "1",
+     "price": "13,636"
+    },
+    {
+     "nm": "KITSUNE UDON (KIDS)",
+     "cnt": "1",
+     "price": "28,182"
+    }
+   ],
+   "sub_total": {
+    "subtotal_price": "132,636",
+    "tax_price": "13,264"
+   },
+   "total": {
+    "total_price": "145,900",
+    "creditcardprice": "[145,900]"
+   }
+  }
+ },
+ {
+  "file": "09_good_cord044.jpg",
+  "route": "extract",
+  "problems": [],
+  "source": "cord",
+  "cord_index": 44,
+  "gt": {
+   "menu": {
+    "nm": "Combo 1",
+    "cnt": "1",
+    "price": "30.000"
+   },
+   "total": {
+    "total_price": "30.000",
+    "cashprice": "50.000",
+    "changeprice": "20.000"
+   }
+  }
+ },
+ {
+  "file": "10_good_cord047.jpg",
+  "route": "extract",
+  "problems": [],
+  "source": "cord",
+  "cord_index": 47,
+  "gt": {
+   "menu": [
+    {
+     "nm": "COPIA 1 /GB",
+     "num": "2100252000358",
+     "unitprice": "45,000.00",
+     "cnt": "1",
+     "price": "45,000.00"
+    },
+    {
+     "nm": "PLASTIC BAG RED CENTRAL SI",
+     "num": "9100544260074",
+     "unitprice": "0.00",
+     "cnt": "1",
+     "price": "0.00"
+    },
+    {
+     "nm": "COPIA 1 /GB",
+     "num": "2100252000358",
+     "unitprice": "18,000.00",
+     "cnt": "1",
+     "price": "18,000.00"
+    }
+   ],
+   "sub_total": {
+    "discount_price": "0.00"
+   },
+   "total": {
+    "total_price": "63,000.00",
+    "creditcardprice": "63,000.00",
+    "menuqty_cnt": "3"
+   }
+  }
+ },
+ {
+  "file": "11_good_cord036.jpg",
+  "route": "extract",
+  "problems": [],
+  "source": "cord",
+  "cord_index": 36,
+  "gt": {
+   "menu": {
+    "nm": "XXL Crispy Chicken",
+    "cnt": "1",
+    "price": "40,000",
+    "sub": {
+     "nm": "- Sedang",
+     "cnt": "1",
+     "price": "0"
+    }
+   },
+   "sub_total": {
+    "subtotal_price": "40,000"
+   },
+   "total": {
+    "total_price": "40,000",
+    "cashprice": "100,000",
+    "changeprice": "60,000",
+    "menuqty_cnt": "1"
+   }
+  }
+ },
+ {
+  "file": "12_good_cord021.jpg",
+  "route": "extract",
+  "problems": [],
+  "source": "cord",
+  "cord_index": 21,
+  "gt": {
+   "menu": [
+    {
+     "nm": "NASI GOR SFD TLR",
+     "unitprice": "35.000",
+     "cnt": "1",
+     "price": "Rp 35.000"
+    },
+    {
+     "nm": "ES TEH TAWAR",
+     "unitprice": "3.000",
+     "cnt": "1",
+     "price": "Rp 3.000"
+    }
+   ],
+   "total": {
+    "total_price": "Rp 38.000",
+    "cashprice": "Rp 50.000",
+    "changeprice": "Rp 12.000"
+   }
+  }
+ },
+ {
+  "file": "13_blurry_synth.jpg",
+  "route": "reject",
+  "problems": [
+   "blurry"
+  ],
+  "source": "synthetic from cord 35"
+ },
+ {
+  "file": "14_cutoff_synth.jpg",
+  "route": "reject",
+  "problems": [
+   "incomplete"
+  ],
+  "source": "synthetic from cord 37"
+ },
+ {
+  "file": "15_crumpled_cord004.jpg",
+  "route": "reject",
+  "problems": [
+   "damaged"
+  ],
+  "source": "cord 4 (real)"
+ },
+ {
+  "file": "16_glare_synth.jpg",
+  "route": "reject",
+  "problems": [
+   "glare"
+  ],
+  "source": "synthetic from cord 15"
+ },
+ {
+  "file": "17_two_receipts_synth.jpg",
+  "route": "reject",
+  "problems": [
+   "multiple"
+  ],
+  "source": "composite of cord 22 and 6"
+ },
+ {
+  "file": "18_photo_dog.jpg",
+  "route": "reject",
+  "problems": [
+   "not_document"
+  ],
+  "source": "Wikimedia Commons, public domain"
+ },
+ {
+  "file": "19_screenshot_chat.jpg",
+  "route": "reject",
+  "problems": [
+   "screenshot"
+  ],
+  "source": "Telegram BotFather screenshot"
+ },
+ {
+  "file": "20_menu_rendered.jpg",
+  "route": "reject",
+  "problems": [
+   "wrong_document"
+  ],
+  "source": "rendered with PIL"
+ }
+]

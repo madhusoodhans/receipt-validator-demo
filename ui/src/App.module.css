@@ -1,0 +1,75 @@
+/* Fixed-height page on wide screens (main and side scroll on their own); a normal scrolling page below 1100px. */
+.shell { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100dvh; min-height: 0; }
+
+/* Top bar, as in the code migration demo: a dark slate band in both themes. Arc's semantic tokens are redefined on the
+ * bar, so the Arc controls inside it (health badge, Reset, theme switch) take dark-surface colours from the same tokens. */
+.bar {
+  --tb-bg: oklch(25% .025 262);
+  --background: var(--tb-bg);
+  --surface: oklch(29% .025 262);
+  --surface-raised: oklch(31% .025 262);
+  --surface-muted: oklch(34% .025 262);
+  --foreground: oklch(97% .005 262);
+  --text-secondary: oklch(80% .015 262);
+  --text-muted: oklch(68% .015 262);
+  --border: oklch(38% .025 262);
+  --border-subtle: oklch(33% .025 262);
+  --border-strong: oklch(48% .025 262);
+  /* status colours from Arc's dark theme, so the health badge reads on the dark band in both themes */
+  --success: oklch(78% .18 150);
+  --warning: oklch(83% .17 80);
+  --danger: oklch(76% .2 25);
+  color-scheme: dark;
+  position: relative; z-index: 20;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--space-4);
+  min-height: 60px; padding: var(--space-2) clamp(16px, 2vw, 24px);
+  background: var(--tb-bg); color: var(--foreground);
+}
+:root[data-theme="dark"] .bar { --tb-bg: oklch(27% .03 262); --surface: oklch(31% .03 262); --surface-muted: oklch(36% .03 262); border-bottom: 1px solid oklch(34% .03 262); }
+.brand { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+/* The supplied logo is black on transparent; the bar is dark in both themes, so it is shown white. */
+.logo { display: block; height: 20px; width: auto; flex: none; filter: brightness(0) invert(1); }
+.mark { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 500; letter-spacing: var(--tracking-display); white-space: nowrap; }
+.chip { color: var(--text-secondary); font-size: var(--text-xs); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.title { display: flex; align-items: center; justify-content: center; gap: var(--space-3); min-width: 0; }
+.title h1 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-size: var(--text-lg); letter-spacing: var(--tracking-display); }
+.actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); }
+@media (max-width: 900px) {
+  .bar { grid-template-columns: minmax(0, 1fr) auto; }
+  .title { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; }
+  .title h1 { white-space: normal; font-size: var(--text-base); }
+  .chip { display: none; }
+}
+@media (max-width: 520px) { .mark { display: none; } }
+.health { display: inline-flex; border-radius: var(--radius-pill); }
+
+.body { display: grid; grid-template-columns: minmax(0, 1fr) clamp(340px, 26vw, 460px); min-height: 0; }
+.main { display: flex; flex-direction: column; gap: var(--space-5); min-width: 0; min-height: 0; overflow-y: auto; padding: var(--space-5) clamp(16px, 2vw, 28px); }
+/* The stats panel sits on its own tinted band, so it reads as separate from the pipeline stage; its cards stay on --surface. */
+.side {
+  display: flex; flex-direction: column; gap: var(--space-5); min-height: 0; overflow-y: auto; padding: var(--space-5);
+  border-left: 1px solid var(--border-strong); background: color-mix(in oklch, var(--surface-muted) 70%, var(--background));
+  box-shadow: inset 6px 0 12px -10px oklch(0% 0 0 / .25);
+}
+
+.stage { display: grid; grid-template-columns: minmax(260px, 24rem) minmax(0, 1fr); gap: var(--space-5); align-items: start; }
+.left { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; position: sticky; top: 0; }
+.figure { margin: 0; display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.image { width: 100%; max-height: calc(100dvh - 520px); min-height: 220px; object-fit: contain; border-radius: var(--radius-panel); background: var(--surface-muted); border: 1px solid var(--border); }
+.caption { display: flex; justify-content: space-between; gap: var(--space-3); font-size: var(--text-sm); }
+.fileName { font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.steps { container-type: inline-size; min-width: 0; }
+.emptyStage { display: grid; place-items: center; min-height: 420px; border: 1px dashed var(--border-strong); border-radius: var(--radius-panel); }
+
+@media (max-width: 1100px) {
+  .shell { height: auto; min-height: 100dvh; }
+  .body { grid-template-columns: minmax(0, 1fr); }
+  .main { overflow: visible; }
+  .side { overflow: visible; border-left: 0; border-top: 1px solid var(--border); }
+}
+@media (max-width: 760px) {
+  .stage { grid-template-columns: minmax(0, 1fr); }
+  .left { position: static; }
+  .image { max-height: 50vh; min-height: 0; }
+  .sub { font-size: var(--text-sm); }
+}

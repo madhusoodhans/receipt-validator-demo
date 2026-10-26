@@ -1,0 +1,193 @@
+{
+ "model": "qwen27b",
+ "gpu": "AMD Instinct MI300X",
+ "measured_at": "2026-10-26T05:21:32Z",
+ "how": "app/extract.py extract(), cold cache (fresh cache_salt), sequential, one run per image",
+ "total_ms": 69293.6,
+ "images": [
+  {
+   "file": "01_good_berghotel.jpg",
+   "group": "good",
+   "sha256": "a5fb0c742d549190f062bc74c942482ce2cd80a2fb4752d850fa3c4f8abd0b4d",
+   "ms": 5327.8,
+   "prompt_tokens": 1476,
+   "completion_tokens": 298
+  },
+  {
+   "file": "02_bad_blurry_hand.jpg",
+   "group": "bad",
+   "sha256": "9443002adc68b4c573fa616504e6af7af448ae9b791ceb359a8a24b5a989ea4f",
+   "ms": 1029.2,
+   "prompt_tokens": 1476,
+   "completion_tokens": 48
+  },
+  {
+   "file": "03_good_matcha_invoice.jpg",
+   "group": "good",
+   "sha256": "b440cbd9917978d9fc5be758dc039b1df50ad10cbce73a3bcbab8238eed5e7c5",
+   "ms": 2365.7,
+   "prompt_tokens": 1662,
+   "completion_tokens": 122
+  },
+  {
+   "file": "04_bad_crumpled.jpg",
+   "group": "bad",
+   "sha256": "19be7557c57c91eda67057595d0a6ee2dde87a68489fc4e8ba427577ded136e9",
+   "ms": 3266.4,
+   "prompt_tokens": 1910,
+   "completion_tokens": 168
+  },
+  {
+   "file": "05_good_cash_template.jpg",
+   "group": "good",
+   "sha256": "0b3324e4f39d86975ce7219ef7ab320783e3cbfa1d3ce29d79afc6c5f5a02939",
+   "ms": 6914.4,
+   "prompt_tokens": 1135,
+   "completion_tokens": 407
+  },
+  {
+   "file": "06_bad_faded_face.jpg",
+   "group": "bad",
+   "sha256": "ed0552cc207a39ff853273099ce85542f7f86439607217a302023071741b6d1d",
+   "ms": 1373.4,
+   "prompt_tokens": 1321,
+   "completion_tokens": 70
+  },
+  {
+   "file": "07_borderline_faded_creased.jpg",
+   "group": "borderline",
+   "sha256": "6484ba22cebf369cd831ba83de2fc5837e66d30a29ac4d50e6e4235642742316",
+   "ms": 3110.0,
+   "prompt_tokens": 1631,
+   "completion_tokens": 164
+  },
+  {
+   "file": "08_good_cord001.jpg",
+   "group": "good",
+   "sha256": "33236bffdb1146644173f4264c1b5dc1ddb8f67d216f55ba831f0ecc94e5c8a2",
+   "ms": 3367.4,
+   "prompt_tokens": 1476,
+   "completion_tokens": 184
+  },
+  {
+   "file": "09_bad_pile.jpg",
+   "group": "bad",
+   "sha256": "b6654c85e2d86748952e719d90a33cd3531d67df3c38b7114e83db7e7a2bd7ab",
+   "ms": 2280.1,
+   "prompt_tokens": 1197,
+   "completion_tokens": 127
+  },
+  {
+   "file": "10_good_cord006.jpg",
+   "group": "good",
+   "sha256": "9b552fed0a9547a49b511e914c3178d1fcc9ec2d6d57001896552d39ac67c685",
+   "ms": 3535.8,
+   "prompt_tokens": 1631,
+   "completion_tokens": 187
+  },
+  {
+   "file": "11_bad_stock_register.jpg",
+   "group": "bad",
+   "sha256": "ca68c5fff0f8a684a74748f2443ca8aacd2e085e483df8deeaabe4ef829764fa",
+   "ms": 1423.7,
+   "prompt_tokens": 1507,
+   "completion_tokens": 70
+  },
+  {
+   "file": "12_good_cord010.jpg",
+   "group": "good",
+   "sha256": "24dccf7e0025593ee78236e10879c23ddf1abcfa687560d9ba107f101763dcb6",
+   "ms": 2455.7,
+   "prompt_tokens": 1631,
+   "completion_tokens": 126
+  },
+  {
+   "file": "13_bad_cut_off.jpg",
+   "group": "bad",
+   "sha256": "03ee37f21373f01dc4b92f9194bcc5fa642442c056116fc3ef510b1f282ba096",
+   "ms": 1419.0,
+   "prompt_tokens": 1352,
+   "completion_tokens": 71
+  },
+  {
+   "file": "14_good_cord015.jpg",
+   "group": "good",
+   "sha256": "902f67571758fa62a8a49c8c84840bbaa5d96c00263a9160d8486e3e1214b746",
+   "ms": 2878.5,
+   "prompt_tokens": 1631,
+   "completion_tokens": 150
+  },
+  {
+   "file": "15_bad_shadow.jpg",
+   "group": "bad",
+   "sha256": "603d1f11ca2045dd53f07bfdab42daa6280fe1b86ac7bf7a01ff27f0947ae738",
+   "ms": 2987.0,
+   "prompt_tokens": 1631,
+   "completion_tokens": 157
+  },
+  {
+   "file": "16_borderline_soft_focus.jpg",
+   "group": "borderline",
+   "sha256": "8a8df32d46ac054f485a64cdf61daf5cc2bb7dc904f283248e6c3d9aa2d7e14c",
+   "ms": 3176.7,
+   "prompt_tokens": 1600,
+   "completion_tokens": 170
+  },
+  {
+   "file": "17_good_cord022.jpg",
+   "group": "good",
+   "sha256": "ebee18bda3d815cb200a5141cc6bb4c61a976237bd2516fd2a43d3c6eac7dcf0",
+   "ms": 2988.9,
+   "prompt_tokens": 1631,
+   "completion_tokens": 157
+  },
+  {
+   "file": "18_bad_screenshot.jpg",
+   "group": "bad",
+   "sha256": "ff41cf139b560d731269fa6d6bfa22ac1154b1b9f9fc4caae5d8e06f3a4af568",
+   "ms": 1459.0,
+   "prompt_tokens": 1694,
+   "completion_tokens": 68
+  },
+  {
+   "file": "19_good_cord025.jpg",
+   "group": "good",
+   "sha256": "24aeb488bdeb5f4f0292212760985dea11ae79b8a6357473eb0e2ce4a2375906",
+   "ms": 3613.6,
+   "prompt_tokens": 1631,
+   "completion_tokens": 192
+  },
+  {
+   "file": "20_bad_dog_photo.jpg",
+   "group": "bad",
+   "sha256": "13a3123894ec5ead70b268a0aca37de02f30a495b6d71b58d5ac84c2958c0517",
+   "ms": 1427.5,
+   "prompt_tokens": 1414,
+   "completion_tokens": 68
+  },
+  {
+   "file": "21_good_cord027.jpg",
+   "group": "good",
+   "sha256": "6bc04dcf671e0279a7f55f4df3e4ad136cb70a8c35e72157f125a52c100c8683",
+   "ms": 3056.6,
+   "prompt_tokens": 1631,
+   "completion_tokens": 161
+  },
+  {
+   "file": "22_good_cord029.jpg",
+   "group": "good",
+   "sha256": "a79f8bc06f892ce3635cae04749507959e00711f7f708cca99fc912e487fbdcf",
+   "ms": 6877.7,
+   "prompt_tokens": 1631,
+   "completion_tokens": 379
+  },
+  {
+   "file": "23_good_cord021.jpg",
+   "group": "good",
+   "sha256": "96124fc52ae59c70e8045375e66b078db9512a0949230ca4b61109ab2245fef3",
+   "ms": 2959.5,
+   "prompt_tokens": 1476,
+   "completion_tokens": 158
+  }
+ ]
+}

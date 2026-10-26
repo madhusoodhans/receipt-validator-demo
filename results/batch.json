@@ -1,0 +1,3567 @@
+{
+ "runs": [
+  {
+   "label": {
+    "file": "01_good_berghotel.jpg",
+    "group": "good",
+    "label": "Swiss hotel bar receipt",
+    "source": "user",
+    "expected_route": "extract",
+    "truth": {
+     "store_name": "Berghotel Grosse Scheidegg",
+     "date": "2007-07-30",
+     "currency": "CHF",
+     "total": 54.5,
+     "tax": 3.85,
+     "items": [
+      9.0,
+      5.0,
+      22.0,
+      18.5
+     ]
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b0",
+     "file": "01_good_berghotel.jpg",
+     "width": 250,
+     "height": 333,
+     "image_url": "/api/uploads/b0"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 88.4,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.978,
+       "invoice": 0.0141,
+       "other_document": 0.0046,
+       "screenshot": 0.0005,
+       "photo": 0.0028
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.9698,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0317,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0148,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0226,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0051,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": "Berghotel Grosse Scheidegg",
+      "date": "2007-07-30",
+      "currency": "CHF",
+      "items": [
+       {
+        "name": "Latte Macchiato",
+        "quantity": 2,
+        "unit_price": 4.5,
+        "amount": 9.0
+       },
+       {
+        "name": "Glocki",
+        "quantity": 1,
+        "unit_price": 5.0,
+        "amount": 5.0
+       },
+       {
+        "name": "Schweinschnitzel",
+        "quantity": 1,
+        "unit_price": 22.0,
+        "amount": 22.0
+       },
+       {
+        "name": "Chässpätzli",
+        "quantity": 1,
+        "unit_price": 18.5,
+        "amount": 18.5
+       }
+      ],
+      "subtotal": 54.5,
+      "tax": 3.85,
+      "service_charge": null,
+      "discount": null,
+      "total": 54.5
+     },
+     "model": "qwen27b",
+     "ms": 5881.6,
+     "prompt_tokens": 1476,
+     "completion_tokens": 298
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "9.00 + 5.00 + 22.00 + 18.50 = 54.50; subtotal 54.50"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "subtotal 54.50; total 54.50 (tax included in the subtotal)"
+      },
+      {
+       "name": "date",
+       "label": "The date is a real date",
+       "ok": true,
+       "detail": "2007-07-30"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "54.50"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 1,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 5998.3,
+     "steps": {
+      "d3": 88.4,
+      "extract": 5881.6,
+      "sumcheck": 0.05,
+      "db": 2.0
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "02_bad_blurry_hand.jpg",
+    "group": "bad",
+    "label": "Blurry, held in a hand",
+    "source": "user",
+    "expected_route": "reject",
+    "problems": [
+     "blurry"
+    ]
+   },
+   "events": {
+    "received": {
+     "id": "b1",
+     "file": "02_bad_blurry_hand.jpg",
+     "width": 480,
+     "height": 640,
+     "image_url": "/api/uploads/b1"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 69.2,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.8297,
+       "invoice": 0.0282,
+       "other_document": 0.0343,
+       "screenshot": 0.0021,
+       "photo": 0.1057
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.0399,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.9056,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "bad"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.3223,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.3903,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0131,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.0399,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.9056,
+       "status": "bad"
+      }
+     ],
+     "summary": "Whole receipt visible, Blurry text"
+    },
+    "message": {
+     "text": "The total is cut off and the text is blurry. Please retake the photo ensuring the entire bottom of the receipt is visible and the paper is held steady so the text is sharp.",
+     "model": "qwen4b",
+     "ms": 195.0
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 1,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 265.8,
+     "steps": {
+      "d3": 69.2,
+      "message": 195.0,
+      "db": 1.4
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "03_good_matcha_invoice.jpg",
+    "group": "good",
+    "label": "Malaysian cafe receipt",
+    "source": "user",
+    "expected_route": "extract",
+    "truth": {
+     "currency": "RM",
+     "total": 12.0,
+     "subtotal": 12.0,
+     "discount": 3.0,
+     "items": [
+      15.0
+     ]
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b2",
+     "file": "03_good_matcha_invoice.jpg",
+     "width": 359,
+     "height": 557,
+     "image_url": "/api/uploads/b2"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 52.9,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9502,
+       "invoice": 0.0417,
+       "other_document": 0.0045,
+       "screenshot": 0.0007,
+       "photo": 0.0029
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.9089,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.027,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0473,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0225,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0039,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": "RM",
+      "items": [
+       {
+        "name": "MATCHA GELATO SINGLE",
+        "quantity": 1,
+        "unit_price": 15,
+        "amount": 15
+       }
+      ],
+      "subtotal": 12,
+      "tax": 0,
+      "service_charge": null,
+      "discount": 3,
+      "total": 12
+     },
+     "model": "qwen27b",
+     "ms": 2366.6,
+     "prompt_tokens": 1662,
+     "completion_tokens": 122
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "15 - discount 3 = 12; subtotal 12"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "subtotal 12; total 12"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "12"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 2,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 2442.8,
+     "steps": {
+      "d3": 52.9,
+      "extract": 2366.6,
+      "sumcheck": 0.04,
+      "db": 1.9
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "04_bad_crumpled.jpg",
+    "group": "bad",
+    "label": "Crumpled receipt",
+    "source": "user",
+    "expected_route": "reject",
+    "problems": [
+     "damaged"
+    ]
+   },
+   "events": {
+    "received": {
+     "id": "b3",
+     "file": "04_bad_crumpled.jpg",
+     "width": 506,
+     "height": 900,
+     "image_url": "/api/uploads/b3"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 91.9,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9929,
+       "invoice": 0.0018,
+       "other_document": 0.0021,
+       "screenshot": 0.0002,
+       "photo": 0.0029
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.9505,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0536,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.7309,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "bad"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0333,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0072,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.7309,
+       "status": "bad"
+      }
+     ],
+     "summary": "Torn, crumpled or stained"
+    },
+    "message": {
+     "text": "The receipt is crumpled, torn, faded, or stained. Please retake a clear photo of the paper receipt on a flat surface.",
+     "model": "qwen4b",
+     "ms": 162.4
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 2,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 256.4,
+     "steps": {
+      "d3": 91.9,
+      "message": 162.4,
+      "db": 1.6
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "05_good_cash_template.jpg",
+    "group": "good",
+    "label": "Receipt template (lorem ipsum)",
+    "source": "user",
+    "expected_route": "extract",
+    "truth": {
+     "currency": "$",
+     "total": 63.38,
+     "tax": 5.55,
+     "items": [
+      4.25,
+      1.1,
+      4.0,
+      21.55,
+      6.99,
+      15.5,
+      9.99
+     ]
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b4",
+     "file": "05_good_cash_template.jpg",
+     "width": 350,
+     "height": 350,
+     "image_url": "/api/uploads/b4"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 50.5,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9275,
+       "invoice": 0.0223,
+       "other_document": 0.0227,
+       "screenshot": 0.0064,
+       "photo": 0.0211
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.8794,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0434,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0497,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0093,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0093,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": "$",
+      "items": [
+       {
+        "name": "Lorem ipsum",
+        "quantity": 1,
+        "unit_price": 4.25,
+        "amount": 4.25
+       },
+       {
+        "name": "Ipsum dolor sit",
+        "quantity": 1,
+        "unit_price": 1.1,
+        "amount": 1.1
+       },
+       {
+        "name": "Dolor sit amet onsectetur",
+        "quantity": 1,
+        "unit_price": 4,
+        "amount": 4
+       },
+       {
+        "name": "Nemo enim ipsam",
+        "quantity": 1,
+        "unit_price": 21.55,
+        "amount": 21.55
+       },
+       {
+        "name": "Quis autem vel eum",
+        "quantity": 1,
+        "unit_price": 6.99,
+        "amount": 6.99
+       },
+       {
+        "name": "Ut enim ad minima",
+        "quantity": 1,
+        "unit_price": 15.5,
+        "amount": 15.5
+       },
+       {
+        "name": "But I must explain",
+        "quantity": 1,
+        "unit_price": 9.99,
+        "amount": 9.99
+       }
+      ],
+      "subtotal": null,
+      "tax": 5.55,
+      "service_charge": null,
+      "discount": null,
+      "total": 63.38
+     },
+     "model": "qwen27b",
+     "ms": 6922.1,
+     "prompt_tokens": 1135,
+     "completion_tokens": 407
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "4.25 + 1.10 + 4.00 + 21.55 + 6.99 + 15.50 + ... = 63.38; total 63.38"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "63.38"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 3,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 6987.1,
+     "steps": {
+      "d3": 50.5,
+      "extract": 6922.1,
+      "sumcheck": 0.04,
+      "db": 1.7
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "06_bad_faded_face.jpg",
+    "group": "bad",
+    "label": "Faded thermal print",
+    "source": "user",
+    "expected_route": "reject",
+    "problems": [
+     "damaged",
+     "blurry"
+    ]
+   },
+   "events": {
+    "received": {
+     "id": "b5",
+     "file": "06_bad_faded_face.jpg",
+     "width": 250,
+     "height": 293,
+     "image_url": "/api/uploads/b5"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 51.1,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.8413,
+       "invoice": 0.0317,
+       "other_document": 0.0649,
+       "screenshot": 0.0031,
+       "photo": 0.059
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.1688,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "borderline"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.9129,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "bad"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.5717,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "borderline"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.6898,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "bad"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0402,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.1688,
+       "status": "borderline"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.9129,
+       "status": "bad"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.5717,
+       "status": "borderline"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.6898,
+       "status": "bad"
+      }
+     ],
+     "summary": "Blurry text, Glare or heavy shadow"
+    },
+    "message": {
+     "text": "The text is blurry and there is glare covering part of the receipt. Please retake the photo by holding the device steady and moving it slightly to avoid the light reflection.",
+     "model": "qwen4b",
+     "ms": 180.5
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 3,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 233.7,
+     "steps": {
+      "d3": 51.1,
+      "message": 180.5,
+      "db": 1.8
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "07_borderline_faded_creased.jpg",
+    "group": "borderline",
+    "label": "Faded and creased (CORD)",
+    "source": "cord",
+    "expected_route": "review",
+    "cord_index": 19,
+    "gt": {
+     "menu": [
+      {
+       "nm": "AMBUSH DBL CHS",
+       "cnt": "4",
+       "price": "60000"
+      },
+      {
+       "nm": "AMBUSH CHS BUR",
+       "cnt": "10",
+       "price": "100000"
+      }
+     ],
+     "sub_total": {
+      "subtotal_price": "160000",
+      "tax_price": "16000"
+     },
+     "total": {
+      "total_price": "176000"
+     }
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b6",
+     "file": "07_borderline_faded_creased.jpg",
+     "width": 576,
+     "height": 864,
+     "image_url": "/api/uploads/b6"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 110.7,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9557,
+       "invoice": 0.0259,
+       "other_document": 0.0105,
+       "screenshot": 0.0008,
+       "photo": 0.0071
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.454,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.2818,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.5342,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "borderline"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.1342,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0273,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "review",
+     "reasons": [
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.5342,
+       "status": "borderline"
+      }
+     ],
+     "summary": "Torn, crumpled or stained"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "AMBUSH DBL CHS",
+        "quantity": 4,
+        "amount": 60000
+       },
+       {
+        "name": "AMBUSH CHS BUR",
+        "quantity": 10,
+        "amount": 100000
+       }
+      ],
+      "subtotal": 160000,
+      "tax": 16000,
+      "service_charge": null,
+      "discount": null,
+      "total": 176000
+     },
+     "model": "qwen27b",
+     "ms": 3116.3,
+     "prompt_tokens": 1631,
+     "completion_tokens": 164
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "60,000 + 100,000 = 160,000; subtotal 160,000"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "160,000 + tax 16,000 = 176,000; total 176,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "176,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 4,
+     "needs_review": 1
+    },
+    "done": {
+     "total_ms": 3255.5,
+     "steps": {
+      "d3": 110.7,
+      "extract": 3116.3,
+      "sumcheck": 0.03,
+      "db": 1.4
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "08_good_cord001.jpg",
+    "group": "good",
+    "label": "Indonesian receipt (CORD)",
+    "source": "cord",
+    "expected_route": "extract",
+    "cord_index": 1,
+    "gt": {
+     "menu": [
+      {
+       "nm": "J.STB PROMO",
+       "price": "17500"
+      },
+      {
+       "nm": "Y.B.BAT",
+       "price": "46000"
+      },
+      {
+       "nm": "Y.BASO PROM",
+       "price": "27500"
+      }
+     ],
+     "total": {
+      "total_price": "91000",
+      "cashprice": "91000"
+     }
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b7",
+     "file": "08_good_cord001.jpg",
+     "width": 960,
+     "height": 1280,
+     "image_url": "/api/uploads/b7"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 180.0,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9563,
+       "invoice": 0.0171,
+       "other_document": 0.0127,
+       "screenshot": 0.0011,
+       "photo": 0.0129
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.3375,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.3152,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.2101,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.3085,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0285,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "J.STB PROMO",
+        "quantity": 1,
+        "amount": 17500
+       },
+       {
+        "name": "Y.B.BAT",
+        "quantity": 1,
+        "amount": 46000
+       },
+       {
+        "name": "Y.BASO PROM",
+        "quantity": 1,
+        "amount": 27500
+       }
+      ],
+      "subtotal": null,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 91000
+     },
+     "model": "qwen27b",
+     "ms": 3366.8,
+     "prompt_tokens": 1476,
+     "completion_tokens": 184
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "17,500 + 46,000 + 27,500 = 91,000; total 91,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "91,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 5,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 3580.6,
+     "steps": {
+      "d3": 180.0,
+      "extract": 3366.8,
+      "sumcheck": 0.02,
+      "db": 2.0
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "09_bad_pile.jpg",
+    "group": "bad",
+    "label": "A pile of receipts",
+    "source": "user",
+    "expected_route": "reject",
+    "problems": [
+     "multiple"
+    ]
+   },
+   "events": {
+    "received": {
+     "id": "b8",
+     "file": "09_bad_pile.jpg",
+     "width": 435,
+     "height": 459,
+     "image_url": "/api/uploads/b8"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 56.7,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.826,
+       "invoice": 0.0265,
+       "other_document": 0.0386,
+       "screenshot": 0.0022,
+       "photo": 0.1067
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.0474,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.739,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "bad"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.6636,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "bad"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.3631,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.8601,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "bad"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.0474,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.739,
+       "status": "bad"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.6636,
+       "status": "bad"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.8601,
+       "status": "bad"
+      }
+     ],
+     "summary": "Whole receipt visible, Blurry text, Torn, crumpled or stained, More than one receipt"
+    },
+    "message": {
+     "text": "The photo is blurry, cut off, and shows multiple receipts instead of just one. Please retake the picture by holding the phone steady, ensuring the entire receipt is visible, and making sure only one receipt is in the frame.",
+     "model": "qwen4b",
+     "ms": 225.0
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 4,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 283.6,
+     "steps": {
+      "d3": 56.7,
+      "message": 225.0,
+      "db": 1.6
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "10_good_cord006.jpg",
+    "group": "good",
+    "label": "Indonesian receipt (CORD)",
+    "source": "cord",
+    "expected_route": "extract",
+    "cord_index": 6,
+    "gt": {
+     "menu": [
+      {
+       "nm": "EGG TART",
+       "cnt": "1",
+       "price": "13,000"
+      },
+      {
+       "nm": "CHOCO CUS ARD PASTRY",
+       "cnt": "2",
+       "price": "24,000"
+      },
+      {
+       "nm": "REDBEAN BREAD",
+       "cnt": "1",
+       "price": "9,000"
+      }
+     ],
+     "total": {
+      "total_price": "46,000",
+      "cashprice": "50,000",
+      "changeprice": "4,000"
+     }
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b9",
+     "file": "10_good_cord006.jpg",
+     "width": 864,
+     "height": 1296,
+     "image_url": "/api/uploads/b9"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 176.7,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.987,
+       "invoice": 0.0042,
+       "other_document": 0.0039,
+       "screenshot": 0.0005,
+       "photo": 0.0044
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.7547,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.13,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.3123,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.1183,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0212,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "EGG TART",
+        "quantity": 1,
+        "amount": 13000
+       },
+       {
+        "name": "CHOCO CUSTARD PASTRY",
+        "quantity": 2,
+        "amount": 24000
+       },
+       {
+        "name": "REDBEAN BREAD",
+        "quantity": 1,
+        "amount": 9000
+       }
+      ],
+      "subtotal": null,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 46000
+     },
+     "model": "qwen27b",
+     "ms": 3539.9,
+     "prompt_tokens": 1631,
+     "completion_tokens": 187
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "13,000 + 24,000 + 9,000 = 46,000; total 46,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "46,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 6,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 3763.5,
+     "steps": {
+      "d3": 176.7,
+      "extract": 3539.9,
+      "sumcheck": 0.02,
+      "db": 1.8
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "11_bad_stock_register.jpg",
+    "group": "bad",
+    "label": "Blank stock register form",
+    "source": "user",
+    "expected_route": "reject",
+    "problems": [
+     "kind"
+    ]
+   },
+   "events": {
+    "received": {
+     "id": "b10",
+     "file": "11_bad_stock_register.jpg",
+     "width": 379,
+     "height": 527,
+     "image_url": "/api/uploads/b10"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 56.4,
+     "kind": {
+      "choice": "other_document",
+      "probabilities": {
+       "receipt": 0.0288,
+       "invoice": 0.1206,
+       "other_document": 0.7926,
+       "screenshot": 0.0022,
+       "photo": 0.0559
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.1841,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "borderline"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.1485,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0321,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0605,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.019,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "kind",
+       "label": "Another document, not a receipt",
+       "prob": 0.7926,
+       "status": "bad"
+      }
+     ],
+     "summary": "Another document, not a receipt"
+    },
+    "message": {
+     "text": "This image appears to be a different document, not a receipt. Please take a photo of the actual paper receipt.",
+     "model": "qwen4b",
+     "ms": 143.0
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 5,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 201.2,
+     "steps": {
+      "d3": 56.4,
+      "message": 143.0,
+      "db": 1.6
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "12_good_cord010.jpg",
+    "group": "good",
+    "label": "Indonesian receipt (CORD)",
+    "source": "cord",
+    "expected_route": "extract",
+    "cord_index": 10,
+    "gt": {
+     "menu": {
+      "nm": "CINNAMON SUGAR",
+      "unitprice": "17,000",
+      "cnt": "1 x",
+      "price": "17,000"
+     },
+     "sub_total": {
+      "subtotal_price": "17,000"
+     },
+     "total": {
+      "total_price": "17,000",
+      "cashprice": "20,000",
+      "changeprice": "3,000"
+     }
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b11",
+     "file": "12_good_cord010.jpg",
+     "width": 576,
+     "height": 864,
+     "image_url": "/api/uploads/b11"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 91.5,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9844,
+       "invoice": 0.0052,
+       "other_document": 0.0044,
+       "screenshot": 0.0004,
+       "photo": 0.0055
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.9165,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.144,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0699,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.2227,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.005,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": "Auntie Anne's",
+      "date": null,
+      "currency": "IDR",
+      "items": [
+       {
+        "name": "CINNAMON SUGAR",
+        "quantity": 1,
+        "amount": 17000
+       }
+      ],
+      "subtotal": 17000,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 17000
+     },
+     "model": "qwen27b",
+     "ms": 2457.9,
+     "prompt_tokens": 1631,
+     "completion_tokens": 126
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "17,000 = 17,000; subtotal 17,000"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "subtotal 17,000; total 17,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "17,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 7,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 2578.7,
+     "steps": {
+      "d3": 91.5,
+      "extract": 2457.9,
+      "sumcheck": 0.03,
+      "db": 2.1
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "13_bad_cut_off.jpg",
+    "group": "bad",
+    "label": "Total cut off (synthetic)",
+    "source": "stand-in",
+    "expected_route": "reject",
+    "problems": [
+     "complete"
+    ]
+   },
+   "events": {
+    "received": {
+     "id": "b12",
+     "file": "13_bad_cut_off.jpg",
+     "width": 576,
+     "height": 475,
+     "image_url": "/api/uploads/b12"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 67.3,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.3462,
+       "invoice": 0.1578,
+       "other_document": 0.2152,
+       "screenshot": 0.0058,
+       "photo": 0.275
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.0324,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.9121,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "bad"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0511,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.6837,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "bad"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0178,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.0324,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.9121,
+       "status": "bad"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.6837,
+       "status": "bad"
+      }
+     ],
+     "summary": "Whole receipt visible, Blurry text, Glare or heavy shadow"
+    },
+    "message": {
+     "text": "The receipt is blurry, cut off, and has glare, so please retake a clear photo of the entire paper receipt without shadows.",
+     "model": "qwen4b",
+     "ms": 156.8
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 6,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 225.8,
+     "steps": {
+      "d3": 67.3,
+      "message": 156.8,
+      "db": 1.5
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "14_good_cord015.jpg",
+    "group": "good",
+    "label": "Indonesian receipt (CORD)",
+    "source": "cord",
+    "expected_route": "extract",
+    "cord_index": 15,
+    "gt": {
+     "menu": [
+      {
+       "nm": "Lemon Tea (L)",
+       "cnt": "1",
+       "price": "25.000"
+      },
+      {
+       "nm": "Caramel Small",
+       "cnt": "1",
+       "price": "38.000"
+      }
+     ],
+     "total": {
+      "total_price": "63.000",
+      "cashprice": "70.000",
+      "changeprice": "7.000"
+     }
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b13",
+     "file": "14_good_cord015.jpg",
+     "width": 576,
+     "height": 864,
+     "image_url": "/api/uploads/b13"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 91.5,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.989,
+       "invoice": 0.0022,
+       "other_document": 0.0029,
+       "screenshot": 0.0004,
+       "photo": 0.0055
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.8433,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.2898,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0988,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.4014,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0078,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": "XXI cafe",
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "Lemon Tea (L)",
+        "quantity": 1,
+        "amount": 25000
+       },
+       {
+        "name": "Caramel Small",
+        "quantity": 1,
+        "amount": 38000
+       }
+      ],
+      "subtotal": null,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 63000
+     },
+     "model": "qwen27b",
+     "ms": 2877.3,
+     "prompt_tokens": 1631,
+     "completion_tokens": 150
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "25,000 + 38,000 = 63,000; total 63,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "63,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 8,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 2999.0,
+     "steps": {
+      "d3": 91.5,
+      "extract": 2877.3,
+      "sumcheck": 0.02,
+      "db": 1.9
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "15_bad_shadow.jpg",
+    "group": "bad",
+    "label": "Hand shadow over the items (CORD)",
+    "source": "cord",
+    "expected_route": "reject",
+    "problems": [
+     "glare"
+    ],
+    "cord_index": 2
+   },
+   "events": {
+    "received": {
+     "id": "b14",
+     "file": "15_bad_shadow.jpg",
+     "width": 864,
+     "height": 1296,
+     "image_url": "/api/uploads/b14"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 216.6,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9742,
+       "invoice": 0.0106,
+       "other_document": 0.0068,
+       "screenshot": 0.0007,
+       "photo": 0.0077
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.4149,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.1818,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.4127,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.6385,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "bad"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.011,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.6385,
+       "status": "bad"
+      }
+     ],
+     "summary": "Glare or heavy shadow"
+    },
+    "message": {
+     "text": "Glare or a shadow is covering part of the text. Please retake the photo in a well-lit area without any shadows or reflections on the paper.",
+     "model": "qwen4b",
+     "ms": 173.8
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 7,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 392.6,
+     "steps": {
+      "d3": 216.6,
+      "message": 173.8,
+      "db": 1.6
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "16_borderline_soft_focus.jpg",
+    "group": "borderline",
+    "label": "Soft focus and some glare (CORD)",
+    "source": "cord",
+    "expected_route": "review",
+    "cord_index": 91,
+    "gt": {
+     "menu": [
+      {
+       "nm": "BAKSO BNGKS",
+       "cnt": "1",
+       "price": "15.000"
+      },
+      {
+       "nm": "GORENGAN",
+       "cnt": "6",
+       "price": "6.000"
+      }
+     ],
+     "total": {
+      "total_price": "21.000",
+      "cashprice": "30.000",
+      "changeprice": "9.000"
+     }
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b15",
+     "file": "16_borderline_soft_focus.jpg",
+     "width": 228,
+     "height": 336,
+     "image_url": "/api/uploads/b15"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 63.6,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9446,
+       "invoice": 0.0082,
+       "other_document": 0.0203,
+       "screenshot": 0.002,
+       "photo": 0.0249
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.678,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.545,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "borderline"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.4097,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.4312,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0596,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "review",
+     "reasons": [
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.545,
+       "status": "borderline"
+      }
+     ],
+     "summary": "Blurry text"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": "PRASMANAN HALAL AH",
+      "date": "2018-04-09",
+      "currency": null,
+      "items": [
+       {
+        "name": "BAKSO BNGKS",
+        "quantity": 1,
+        "amount": 15000
+       },
+       {
+        "name": "GORENGAN",
+        "quantity": 6,
+        "amount": 6000
+       }
+      ],
+      "subtotal": 21000,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 21000
+     },
+     "model": "qwen27b",
+     "ms": 3182.3,
+     "prompt_tokens": 1600,
+     "completion_tokens": 170
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "15,000 + 6,000 = 21,000; subtotal 21,000"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "subtotal 21,000; total 21,000"
+      },
+      {
+       "name": "date",
+       "label": "The date is a real date",
+       "ok": true,
+       "detail": "2018-04-09"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "21,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 9,
+     "needs_review": 1
+    },
+    "done": {
+     "total_ms": 3266.1,
+     "steps": {
+      "d3": 63.6,
+      "extract": 3182.3,
+      "sumcheck": 0.04,
+      "db": 2.0
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "17_good_cord022.jpg",
+    "group": "good",
+    "label": "Indonesian receipt (CORD)",
+    "source": "cord",
+    "expected_route": "extract",
+    "cord_index": 22,
+    "gt": {
+     "menu": [
+      {
+       "nm": "[MD] SOFT STEAMED CHEESEC",
+       "cnt": "2",
+       "price": "20,000"
+      },
+      {
+       "nm": "[MD] SOFT STEAMED CHOCOCA",
+       "cnt": "2",
+       "price": "20,000"
+      }
+     ],
+     "total": {
+      "total_price": "40,000",
+      "cashprice": "100,000",
+      "changeprice": "60,000"
+     }
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b16",
+     "file": "17_good_cord022.jpg",
+     "width": 864,
+     "height": 1296,
+     "image_url": "/api/uploads/b16"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 168.1,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9737,
+       "invoice": 0.0103,
+       "other_document": 0.0088,
+       "screenshot": 0.0007,
+       "photo": 0.0065
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.5876,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.2498,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0604,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.162,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0181,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "[MD] SOFT STEAMED CHEESEC",
+        "quantity": 2,
+        "amount": 20000
+       },
+       {
+        "name": "[MD] SOFT STEAMED CHOCOCA",
+        "quantity": 2,
+        "amount": 20000
+       }
+      ],
+      "subtotal": null,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 40000
+     },
+     "model": "qwen27b",
+     "ms": 2989.9,
+     "prompt_tokens": 1631,
+     "completion_tokens": 157
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "20,000 + 20,000 = 40,000; total 40,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "40,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 10,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 3196.8,
+     "steps": {
+      "d3": 168.1,
+      "extract": 2989.9,
+      "sumcheck": 0.02,
+      "db": 2.0
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "18_bad_screenshot.jpg",
+    "group": "bad",
+    "label": "Chat app screenshot",
+    "source": "stand-in",
+    "expected_route": "reject",
+    "problems": [
+     "kind"
+    ]
+   },
+   "events": {
+    "received": {
+     "id": "b17",
+     "file": "18_bad_screenshot.jpg",
+     "width": 1280,
+     "height": 1221,
+     "image_url": "/api/uploads/b17"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 221.1,
+     "kind": {
+      "choice": "screenshot",
+      "probabilities": {
+       "receipt": 0.0004,
+       "invoice": 0.0003,
+       "other_document": 0.0047,
+       "screenshot": 0.9746,
+       "photo": 0.02
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.029,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0319,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0256,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0224,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0227,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "kind",
+       "label": "A screenshot, not a receipt",
+       "prob": 0.9746,
+       "status": "bad"
+      }
+     ],
+     "summary": "A screenshot, not a receipt"
+    },
+    "message": {
+     "text": "This image is a screenshot, not a photo of a paper receipt. Please take a clear picture of the actual receipt.",
+     "model": "qwen4b",
+     "ms": 146.6
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 8,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 369.7,
+     "steps": {
+      "d3": 221.1,
+      "message": 146.6,
+      "db": 1.5
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "19_good_cord025.jpg",
+    "group": "good",
+    "label": "Indonesian receipt (CORD)",
+    "source": "cord",
+    "expected_route": "extract",
+    "cord_index": 25,
+    "gt": {
+     "menu": [
+      {
+       "nm": "TWIST STRAWBERRY DONUT",
+       "cnt": "1",
+       "price": "10,000"
+      },
+      {
+       "nm": "TLJ CROQUETTE",
+       "cnt": "1",
+       "price": "17,000"
+      },
+      {
+       "nm": "POTATO PEPPER BAGEL",
+       "cnt": "1",
+       "price": "16,000"
+      }
+     ],
+     "total": {
+      "total_price": "43,000",
+      "cashprice": "50,000",
+      "changeprice": "7,000"
+     }
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b18",
+     "file": "19_good_cord025.jpg",
+     "width": 864,
+     "height": 1296,
+     "image_url": "/api/uploads/b18"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 174.2,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9897,
+       "invoice": 0.0037,
+       "other_document": 0.0035,
+       "screenshot": 0.0004,
+       "photo": 0.0027
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.7619,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.141,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0564,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.1941,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0117,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "TWIST STRAWBERRY DONUT",
+        "quantity": 1,
+        "amount": 10000
+       },
+       {
+        "name": "TLJ CROQUETTE",
+        "quantity": 1,
+        "amount": 17000
+       },
+       {
+        "name": "POTATO PEPPER BAGEL",
+        "quantity": 1,
+        "amount": 16000
+       }
+      ],
+      "subtotal": null,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 43000
+     },
+     "model": "qwen27b",
+     "ms": 3616.9,
+     "prompt_tokens": 1631,
+     "completion_tokens": 192
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "10,000 + 17,000 + 16,000 = 43,000; total 43,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "43,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 11,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 3830.4,
+     "steps": {
+      "d3": 174.2,
+      "extract": 3616.9,
+      "sumcheck": 0.02,
+      "db": 1.7
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "20_bad_dog_photo.jpg",
+    "group": "bad",
+    "label": "Photo of a dog",
+    "source": "stand-in",
+    "expected_route": "reject",
+    "problems": [
+     "kind"
+    ]
+   },
+   "events": {
+    "received": {
+     "id": "b19",
+     "file": "20_bad_dog_photo.jpg",
+     "width": 652,
+     "height": 515,
+     "image_url": "/api/uploads/b19"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 77.4,
+     "kind": {
+      "choice": "photo",
+      "probabilities": {
+       "receipt": 0.0001,
+       "invoice": 0.0001,
+       "other_document": 0.0009,
+       "screenshot": 0.0001,
+       "photo": 0.9987
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.002,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0404,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0131,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0126,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.001,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "kind",
+       "label": "A photo, not a receipt",
+       "prob": 0.9987,
+       "status": "bad"
+      }
+     ],
+     "summary": "A photo, not a receipt"
+    },
+    "message": {
+     "text": "This photo is not a receipt. Please take a picture of the actual paper receipt.",
+     "model": "qwen4b",
+     "ms": 120.8
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 9,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 200.0,
+     "steps": {
+      "d3": 77.4,
+      "message": 120.8,
+      "db": 1.4
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "21_good_cord027.jpg",
+    "group": "good",
+    "label": "Indonesian receipt (CORD)",
+    "source": "cord",
+    "expected_route": "extract",
+    "cord_index": 27,
+    "gt": {
+     "menu": [
+      {
+       "nm": "PKT AYAM",
+       "price": "33,000"
+      },
+      {
+       "nm": "GULAI OTAK",
+       "price": "23,000"
+      }
+     ],
+     "sub_total": {
+      "subtotal_price": "56,000",
+      "tax_price": "5,600"
+     },
+     "total": {
+      "total_price": "61,600",
+      "cashprice": "61,600",
+      "menuqty_cnt": "2.00"
+     }
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b20",
+     "file": "21_good_cord027.jpg",
+     "width": 864,
+     "height": 1296,
+     "image_url": "/api/uploads/b20"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 167.4,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.993,
+       "invoice": 0.0013,
+       "other_document": 0.002,
+       "screenshot": 0.0003,
+       "photo": 0.0034
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.8581,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0566,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.09,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.064,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0046,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": "FOODPUNT",
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "PKT AYAM",
+        "quantity": 1,
+        "amount": 33000
+       },
+       {
+        "name": "GULAI OTAK",
+        "quantity": 1,
+        "amount": 23000
+       }
+      ],
+      "subtotal": 56000,
+      "tax": 5600,
+      "service_charge": null,
+      "discount": null,
+      "total": 61600
+     },
+     "model": "qwen27b",
+     "ms": 3062.8,
+     "prompt_tokens": 1631,
+     "completion_tokens": 161
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "33,000 + 23,000 = 56,000; subtotal 56,000"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "56,000 + tax 5,600 = 61,600; total 61,600"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "61,600"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 12,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 3265.7,
+     "steps": {
+      "d3": 167.4,
+      "extract": 3062.8,
+      "sumcheck": 0.03,
+      "db": 1.6
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "22_good_cord029.jpg",
+    "group": "good",
+    "label": "Indonesian receipt (CORD)",
+    "source": "cord",
+    "expected_route": "extract",
+    "cord_index": 29,
+    "gt": {
+     "menu": [
+      {
+       "nm": "COLD OCHA",
+       "cnt": "1",
+       "price": "10,909"
+      },
+      {
+       "nm": "BCA PROMO",
+       "cnt": "1",
+       "price": "54,455",
+       "sub": [
+        {
+         "nm": "ABURA UDON SPICY",
+         "cnt": "1",
+         "price": "0"
+        },
+        {
+         "nm": ":-KAKE UDON",
+         "cnt": "1",
+         "price": "0"
+        }
+       ]
+      },
+      {
+       "nm": "SKEWERED SHUMAI",
+       "cnt": "1",
+       "price": "12,727"
+      },
+      {
+       "nm": "SKEWERED TOFU ROLL",
+       "cnt": "1",
+       "price": "12,727"
+      },
+      {
+       "nm": "EBI TEMPURA",
+       "cnt": "1",
+       "price": "13,636"
+      },
+      {
+       "nm": "KITSUNE UDON (KIDS)",
+       "cnt": "1",
+       "price": "28,182"
+      }
+     ],
+     "sub_total": {
+      "subtotal_price": "132,636",
+      "tax_price": "13,264"
+     },
+     "total": {
+      "total_price": "145,900",
+      "creditcardprice": "[145,900]"
+     }
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b21",
+     "file": "22_good_cord029.jpg",
+     "width": 864,
+     "height": 1296,
+     "image_url": "/api/uploads/b21"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 171.4,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9829,
+       "invoice": 0.0057,
+       "other_document": 0.0063,
+       "screenshot": 0.0005,
+       "photo": 0.0046
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.556,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0577,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.2339,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.2657,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0163,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "COLD OCHA",
+        "quantity": 1,
+        "amount": 10909
+       },
+       {
+        "name": "BCA PROMO",
+        "quantity": 1,
+        "amount": 54455
+       },
+       {
+        "name": "ABURA UDON SPICY",
+        "quantity": 1,
+        "amount": 0
+       },
+       {
+        "name": "KAKE UDON",
+        "quantity": 1,
+        "amount": 0
+       },
+       {
+        "name": "SKEWERED SHUMAI",
+        "quantity": 1,
+        "amount": 12727
+       },
+       {
+        "name": "SKEWERED TOFU ROLL",
+        "quantity": 1,
+        "amount": 12727
+       },
+       {
+        "name": "EBI TEMPURA",
+        "quantity": 1,
+        "amount": 13636
+       },
+       {
+        "name": "KITSUNE UDON (KIDS)",
+        "quantity": 1,
+        "amount": 28182
+       }
+      ],
+      "subtotal": 132636,
+      "tax": 13264,
+      "service_charge": null,
+      "discount": null,
+      "total": 145900
+     },
+     "model": "qwen27b",
+     "ms": 6881.4,
+     "prompt_tokens": 1631,
+     "completion_tokens": 379
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "10,909 + 54,455 + 0 + 0 + 12,727 + 12,727 + ... = 132,636; subtotal 132,636"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "132,636 + tax 13,264 = 145,900; total 145,900"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "145,900"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 13,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 7089.3,
+     "steps": {
+      "d3": 171.4,
+      "extract": 6881.4,
+      "sumcheck": 0.03,
+      "db": 2.2
+     }
+    }
+   }
+  },
+  {
+   "label": {
+    "file": "23_good_cord021.jpg",
+    "group": "good",
+    "label": "Indonesian receipt (CORD)",
+    "source": "cord",
+    "expected_route": "extract",
+    "cord_index": 21,
+    "gt": {
+     "menu": [
+      {
+       "nm": "NASI GOR SFD TLR",
+       "unitprice": "35.000",
+       "cnt": "1",
+       "price": "Rp 35.000"
+      },
+      {
+       "nm": "ES TEH TAWAR",
+       "unitprice": "3.000",
+       "cnt": "1",
+       "price": "Rp 3.000"
+      }
+     ],
+     "total": {
+      "total_price": "Rp 38.000",
+      "cashprice": "Rp 50.000",
+      "changeprice": "Rp 12.000"
+     }
+    }
+   },
+   "events": {
+    "received": {
+     "id": "b22",
+     "file": "23_good_cord021.jpg",
+     "width": 960,
+     "height": 1280,
+     "image_url": "/api/uploads/b22"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-mini",
+     "ms": 183.9,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9873,
+       "invoice": 0.003,
+       "other_document": 0.0038,
+       "screenshot": 0.0004,
+       "photo": 0.0056
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.4894,
+       "bad_when": "low",
+       "threshold": 0.15,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0829,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.037,
+       "bad_when": "high",
+       "threshold": 0.6,
+       "borderline_from": 0.45,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0864,
+       "bad_when": "high",
+       "threshold": 0.62,
+       "borderline_from": 0.47,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0066,
+       "bad_when": "high",
+       "threshold": 0.5,
+       "borderline_from": 0.35,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": "Rp",
+      "items": [
+       {
+        "name": "NASI GOR SFD TLR",
+        "quantity": 1,
+        "amount": 35000
+       },
+       {
+        "name": "ES TEH TAWAR",
+        "quantity": 1,
+        "amount": 3000
+       }
+      ],
+      "subtotal": 38000,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 38000
+     },
+     "model": "qwen27b",
+     "ms": 2950.4,
+     "prompt_tokens": 1476,
+     "completion_tokens": 158
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "35,000 + 3,000 = 38,000; subtotal 38,000"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "subtotal 38,000; total 38,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "38,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 14,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 3171.5,
+     "steps": {
+      "d3": 183.9,
+      "extract": 2950.4,
+      "sumcheck": 0.03,
+      "db": 2.0
+     }
+    }
+   }
+  }
+ ],
+ "stats": {
+  "uploads": 23,
+  "extracted": 14,
+  "needs_review": 2,
+  "rejected": 9,
+  "by_problem": {
+   "complete": 3,
+   "blurry": 4,
+   "damaged": 2,
+   "glare": 3,
+   "multiple": 1,
+   "kind": 3
+  },
+  "money_total_by_currency": {
+   "CHF": 54.5,
+   "RM": 12.0,
+   "$": 63.38,
+   "IDR": 17000.0,
+   "Rp": 38000.0
+  },
+  "comparison": {
+   "images": 23,
+   "pending_baseline": 0,
+   "repeats": 0,
+   "time_ms": {
+    "d3": 2678.5,
+    "message": 1503.9,
+    "extract": 53212.2,
+    "baseline_27b": 16865.4
+   },
+   "model_seconds": {
+    "routed": 57.39,
+    "all_27b": 70.08
+   }
+  }
+ }
+}

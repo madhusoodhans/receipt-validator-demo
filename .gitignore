@@ -1,0 +1,38 @@
+# Python
+.venv/
+.venv-*/
+__pycache__/
+*.pyc
+
+# Node (web/ holds the built UI and IS committed, so the demo runs without Node)
+ui/node_modules/
+
+# Runtime data: uploads, the demo database, logs
+data/uploads/*
+!data/uploads/.gitkeep
+data/receipts.db
+data/receipts.db-*
+logs/
+*.log
+
+# Bench data and outputs that can be regenerated
+data/cord_test/
+# a saved web search page, not used by any script
+data/raw/good/imgres.html
+results/*.db
+
+# Router state created by deploy/up.sh (vllm-sr writes its runtime config, logs and model cache here)
+deploy/.vllm-sr/
+deploy/models/
+deploy/.state
+
+# Secrets and local settings
+.env
+.env.*
+
+# OS and editor junk
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

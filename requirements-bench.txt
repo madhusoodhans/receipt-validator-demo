@@ -1,0 +1,6 @@
+# Extras for the bench/ scripts only (not needed to run the demo). Install on top of requirements.txt:
+#   .venv/bin/pip install -r requirements.txt -r requirements-bench.txt
+# bench/download_cord.py: CORD v2 parquet files from the Hugging Face hub (huggingface_hub is in requirements.txt)
+pyarrow==26.0.0
+# bench/make_standins.py: synthetic glare overlay
+numpy==2.5.4

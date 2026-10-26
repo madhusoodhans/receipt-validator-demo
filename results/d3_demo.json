@@ -1,0 +1,821 @@
+[
+ {
+  "file": "01_good_berghotel.jpg",
+  "ms": 77.6,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9779857311120812,
+     "invoice": 0.014134188989744141,
+     "other_document": 0.004582598765149455,
+     "screenshot": 0.00045571469999774593,
+     "photo": 0.0028417664330274137
+    },
+    "confidence": 0.9212036922489546
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.9698277747997186
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.031724351798661954
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.014836463546620163
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.022605273114713064
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.005068595081453466
+   }
+  },
+  "route": "extract"
+ },
+ {
+  "file": "02_bad_blurry_hand.jpg",
+  "ms": 85.7,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.8296699645624515,
+     "invoice": 0.02817198489206728,
+     "other_document": 0.03434822013693346,
+     "screenshot": 0.002087326983805187,
+     "photo": 0.10572250342474265
+    },
+    "confidence": 0.6137102678415691
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.039885790344649265
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.9055792284497963
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.3222940958229928
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.39025660695174974
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.013061474722119198
+   }
+  },
+  "route": "reject"
+ },
+ {
+  "file": "03_good_matcha_invoice.jpg",
+  "ms": 70.7,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9501526009680805,
+     "invoice": 0.04173449164163264,
+     "other_document": 0.004483347410945747,
+     "screenshot": 0.0007127272152663617,
+     "photo": 0.0029168327640746957
+    },
+    "confidence": 0.8585937195294286
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.908944559375853
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.0269829234167707
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.04732743829264558
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.022473746555028252
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.0038814776604651087
+   }
+  },
+  "route": "extract"
+ },
+ {
+  "file": "04_bad_crumpled.jpg",
+  "ms": 106.0,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9929276068523014,
+     "invoice": 0.0017923586752830794,
+     "other_document": 0.002126390826765967,
+     "screenshot": 0.00021973644836891567,
+     "photo": 0.002933907197280615
+    },
+    "confidence": 0.9686681378375533
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.9505113817675206
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.05359978221954457
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.7308822870254517
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.033312062299129794
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.007187439497357353
+   }
+  },
+  "route": "reject"
+ },
+ {
+  "file": "05_good_cash_template.jpg",
+  "ms": 95.1,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9275476401267642,
+     "invoice": 0.022278353727504287,
+     "other_document": 0.02267042377034964,
+     "screenshot": 0.006426383320426452,
+     "photo": 0.0210771990549555
+    },
+    "confidence": 0.7799587188746637
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.8794379830360413
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.0434332658395141
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.04967206304556554
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.009339935642086279
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.009334158970653948
+   }
+  },
+  "route": "extract"
+ },
+ {
+  "file": "06_bad_faded_face.jpg",
+  "ms": 64.2,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.8412853386742836,
+     "invoice": 0.03173905800956718,
+     "other_document": 0.06488743812685636,
+     "screenshot": 0.00309238578070494,
+     "photo": 0.05899577940858791
+    },
+    "confidence": 0.616499582531481
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.1688416948569326
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.9128725340756416
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.5716979503631592
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.6898098793569172
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.04023219585072702
+   }
+  },
+  "route": "reject"
+ },
+ {
+  "file": "07_good_cord001.jpg",
+  "ms": 177.0,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9562550638264125,
+     "invoice": 0.01712745933676154,
+     "other_document": 0.012669274674751926,
+     "screenshot": 0.001087083445677159,
+     "photo": 0.012861118716396907
+    },
+    "confidence": 0.8563540885169778
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.33753548078344703
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.31521840944235296
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.21005712762560141
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.30847233533859253
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.028469277061896777
+   }
+  },
+  "route": "extract"
+ },
+ {
+  "file": "08_bad_pile.jpg",
+  "ms": 72.0,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.8259965431226004,
+     "invoice": 0.02653128915102406,
+     "other_document": 0.038586458436780956,
+     "screenshot": 0.002175786441275487,
+     "photo": 0.10670992284831915
+    },
+    "confidence": 0.6073753447686124
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.047402006525583684
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.7390448230789655
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.6636076369051717
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.3630549907684326
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.860120006792545
+   }
+  },
+  "route": "reject"
+ },
+ {
+  "file": "09_good_cord006.jpg",
+  "ms": 174.9,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9870352927210801,
+     "invoice": 0.0041791390197260655,
+     "other_document": 0.003937216320363776,
+     "screenshot": 0.0004664374359295184,
+     "photo": 0.004381914502900513
+    },
+    "confidence": 0.9472198542179248
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.7547024747117248
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.13002456530892006
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.3122616410255432
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.11831374995322898
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.021194542576924543
+   }
+  },
+  "route": "extract"
+ },
+ {
+  "file": "10_bad_stock_register.jpg",
+  "ms": 76.8,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "other_document",
+    "probabilities": {
+     "receipt": 0.028755547433316004,
+     "invoice": 0.12063549403540888,
+     "other_document": 0.7925738166357535,
+     "screenshot": 0.0021542116035822997,
+     "photo": 0.05588093029193926
+    },
+    "confidence": 0.5552109331364666
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.18414516472600154
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.14850909403020704
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.03210740199805128
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.06051371731820921
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.019006894454873684
+   }
+  },
+  "route": "reject"
+ },
+ {
+  "file": "11_good_cord010.jpg",
+  "ms": 89.4,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.984431372001265,
+     "invoice": 0.005241390094868054,
+     "other_document": 0.004371187852198813,
+     "screenshot": 0.0004425996653915694,
+     "photo": 0.0055134503862766145
+    },
+    "confidence": 0.9386066088509238
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.9165078283515184
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.14396094000281304
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.06989610195159912
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.22272110154636962
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.004992065794740222
+   }
+  },
+  "route": "extract"
+ },
+ {
+  "file": "12_bad_cut_off.jpg",
+  "ms": 65.0,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.34618833677200056,
+     "invoice": 0.157788634373708,
+     "other_document": 0.2152221501875772,
+     "screenshot": 0.005801498426963342,
+     "photo": 0.2749993802397509
+    },
+    "confidence": 0.1462366808409612
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.03241730096780769
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.9121254750499537
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.051128751661372464
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.6837456037846568
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.0177957031386155
+   }
+  },
+  "route": "reject"
+ },
+ {
+  "file": "13_good_cord015.jpg",
+  "ms": 91.4,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9889823769429797,
+     "invoice": 0.0022428392285572213,
+     "other_document": 0.002860260766417411,
+     "screenshot": 0.0004074029464978651,
+     "photo": 0.005507120115547793
+    },
+    "confidence": 0.9545079197665942
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.843285190414113
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.28984787196374323
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.09880255981387615
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.40143318768044745
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.007796632227630216
+   }
+  },
+  "route": "extract"
+ },
+ {
+  "file": "14_bad_glare.jpg",
+  "ms": 90.2,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9909476564874128,
+     "invoice": 0.0021537060225124117,
+     "other_document": 0.0025903074811402535,
+     "screenshot": 0.0003536563864479812,
+     "photo": 0.003954673622486519
+    },
+    "confidence": 0.9612565033675871
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.8699289223530567
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.28985730677417837
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.12190292957280471
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.5426748829282855
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.006636728600602611
+   }
+  },
+  "route": "reject"
+ },
+ {
+  "file": "15_good_cord022.jpg",
+  "ms": 166.8,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9736584261750321,
+     "invoice": 0.010320421135269497,
+     "other_document": 0.008798871973175838,
+     "screenshot": 0.0007180073178148533,
+     "photo": 0.006504273398707694
+    },
+    "confidence": 0.9050673655903501
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.5876371685374627
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.24978307263032767
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.060427136269009585
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.16203439235687256
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.01809082586487431
+   }
+  },
+  "route": "extract"
+ },
+ {
+  "file": "16_bad_screenshot.jpg",
+  "ms": 226.8,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "screenshot",
+    "probabilities": {
+     "receipt": 0.000404203462515797,
+     "invoice": 0.000328675732554138,
+     "other_document": 0.004679758175657733,
+     "screenshot": 0.9746201192383516,
+     "photo": 0.019967243390920722
+    },
+    "confidence": 0.9166795408628887
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.02897912633741382
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.03193846249763779
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.025598948678380164
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.022411414659618607
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.02266755814599155
+   }
+  },
+  "route": "reject"
+ },
+ {
+  "file": "17_good_cord025.jpg",
+  "ms": 177.4,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9896961671503075,
+     "invoice": 0.0037127799251961465,
+     "other_document": 0.0034533392943183203,
+     "screenshot": 0.0004148784011547609,
+     "photo": 0.0027228352290233197
+    },
+    "confidence": 0.9565597999994394
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.7618753427546523
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.140999104350832
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.05639584629990447
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.19407691929088172
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.011684536933898926
+   }
+  },
+  "route": "extract"
+ },
+ {
+  "file": "18_bad_dog_photo.jpg",
+  "ms": 77.5,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "photo",
+    "probabilities": {
+     "receipt": 0.00013454055131344956,
+     "invoice": 0.0001234203702536136,
+     "other_document": 0.0009061412700460109,
+     "screenshot": 9.030626376612224e-05,
+     "photo": 0.9987455915446208
+    },
+    "confidence": 0.993318591805545
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.001955258451315737
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.04036756157190424
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.013118912737424217
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.012598014898672145
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.0010492656299795726
+   }
+  },
+  "route": "reject"
+ },
+ {
+  "file": "19_good_cord027.jpg",
+  "ms": 170.4,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9929574489596447,
+     "invoice": 0.0013015862474622946,
+     "other_document": 0.0020255334188968095,
+     "screenshot": 0.0002741554278712071,
+     "photo": 0.0034412759461250196
+    },
+    "confidence": 0.9689363309255072
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.8581244561914597
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.0566489065313671
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.0900302393738961
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.06404016310066349
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.004641936225471127
+   }
+  },
+  "route": "extract"
+ },
+ {
+  "file": "20_good_cord029.jpg",
+  "ms": 167.5,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9829229806769025,
+     "invoice": 0.005681493960864015,
+     "other_document": 0.006303810192712028,
+     "screenshot": 0.0005402437251879748,
+     "photo": 0.004551471444333411
+    },
+    "confidence": 0.9336084372530522
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.5560415387153625
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.05771527224349707
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.23393598643231453
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.2657062788518154
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.016254127889152207
+   }
+  },
+  "route": "extract"
+ },
+ {
+  "file": "21_good_cord021.jpg",
+  "ms": 182.6,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.987256749821073,
+     "invoice": 0.002951261540972846,
+     "other_document": 0.00379033683419192,
+     "screenshot": 0.0003672034014407243,
+     "photo": 0.005634448402321531
+    },
+    "confidence": 0.9483850595103652
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.4893691095897821
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.0829231944026829
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.037034580552891376
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.08636922324918789
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.006559838217057822
+   }
+  },
+  "route": "extract"
+ }
+]

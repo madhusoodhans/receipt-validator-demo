@@ -1,0 +1,13 @@
+.root { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.empty { color: var(--text-secondary); padding: var(--space-3) 0; }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.row { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-2) 0; border-bottom: 1px solid var(--border-subtle); }
+.row:last-child { border-bottom: 0; }
+.thumb { width: 36px; height: 48px; object-fit: cover; border-radius: 6px; background: var(--surface-muted); }
+.main { display: flex; flex-direction: column; min-width: 0; }
+.title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meta { font-size: var(--text-xs); color: var(--text-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.message { font-size: var(--text-sm); color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.side { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.amount { font-variant-numeric: tabular-nums; font-weight: 500; white-space: nowrap; }
+.flags { display: flex; align-items: center; gap: var(--space-1); }

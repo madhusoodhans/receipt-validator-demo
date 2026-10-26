@@ -1,0 +1,40 @@
+.root { display: flex; flex-direction: column; gap: var(--space-4); }
+.h3 { font-size: var(--text-lg); font-family: var(--font-body); letter-spacing: var(--tracking-body); margin-bottom: var(--space-2); }
+
+.gpu { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3) var(--space-5) var(--space-4); border-radius: var(--radius-panel); border: 1px solid var(--border); background: var(--surface); }
+.saved { display: flex; flex-direction: column; gap: var(--space-1); }
+/* The counter sizes from --text-3xl; the headline scales it up through the token. */
+.savedNum { --text-3xl: var(--text-2xl); font-size: var(--text-2xl); line-height: 1.1; font-weight: 500; }
+.savedText { font-size: var(--text-sm); color: var(--text-secondary); }
+.compare { margin: 0; display: grid; gap: var(--space-2); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 4px var(--space-3); }
+.row dt { color: var(--text-secondary); }
+.row dd { margin: 0; }
+.row > :last-child { grid-column: 1 / -1; }
+.sec { --text-3xl: var(--text-lg); }
+/* What the boxes below cover: this image, or the images of the current Play all. */
+.heading { font-size: var(--text-xl); text-align: center; }
+.note { font-size: var(--text-xs); color: var(--text-secondary); }
+/* The measurements were made on another GPU than this server's (GET /api/stats measurement_warning). */
+.warning { font-size: var(--text-xs); color: var(--warning); border-left: 2px solid var(--warning); padding-left: var(--space-2); }
+
+.bar { position: relative; display: block; height: 12px; border-radius: var(--radius-pill); background: var(--border); overflow: hidden; }
+.barFill { position: absolute; inset: 0; transform-origin: left center; border-radius: var(--radius-pill); background: var(--text-secondary); }
+.bar[data-tone="accent"] .barFill { background: var(--success); }
+
+.gpu .h3 { margin-bottom: 0; }
+.gpu .bar { height: 8px; }
+
+/* Running totals, one compact line under the rejections heading. */
+.counts { margin: 0 0 var(--space-3); display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); font-size: var(--text-sm); }
+.count { display: flex; align-items: baseline; gap: 5px; }
+.count dt { color: var(--text-secondary); }
+.count dd { margin: 0; font-weight: 500; }
+.count[data-kind="1"]::before, .count[data-kind="2"]::before, .count[data-kind="3"]::before { content: ""; align-self: center; width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+.count[data-kind="2"]::before { background: var(--warning); }
+.count[data-kind="3"]::before { background: var(--danger); }
+
+.problems { display: flex; flex-direction: column; }
+.problemList { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.problemList li { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr) 2rem; align-items: center; gap: var(--space-3); }
+.problemList li > :last-child { text-align: right; font-weight: 500; }

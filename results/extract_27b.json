@@ -1,0 +1,642 @@
+[
+ {
+  "file": "01_good_cord001.jpg",
+  "s": 4.38,
+  "prompt_tokens": 1285,
+  "completion_tokens": 201,
+  "got": {
+   "store_name": null,
+   "date": "11/14/2018",
+   "currency": "IDR",
+   "items": [
+    {
+     "name": "J.STB PROMO",
+     "quantity": 1,
+     "amount": 17500
+    },
+    {
+     "name": "Y.B.BAT",
+     "quantity": 1,
+     "amount": 46000
+    },
+    {
+     "name": "Y.BASO PROM",
+     "quantity": 1,
+     "amount": 27500
+    }
+   ],
+   "subtotal": 91000,
+   "tax": null,
+   "service_charge": null,
+   "discount": null,
+   "total": 91000
+  },
+  "truth": {
+   "total": 91000,
+   "subtotal": null,
+   "tax": null,
+   "items": [
+    [
+     "J.STB PROMO",
+     17500
+    ],
+    [
+     "Y.B.BAT",
+     46000
+    ],
+    [
+     "Y.BASO PROM",
+     27500
+    ]
+   ]
+  },
+  "total_ok": true,
+  "subtotal_ok": true,
+  "tax_ok": true,
+  "items_ok": true
+ },
+ {
+  "file": "02_good_cord006.jpg",
+  "s": 4.02,
+  "prompt_tokens": 1165,
+  "completion_tokens": 232,
+  "got": {
+   "store_name": null,
+   "date": null,
+   "currency": "KRW",
+   "items": [
+    {
+     "name": "EGG TART",
+     "quantity": 1,
+     "unit_price": 13000,
+     "amount": 13000
+    },
+    {
+     "name": "CHOCO CUSTARD PASTRY",
+     "quantity": 2,
+     "unit_price": 12000,
+     "amount": 24000
+    },
+    {
+     "name": "REDBEAN BREAD",
+     "quantity": 1,
+     "unit_price": 9000,
+     "amount": 9000
+    }
+   ],
+   "subtotal": 46000,
+   "tax": null,
+   "service_charge": null,
+   "discount": null,
+   "total": 46000
+  },
+  "truth": {
+   "total": 46000,
+   "subtotal": null,
+   "tax": null,
+   "items": [
+    [
+     "EGG TART",
+     13000
+    ],
+    [
+     "CHOCO CUS ARD PASTRY",
+     24000
+    ],
+    [
+     "REDBEAN BREAD",
+     9000
+    ]
+   ]
+  },
+  "total_ok": true,
+  "subtotal_ok": true,
+  "tax_ok": true,
+  "items_ok": true
+ },
+ {
+  "file": "03_good_cord010.jpg",
+  "s": 2.5,
+  "prompt_tokens": 571,
+  "completion_tokens": 140,
+  "got": {
+   "store_name": "Auntie Anne's",
+   "date": null,
+   "currency": "IDR",
+   "items": [
+    {
+     "name": "CINNAMON SUGAR",
+     "quantity": 1,
+     "unit_price": 17000,
+     "amount": 17000
+    }
+   ],
+   "subtotal": 17000,
+   "tax": null,
+   "service_charge": null,
+   "discount": null,
+   "total": 17000
+  },
+  "truth": {
+   "total": 17000,
+   "subtotal": 17000,
+   "tax": null,
+   "items": [
+    [
+     "CINNAMON SUGAR",
+     17000
+    ]
+   ]
+  },
+  "total_ok": true,
+  "subtotal_ok": true,
+  "tax_ok": true,
+  "items_ok": true
+ },
+ {
+  "file": "04_good_cord015.jpg",
+  "s": 2.59,
+  "prompt_tokens": 571,
+  "completion_tokens": 157,
+  "got": {
+   "store_name": "XXI café",
+   "date": null,
+   "currency": "IDR",
+   "items": [
+    {
+     "name": "Lemon Tea (L)",
+     "quantity": 1,
+     "amount": 25000
+    },
+    {
+     "name": "Caramel Small",
+     "quantity": 1,
+     "amount": 38000
+    }
+   ],
+   "subtotal": 63000,
+   "tax": null,
+   "service_charge": null,
+   "discount": null,
+   "total": 63000
+  },
+  "truth": {
+   "total": 63000,
+   "subtotal": null,
+   "tax": null,
+   "items": [
+    [
+     "Lemon Tea (L)",
+     25000
+    ],
+    [
+     "Caramel Small",
+     38000
+    ]
+   ]
+  },
+  "total_ok": true,
+  "subtotal_ok": true,
+  "tax_ok": true,
+  "items_ok": true
+ },
+ {
+  "file": "05_good_cord022.jpg",
+  "s": 3.09,
+  "prompt_tokens": 1165,
+  "completion_tokens": 175,
+  "got": {
+   "store_name": null,
+   "date": null,
+   "currency": "IDR",
+   "items": [
+    {
+     "name": "[MD] SOFT STEAMED CHEESEC",
+     "quantity": 2,
+     "unit_price": null,
+     "amount": 20000
+    },
+    {
+     "name": "[MD] SOFT STEAMED CHOCOCA",
+     "quantity": 2,
+     "unit_price": null,
+     "amount": 20000
+    }
+   ],
+   "subtotal": null,
+   "tax": null,
+   "service_charge": null,
+   "discount": null,
+   "total": 40000
+  },
+  "truth": {
+   "total": 40000,
+   "subtotal": null,
+   "tax": null,
+   "items": [
+    [
+     "[MD] SOFT STEAMED CHEESEC",
+     20000
+    ],
+    [
+     "[MD] SOFT STEAMED CHOCOCA",
+     20000
+    ]
+   ]
+  },
+  "total_ok": true,
+  "subtotal_ok": true,
+  "tax_ok": true,
+  "items_ok": true
+ },
+ {
+  "file": "06_good_cord025.jpg",
+  "s": 3.47,
+  "prompt_tokens": 1165,
+  "completion_tokens": 199,
+  "got": {
+   "store_name": null,
+   "date": null,
+   "currency": "IDR",
+   "items": [
+    {
+     "name": "TWIST STRAWBERRY DONUT",
+     "quantity": 1,
+     "amount": 10000
+    },
+    {
+     "name": "TLJ CROQUETTE",
+     "quantity": 1,
+     "amount": 17000
+    },
+    {
+     "name": "POTATO PEPPER BAGEL",
+     "quantity": 1,
+     "amount": 16000
+    }
+   ],
+   "subtotal": 43000,
+   "tax": null,
+   "service_charge": null,
+   "discount": null,
+   "total": 43000
+  },
+  "truth": {
+   "total": 43000,
+   "subtotal": null,
+   "tax": null,
+   "items": [
+    [
+     "TWIST STRAWBERRY DONUT",
+     10000
+    ],
+    [
+     "TLJ CROQUETTE",
+     17000
+    ],
+    [
+     "POTATO PEPPER BAGEL",
+     16000
+    ]
+   ]
+  },
+  "total_ok": true,
+  "subtotal_ok": true,
+  "tax_ok": true,
+  "items_ok": true
+ },
+ {
+  "file": "07_good_cord027.jpg",
+  "s": 3.24,
+  "prompt_tokens": 1165,
+  "completion_tokens": 185,
+  "got": {
+   "store_name": null,
+   "date": null,
+   "currency": "IDR",
+   "items": [
+    {
+     "name": "PKT AYAM",
+     "quantity": 1,
+     "unit_price": 33000,
+     "amount": 33000
+    },
+    {
+     "name": "GULAI OTAK",
+     "quantity": 1,
+     "unit_price": 23000,
+     "amount": 23000
+    }
+   ],
+   "subtotal": 56000,
+   "tax": 5600,
+   "service_charge": null,
+   "discount": null,
+   "total": 61600
+  },
+  "truth": {
+   "total": 61600,
+   "subtotal": 56000,
+   "tax": 5600,
+   "items": [
+    [
+     "PKT AYAM",
+     33000
+    ],
+    [
+     "GULAI OTAK",
+     23000
+    ]
+   ]
+  },
+  "total_ok": true,
+  "subtotal_ok": true,
+  "tax_ok": true,
+  "items_ok": true
+ },
+ {
+  "file": "08_good_cord029.jpg",
+  "s": 6.5,
+  "prompt_tokens": 1165,
+  "completion_tokens": 381,
+  "got": {
+   "store_name": null,
+   "date": null,
+   "currency": "IDR",
+   "items": [
+    {
+     "name": "COLD OCHA",
+     "quantity": 1,
+     "amount": 10909
+    },
+    {
+     "name": "BCA PROMO",
+     "quantity": 1,
+     "amount": 54455
+    },
+    {
+     "name": "ABURA UDON SPICY",
+     "quantity": 1,
+     "amount": 0
+    },
+    {
+     "name": "KAKE UDON",
+     "quantity": 1,
+     "amount": 0
+    },
+    {
+     "name": "SKEWERED SHUMAI",
+     "quantity": 1,
+     "amount": 12727
+    },
+    {
+     "name": "SKEWERED TOFU ROLL",
+     "quantity": 1,
+     "amount": 12727
+    },
+    {
+     "name": "EBI TEMPURA",
+     "quantity": 1,
+     "amount": 13636
+    },
+    {
+     "name": "KITSUNE UDON (KIDS)",
+     "quantity": 1,
+     "amount": 28182
+    }
+   ],
+   "subtotal": 132636,
+   "tax": 13264,
+   "service_charge": null,
+   "discount": null,
+   "total": 145900
+  },
+  "truth": {
+   "total": 145900,
+   "subtotal": 132636,
+   "tax": 13264,
+   "items": [
+    [
+     "COLD OCHA",
+     10909
+    ],
+    [
+     "BCA PROMO",
+     54455
+    ],
+    [
+     "SKEWERED SHUMAI",
+     12727
+    ],
+    [
+     "SKEWERED TOFU ROLL",
+     12727
+    ],
+    [
+     "EBI TEMPURA",
+     13636
+    ],
+    [
+     "KITSUNE UDON (KIDS)",
+     28182
+    ]
+   ]
+  },
+  "total_ok": true,
+  "subtotal_ok": true,
+  "tax_ok": true,
+  "items_ok": true
+ },
+ {
+  "file": "09_good_cord044.jpg",
+  "s": 2.39,
+  "prompt_tokens": 1165,
+  "completion_tokens": 133,
+  "got": {
+   "store_name": "XXI cafe",
+   "date": null,
+   "currency": "IDR",
+   "items": [
+    {
+     "name": "Combo 1",
+     "quantity": 1,
+     "unit_price": 30000,
+     "amount": 30000
+    }
+   ],
+   "subtotal": 30000,
+   "tax": null,
+   "service_charge": null,
+   "discount": null,
+   "total": 30000
+  },
+  "truth": {
+   "total": 30000,
+   "subtotal": null,
+   "tax": null,
+   "items": [
+    [
+     "Combo 1",
+     30000
+    ]
+   ]
+  },
+  "total_ok": true,
+  "subtotal_ok": true,
+  "tax_ok": true,
+  "items_ok": true
+ },
+ {
+  "file": "10_good_cord047.jpg",
+  "s": 3.94,
+  "prompt_tokens": 1165,
+  "completion_tokens": 227,
+  "got": {
+   "store_name": null,
+   "date": null,
+   "currency": "IDR",
+   "items": [
+    {
+     "name": "COPIA 1 /GB",
+     "quantity": 1,
+     "unit_price": 45000,
+     "amount": 45000
+    },
+    {
+     "name": "PLASTIC BAG RED CENTRAL SI",
+     "quantity": 1,
+     "unit_price": 0,
+     "amount": 0
+    },
+    {
+     "name": "COPIA 1 /GB",
+     "quantity": 1,
+     "unit_price": 18000,
+     "amount": 18000
+    }
+   ],
+   "subtotal": null,
+   "tax": null,
+   "service_charge": null,
+   "discount": 0,
+   "total": 63000
+  },
+  "truth": {
+   "total": 63000,
+   "subtotal": null,
+   "tax": null,
+   "items": [
+    [
+     "COPIA 1 /GB",
+     45000
+    ],
+    [
+     "PLASTIC BAG RED CENTRAL SI",
+     0
+    ],
+    [
+     "COPIA 1 /GB",
+     18000
+    ]
+   ]
+  },
+  "total_ok": true,
+  "subtotal_ok": true,
+  "tax_ok": true,
+  "items_ok": true
+ },
+ {
+  "file": "11_good_cord036.jpg",
+  "s": 7.9,
+  "prompt_tokens": 9301,
+  "completion_tokens": 173,
+  "got": {
+   "store_name": null,
+   "date": null,
+   "currency": "IDR",
+   "items": [
+    {
+     "name": "XXL Crispy Chicken",
+     "quantity": 1,
+     "unit_price": 40000,
+     "amount": 40000
+    },
+    {
+     "name": "- Sedang",
+     "quantity": 1,
+     "unit_price": 0,
+     "amount": 0
+    }
+   ],
+   "subtotal": 40000,
+   "tax": null,
+   "service_charge": null,
+   "discount": null,
+   "total": 40000
+  },
+  "truth": {
+   "total": 40000,
+   "subtotal": 40000,
+   "tax": null,
+   "items": [
+    [
+     "XXL Crispy Chicken",
+     40000
+    ]
+   ]
+  },
+  "total_ok": true,
+  "subtotal_ok": true,
+  "tax_ok": true,
+  "items_ok": true
+ },
+ {
+  "file": "12_good_cord021.jpg",
+  "s": 3.27,
+  "prompt_tokens": 1285,
+  "completion_tokens": 183,
+  "got": {
+   "store_name": null,
+   "date": null,
+   "currency": "Rp",
+   "items": [
+    {
+     "name": "NASI GOR SFD TLR",
+     "quantity": 1,
+     "unit_price": 35000,
+     "amount": 35000
+    },
+    {
+     "name": "ES TEH TAWAR",
+     "quantity": 1,
+     "unit_price": 3000,
+     "amount": 3000
+    }
+   ],
+   "subtotal": 38000,
+   "tax": null,
+   "service_charge": null,
+   "discount": null,
+   "total": 38000
+  },
+  "truth": {
+   "total": 38000,
+   "subtotal": null,
+   "tax": null,
+   "items": [
+    [
+     "NASI GOR SFD TLR",
+     35000
+    ],
+    [
+     "ES TEH TAWAR",
+     3000
+    ]
+   ]
+  },
+  "total_ok": true,
+  "subtotal_ok": true,
+  "tax_ok": true,
+  "items_ok": true
+ }
+]

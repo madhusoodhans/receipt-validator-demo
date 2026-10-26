@@ -1,0 +1,1322 @@
+[
+ {
+  "file": "01_good_cord001.jpg",
+  "ms": 191.7,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.992750000213011,
+      "invoice": 0.0033723137559137,
+      "other_document": 0.001194274576799822,
+      "screenshot": 0.0007286604604091573,
+      "photo": 0.0019547509938663958
+     },
+     "confidence": 0.9677440641813094
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.8646292944142012
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.40258822425674057
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.37679038574666934
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.32523856608637775
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.1899203658103943
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.06809991886541791
+    },
+    "quality": {
+     "type": "score",
+     "score": 0.9482230104770808,
+     "probabilities": {
+      "0": 0.30244242694314677,
+      "1": 0.5255203168761683,
+      "2": 0.09340907494114227,
+      "3": 0.07862818123954264
+     },
+     "confidence": 0.19123467214280176,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 10605,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "02_good_cord006.jpg",
+  "ms": 101.4,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9963494306120282,
+      "invoice": 0.0013641545928321926,
+      "other_document": 0.0006825123404635838,
+      "screenshot": 0.00048447824113767986,
+      "photo": 0.001119424213538381
+     },
+     "confidence": 0.9820291119680584
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.8652249703589823
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.5312871336936951
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.4358744453154339
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.4270375712491529
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.36689239740371704
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.08651371171305013
+    },
+    "quality": {
+     "type": "score",
+     "score": 0.9109548047080133,
+     "probabilities": {
+      "0": 0.2902687386603553,
+      "1": 0.5691239619412695,
+      "2": 0.079991055428382,
+      "3": 0.06061624396999326
+     },
+     "confidence": 0.24128544325333934,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 9645,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "03_good_cord010.jpg",
+  "ms": 50.8,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9961074603149808,
+      "invoice": 0.0017351979770187308,
+      "other_document": 0.0007551044248968477,
+      "screenshot": 0.0004351195566153716,
+      "photo": 0.0009671177264882722
+     },
+     "confidence": 0.981096579038368
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.9040557742118835
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.509799063205719
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.38850994740396894
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.5096445083618164
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.25477170944213867
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.0377048146468194
+    },
+    "quality": {
+     "type": "score",
+     "score": 1.2302315303752283,
+     "probabilities": {
+      "0": 0.2262837656224896,
+      "1": 0.4541984931885747,
+      "2": 0.1825201863801535,
+      "3": 0.13699755480878217
+     },
+     "confidence": 0.07849074208278195,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 4893,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "04_good_cord015.jpg",
+  "ms": 54.4,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9973323137950076,
+      "invoice": 0.0012009413934660304,
+      "other_document": 0.0005233185300492848,
+      "screenshot": 0.0002786012466907859,
+      "photo": 0.0006648250347862294
+     },
+     "confidence": 0.9864311142103657
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.9410253096944825
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.4953833818435669
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.4229244761787511
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.35906122204843827
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.4260277323118528
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.04994965605175192
+    },
+    "quality": {
+     "type": "score",
+     "score": 1.4198095971402644,
+     "probabilities": {
+      "0": 0.18706373312879404,
+      "1": 0.39649708877512546,
+      "2": 0.22600502592310232,
+      "3": 0.19043415217297816
+     },
+     "confidence": 0.03894170206881131,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 4893,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "05_good_cord022.jpg",
+  "ms": 94.3,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9937285871987082,
+      "invoice": 0.00344319810357923,
+      "other_document": 0.0009983712299972492,
+      "screenshot": 0.0005159558815398787,
+      "photo": 0.001313887586175472
+     },
+     "confidence": 0.9718533454942894
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.8112972853884506
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.4520982667178432
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.32234160072629453
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.5040834100271288
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.2364559769630432
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.08592767885435106
+    },
+    "quality": {
+     "type": "score",
+     "score": 0.9680402132269723,
+     "probabilities": {
+      "0": 0.29416352291283365,
+      "1": 0.5235459169481254,
+      "2": 0.1023773841382758,
+      "3": 0.07991317600076514
+     },
+     "confidence": 0.18199208794909805,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 9645,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "06_good_cord025.jpg",
+  "ms": 92.7,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9965915614381172,
+      "invoice": 0.0017071765502384543,
+      "other_document": 0.0005943120883802612,
+      "screenshot": 0.0003416250088133601,
+      "photo": 0.0007653249144506574
+     },
+     "confidence": 0.9832767236844179
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.920344378041313
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.46667100588467697
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.3543750047683716
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.44266825914382935
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.4771917902586398
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.05556841836097232
+    },
+    "quality": {
+     "type": "score",
+     "score": 1.3529291854181642,
+     "probabilities": {
+      "0": 0.22255044348688255,
+      "1": 0.3878780719005487,
+      "2": 0.20366334032009067,
+      "3": 0.1859081442924781
+     },
+     "confidence": 0.034384138754577465,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 9645,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "07_good_cord027.jpg",
+  "ms": 89.1,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9949068966818291,
+      "invoice": 0.0032016857867112358,
+      "other_document": 0.0006074558807390789,
+      "screenshot": 0.0004311020836343024,
+      "photo": 0.0008528595670862773
+     },
+     "confidence": 0.9768008631974653
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.9101204004847884
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.42624066550256806
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.38662062247456974
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.29628328371892226
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.40749019384384155
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.07488241325625826
+    },
+    "quality": {
+     "type": "score",
+     "score": 1.7086067205630684,
+     "probabilities": {
+      "0": 0.17088687127518506,
+      "1": 0.21668822293255388,
+      "2": 0.34535621974626873,
+      "3": 0.2670686860459923
+     },
+     "confidence": 0.023967708640541763,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 9645,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "08_good_cord029.jpg",
+  "ms": 102.6,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9969564925381972,
+      "invoice": 0.0013349557895386151,
+      "other_document": 0.0006210898276609968,
+      "screenshot": 0.00029543376992922997,
+      "photo": 0.000792028074673981
+     },
+     "confidence": 0.9847662867344933
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.8518770590983945
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.37766943111005835
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.31006117731150457
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.48487326412637616
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.43796410786891626
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.09014652803758573
+    },
+    "quality": {
+     "type": "score",
+     "score": 1.0531310733174453,
+     "probabilities": {
+      "0": 0.29899063483632626,
+      "1": 0.4548079933612943,
+      "2": 0.14028103545098725,
+      "3": 0.10592033635139214
+     },
+     "confidence": 0.11083549277845806,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 9645,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "09_good_cord044.jpg",
+  "ms": 90.2,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9948781299320106,
+      "invoice": 0.0013838263590877943,
+      "other_document": 0.0013938815004507742,
+      "screenshot": 0.0007762003237297658,
+      "photo": 0.0015679618847210543
+     },
+     "confidence": 0.9757254799735315
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.8213787797298846
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.48526510684102137
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.35184188628667934
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.3947880087729695
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.18293313954670934
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.09021694683669976
+    },
+    "quality": {
+     "type": "score",
+     "score": 0.949542656164934,
+     "probabilities": {
+      "0": 0.29613125544884245,
+      "1": 0.533795479936864,
+      "2": 0.0944726176148103,
+      "3": 0.07560064699948316
+     },
+     "confidence": 0.19671491759854942,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 9645,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "10_good_cord047.jpg",
+  "ms": 92.1,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9880543350023154,
+      "invoice": 0.007741918320797626,
+      "other_document": 0.001128443982320786,
+      "screenshot": 0.0009414992526940188,
+      "photo": 0.002133803441872145
+     },
+     "confidence": 0.9522504483209635
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.8432572013625086
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.46422429489420963
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.3636615655623933
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.4217474036888062
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.2701988002717137
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.10903395535973971
+    },
+    "quality": {
+     "type": "score",
+     "score": 0.9472618993167721,
+     "probabilities": {
+      "0": 0.33026188858048533,
+      "1": 0.46785316219816475,
+      "2": 0.12624611054544232,
+      "3": 0.07563883867590754
+     },
+     "confidence": 0.1503817388160842,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 9645,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "11_good_cord036.jpg",
+  "ms": 239.3,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9947559223814177,
+      "invoice": 0.0021402394484220924,
+      "other_document": 0.0009564968054653648,
+      "screenshot": 0.0007100824297104963,
+      "photo": 0.0014372589349843528
+     },
+     "confidence": 0.9754008088897645
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.7859315276145935
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.5237190127372742
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.4055436849594116
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.3988688171247
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.19438191669041166
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.05787433948601895
+    },
+    "quality": {
+     "type": "score",
+     "score": 0.9772472969162203,
+     "probabilities": {
+      "0": 0.3065794224507892,
+      "1": 0.49608897030684984,
+      "2": 0.11083649511771258,
+      "3": 0.0864951121246484
+     },
+     "confidence": 0.159097196829605,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 13725,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "12_good_cord021.jpg",
+  "ms": 95.4,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9917590895531736,
+      "invoice": 0.004997151142594839,
+      "other_document": 0.0009682126963853005,
+      "screenshot": 0.0007165512724771002,
+      "photo": 0.0015589953353692084
+     },
+     "confidence": 0.9647882378326349
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.8161495096750339
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.43222475051879883
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.3533600972104102
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.19076023143111626
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.17874327993050457
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.1056259474390906
+    },
+    "quality": {
+     "type": "score",
+     "score": 1.180077776312828,
+     "probabilities": {
+      "0": 0.2644011974334717,
+      "1": 0.42541739344596863,
+      "2": 0.17588384449481964,
+      "3": 0.13429756462574005
+     },
+     "confidence": 0.06900708950850942,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 10605,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "13_blurry_synth.jpg",
+  "ms": 90.7,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9851169747884261,
+      "invoice": 0.007664269893507247,
+      "other_document": 0.0029342235547636544,
+      "screenshot": 0.0010065470288883815,
+      "photo": 0.0032779847344145932
+     },
+     "confidence": 0.9410263745946003
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.7511632554406413
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.368244509942666
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.3218834602271479
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.6132002703428108
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.3077883926693084
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.11356778934073919
+    },
+    "quality": {
+     "type": "score",
+     "score": 0.7815493129427276,
+     "probabilities": {
+      "0": 0.2760278988565987,
+      "1": 0.6851712137248283,
+      "2": 0.020024563037819833,
+      "3": 0.01877632438075321
+     },
+     "confidence": 0.44649369019375407,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 9645,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "14_cutoff_synth.jpg",
+  "ms": 2890.4,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "other_document",
+     "probabilities": {
+      "receipt": 0.3066503474112678,
+      "invoice": 0.1140951912275372,
+      "other_document": 0.39100081602485814,
+      "screenshot": 0.04559207064491668,
+      "photo": 0.14266157469142024
+     },
+     "confidence": 0.13267666317591165
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.4457947015762329
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.04166246065846425
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.11346701786220859
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.6767171419645207
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.059134858490249916
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.12019646167755127
+    },
+    "quality": {
+     "type": "score",
+     "score": 0.5109632820311781,
+     "probabilities": {
+      "0": 0.5173438763369625,
+      "1": 0.4643208958938676,
+      "2": 0.008363297170199001,
+      "3": 0.009971930598970826
+     },
+     "confidence": 0.43509020393013975,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 3165,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "15_crumpled_cord004.jpg",
+  "ms": 272.7,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9933914583939348,
+      "invoice": 0.0033008178952616952,
+      "other_document": 0.0014346436121507958,
+      "screenshot": 0.0005720315751940261,
+      "photo": 0.0013010485234586826
+     },
+     "confidence": 0.9703285000450925
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.8980609841500296
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.4650172154600258
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.5326066454468177
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.44562894105911255
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.37756522760183975
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.2044417617719578
+    },
+    "quality": {
+     "type": "score",
+     "score": 1.0898711986085117,
+     "probabilities": {
+      "0": 0.24840127116740696,
+      "1": 0.4911865032552667,
+      "2": 0.18255198137873396,
+      "3": 0.07786024419859233
+     },
+     "confidence": 0.13121959257672877,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 9645,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "16_glare_synth.jpg",
+  "ms": 53.6,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9977933777243597,
+      "invoice": 0.0008804881430562692,
+      "other_document": 0.0005360052141894565,
+      "screenshot": 0.00022575410684142483,
+      "photo": 0.0005643748115530817
+     },
+     "confidence": 0.9884728986363897
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.9465053821973988
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.46203388386863814
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.39821274881920965
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.3676442284796102
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.41385938483895707
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.05238919038160429
+    },
+    "quality": {
+     "type": "score",
+     "score": 1.4387722880562925,
+     "probabilities": {
+      "0": 0.19891922183936672,
+      "1": 0.3679551506075896,
+      "2": 0.22855974521042816,
+      "3": 0.20456588234261555
+     },
+     "confidence": 0.02541015782047018,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 4893,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "17_two_receipts_synth.jpg",
+  "ms": 127.7,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "receipt",
+     "probabilities": {
+      "receipt": 0.9954356596944515,
+      "invoice": 0.0018987769813977287,
+      "other_document": 0.0007108018067754655,
+      "screenshot": 0.0005908730117766517,
+      "photo": 0.001363888505598716
+     },
+     "confidence": 0.9782557621609885
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.9273911671275596
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.6235647015701323
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.4400013518333838
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.33683427164452456
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.20894751575432766
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.9555941713348682
+    },
+    "quality": {
+     "type": "score",
+     "score": 1.2930088025186421,
+     "probabilities": {
+      "0": 0.2157428510074102,
+      "1": 0.41885950053600224,
+      "2": 0.2220436433871229,
+      "3": 0.14335400506946466
+     },
+     "confidence": 0.056489454032498054,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 13733,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "18_photo_dog.jpg",
+  "ms": 50.4,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "photo",
+     "probabilities": {
+      "receipt": 0.0063250577283442974,
+      "invoice": 0.002160969663004758,
+      "other_document": 0.012022211255578081,
+      "screenshot": 0.003665911977021668,
+      "photo": 0.9758258493760512
+     },
+     "confidence": 0.9112247571450692
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.07912912042895436
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.022677468900356084
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.05074021422616419
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.047627695258981695
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.007623496906196476
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.01916355876584494
+    },
+    "quality": {
+     "type": "score",
+     "score": 0.3424371434023284,
+     "probabilities": {
+      "0": 0.7099979362080202,
+      "1": 0.25732329736011483,
+      "2": 0.01292245325338126,
+      "3": 0.019756313178483673
+     },
+     "confidence": 0.4761630894064869,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 3565,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "19_screenshot_chat.jpg",
+  "ms": 135.6,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "screenshot",
+     "probabilities": {
+      "receipt": 0.0010446584894163444,
+      "invoice": 0.0008633952912139906,
+      "other_document": 0.005596212636359892,
+      "screenshot": 0.9155064322183707,
+      "photo": 0.07698930136463912
+     },
+     "confidence": 0.8008571754748302
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.11514910712393799
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.08016257107500092
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.07833797893200704
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.0980852707935165
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.03646255975272417
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.07047352404813541
+    },
+    "quality": {
+     "type": "score",
+     "score": 0.37787685120988435,
+     "probabilities": {
+      "0": 0.7338079728133086,
+      "1": 0.19357700429584454,
+      "2": 0.03354522175850099,
+      "3": 0.039069801132345934
+     },
+     "confidence": 0.43334562218684713,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 13165,
+    "output_tokens": 0
+   }
+  }
+ },
+ {
+  "file": "20_menu_rendered.jpg",
+  "ms": 99.4,
+  "result": {
+   "answers": {
+    "kind": {
+     "type": "choice",
+     "choice": "other_document",
+     "probabilities": {
+      "receipt": 0.19213067080615306,
+      "invoice": 0.002142041997844077,
+      "other_document": 0.7945790305971597,
+      "screenshot": 0.0024581971178124903,
+      "photo": 0.008690059481030639
+     },
+     "confidence": 0.646574411196351
+    },
+    "complete": {
+     "type": "noul",
+     "noul": 0.785022808013987
+    },
+    "blurry": {
+     "type": "noul",
+     "noul": 0.07050198316574097
+    },
+    "damaged": {
+     "type": "noul",
+     "noul": 0.1481664522935883
+    },
+    "glare": {
+     "type": "noul",
+     "noul": 0.08172778419877064
+    },
+    "total_readable": {
+     "type": "noul",
+     "noul": 0.03299099927402288
+    },
+    "multiple": {
+     "type": "noul",
+     "noul": 0.04557121782748792
+    },
+    "quality": {
+     "type": "score",
+     "score": 2.210066763606663,
+     "probabilities": {
+      "0": 0.07043016387089354,
+      "1": 0.07443872506445386,
+      "2": 0.42976529465174845,
+      "3": 0.4253658164129041
+     },
+     "confidence": 0.2016235151257778,
+     "legend": {
+      "0": "Unusable",
+      "1": "Poor",
+      "2": "Fine",
+      "3": "Clean"
+     }
+    }
+   },
+   "model": "vllm-sr/d3-lite",
+   "usage": {
+    "input_tokens": 10605,
+    "output_tokens": 0
+   }
+  }
+ }
+]

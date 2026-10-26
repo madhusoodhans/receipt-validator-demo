@@ -1,0 +1,13 @@
+# Demo server (app/). Tested with Python 3.14.7; Python 3.10 or newer should work (3.12+ recommended).
+# Pinned from the working .venv (huggingface_hub: the version our download hosts use).
+requests==2.34.2
+pillow==12.3.0
+# HEIC uploads (the iPhone camera format). Optional: without it HEIC uploads are refused with a clear error.
+pillow-heif==1.8.1
+# hf CLI for deploy/download_models.sh (not imported by the app)
+huggingface_hub==2.2.0
+# requests' own dependencies, pinned for repeatable installs
+certifi==2026.7.22
+charset-normalizer==3.5.2
+idna==3.20
+urllib3==2.8.0
