@@ -4,7 +4,8 @@
 #   qwen27b  Qwen/Qwen3.8-27B  127.0.0.1:8102  reads accepted receipts into JSON (image input)
 #   qwen4b   Qwen/Qwen3.5-4B   127.0.0.1:8104  writes the re-upload message for rejected images (text only)
 #
-# Image input is on (no --language-model-only): the 27B must see the receipt. Thinking is off by default.
+# Image input is on for the 27B (it reads the receipt). The 4B only gets text, so it runs with --language-model-only:
+# no image encoder, less memory to profile at start. Thinking is off by default.
 # The container joins the vllm-sr-network Docker network when it exists, so the Router reaches it by container name
 # (rid-qwen27b / rid-qwen4b, as in deploy/router.yaml). Models are read from the Hugging Face cache, offline
 # (run deploy/download_models.sh first).
@@ -24,8 +25,8 @@ IMAGE="${IMAGE:-vllm/vllm-openai-rocm:v0.29.0}"
 NETWORK=vllm-sr-network
 
 case "${1:-}" in
-  qwen27b) MODEL=Qwen/Qwen3.8-27B; PORT=8102; UTIL="${GPU_UTIL:-0.62}" ;;
-  qwen4b)  MODEL=Qwen/Qwen3.5-4B;  PORT=8104; UTIL="${GPU_UTIL:-0.08}" ;;
+  qwen27b) MODEL=Qwen/Qwen3.8-27B; PORT=8102; UTIL="${GPU_UTIL:-0.62}"; TEXT_ONLY=() ;;
+  qwen4b)  MODEL=Qwen/Qwen3.5-4B;  PORT=8104; UTIL="${GPU_UTIL:-0.08}"; TEXT_ONLY=(--language-model-only) ;;
   *) echo "usage: $0 <qwen27b|qwen4b>" >&2; exit 2 ;;
 esac
 NAME="rid-$1"
@@ -46,7 +47,7 @@ $DOCKER run -d --name "$NAME" \
   -p "127.0.0.1:$PORT:8000" \
   "$IMAGE" "$MODEL" \
   --served-model-name "$1" --max-model-len 32768 --max-num-seqs 32 \
-  --gpu-memory-utilization "$UTIL" --seed 0 \
+  --gpu-memory-utilization "$UTIL" --seed 0 "${TEXT_ONLY[@]}" \
   --reasoning-parser qwen3 \
   --default-chat-template-kwargs '{"enable_thinking": false}' >/dev/null
 echo "started $NAME ($MODEL) on 127.0.0.1:$PORT, gpu-memory-utilization $UTIL${NET:+, on $NETWORK}"

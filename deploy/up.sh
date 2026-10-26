@@ -38,12 +38,9 @@ vllm-sr runs one per host. Stop it ('$VLLM_SR stop') if it is not needed, or reu
 fi
 
 # Free GPU memory: vLLM's --gpu-memory-utilization is a share of the whole GPU, and the Router needs room for d3-mini.
-read -r total used < <(rocm-smi -d "$GPU" --showmeminfo vram 2>/dev/null |
-  awk -F: '/Total Memory/{t=$NF} /Total Used Memory/{u=$NF} END{gsub(/ /,"",t); gsub(/ /,"",u); print t, u}')
-[ -n "${total:-}" ] || die "could not read GPU $GPU memory from rocm-smi"
+read -r total free < <(gpu_mem) || die "could not read GPU $GPU memory from rocm-smi"
 need=$(awk -v t="$total" -v a="$UTIL_27B" -v b="$UTIL_4B" -v n27="$need_27b" -v n4="$need_4b" -v nr="$need_router" -v d="$D3_GIB" \
   'BEGIN{printf "%.0f", t*(a*n27 + b*n4) + nr*d*2^30}')
-free=$((total - used))
 echo "GPU $GPU ($(.venv/bin/python -I -c 'import sys; sys.path.insert(0, "app"); import gpuinfo; print(gpuinfo.gpu_name())' 2>/dev/null || echo unknown)):" \
   "$((free >> 30)) GiB free of $((total >> 30)) GiB, about $((need >> 30)) GiB needed"
 [ "$free" -ge "$need" ] || die "not enough free GPU memory. Stop other GPU work, or lower GPU_UTIL_27B/GPU_UTIL_4B (less KV cache)."
@@ -56,19 +53,21 @@ $DOCKER network inspect vllm-sr-network >/dev/null 2>&1 || $DOCKER network creat
 if [ $need_27b = 1 ]; then
   say "Starting Qwen 27B (rid-qwen27b, :8102; ~3-5 minutes, the first start compiles kernels and takes longer)"
   GPU_UTIL="$UTIL_27B" deploy/serve_qwen.sh qwen27b; started qwen27b
-  wait_http http://127.0.0.1:8102/health 1800 rid-qwen27b || die "Qwen 27B did not come up"
+  wait_http http://127.0.0.1:8102/health 1800 rid-qwen27b GPU_UTIL_27B || die "Qwen 27B did not come up"
 fi
 echo "Qwen 27B ready"
 if [ $need_4b = 1 ]; then
   say "Starting Qwen 4B (rid-qwen4b, :8104; ~2-3 minutes)"
+  need_free "$(awk -v t="$total" -v b="$UTIL_4B" -v nr="$need_router" -v d="$D3_GIB" 'BEGIN{printf "%.0f", t*b + nr*d*2^30}')" \
+    "Qwen 4B$([ "$need_router" = 1 ] && echo " and the Router's d3-mini")"
   GPU_UTIL="$UTIL_4B" deploy/serve_qwen.sh qwen4b; started qwen4b
-  wait_http http://127.0.0.1:8104/health 1800 rid-qwen4b ||
-    die "Qwen 4B did not come up (full log: $DOCKER logs rid-qwen4b; look for the first ERROR line)"
+  wait_http http://127.0.0.1:8104/health 1800 rid-qwen4b GPU_UTIL_4B || die "Qwen 4B did not come up"
 fi
 echo "Qwen 4B ready"
 
 if [ $need_router = 1 ]; then
   say "Starting the vllm-sr Router with d3-mini (:8899; the first start downloads and compiles, up to ~30 minutes)"
+  need_free $((D3_GIB << 30)) "the Router's d3-mini"
   # Run from deploy/: vllm-sr keeps its state (.vllm-sr/) and model cache (models/) next to the config file.
   (cd deploy && "${SR[@]}" serve --config router.yaml --platform rocm --minimal --replace-active-config)
   started router

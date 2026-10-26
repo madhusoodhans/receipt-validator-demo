@@ -16,7 +16,7 @@ def gpu_name():
     fields = dict(re.findall(r"GPU\[0\]\s*:\s*([^:\n]+?):\s*(.*)", out))
     series = (fields.get("Card Series") or "").strip()
     if series and series != "N/A":
-        return series
+        return re.sub(r"\s+VF$", "", series)  # a virtual function (cloud VM) is the same GPU
     for key in ("Card Model", "Subsystem ID"):
         name = DEVICE_IDS.get((fields.get(key) or "").strip().lower())
         if name:
