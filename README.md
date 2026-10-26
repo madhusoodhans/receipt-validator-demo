@@ -26,6 +26,8 @@ visible, is it blurry, damaged, covered by glare, or are there several receipts.
 The page shows each step as it happens and compares the routed flow with sending everything to Qwen 27B: inference time
 and LLM tokens for the request, and dollars and inference hours per million requests like it.
 
+![The demo page](docs/screenshot.png)
+
 ## What vllm-sr and D3 do here
 
 | Capability | In this demo |
@@ -39,8 +41,6 @@ and LLM tokens for the request, and dollars and inference hours per million requ
 
 vllm-sr can also choose the model for each request itself (semantic routing with its decision models). This demo keeps
 the routing rule in the app on purpose, so every decision and its probabilities are visible on the page.
-
-![The demo page](docs/screenshot.png)
 
 ## Architecture
 
