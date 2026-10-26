@@ -51,18 +51,20 @@ echo "GPU $GPU ($(.venv/bin/python -I -c 'import sys; sys.path.insert(0, "app");
 # The Router reaches the vLLM containers by name on this network; vllm-sr reuses it when it exists.
 $DOCKER network inspect vllm-sr-network >/dev/null 2>&1 || $DOCKER network create vllm-sr-network >/dev/null
 
+# One vLLM server at a time: each measures the GPU's free memory while it loads, so two loading together on one GPU
+# can leave the second with no room for its KV cache ("Engine core initialization failed").
 if [ $need_27b = 1 ]; then
-  say "Starting Qwen 27B (rid-qwen27b, :8102)"
+  say "Starting Qwen 27B (rid-qwen27b, :8102; ~3-5 minutes, the first start compiles kernels and takes longer)"
   GPU_UTIL="$UTIL_27B" deploy/serve_qwen.sh qwen27b; started qwen27b
+  wait_http http://127.0.0.1:8102/health 1800 rid-qwen27b || die "Qwen 27B did not come up"
 fi
-if [ $need_4b = 1 ]; then
-  say "Starting Qwen 4B (rid-qwen4b, :8104)"
-  GPU_UTIL="$UTIL_4B" deploy/serve_qwen.sh qwen4b; started qwen4b
-fi
-say "Waiting for the Qwen servers (each takes ~3-5 minutes to load; the first start compiles kernels and takes longer)"
-[ $need_27b = 0 ] || wait_http http://127.0.0.1:8102/health 1800 rid-qwen27b || die "Qwen 27B did not come up"
 echo "Qwen 27B ready"
-[ $need_4b = 0 ] || wait_http http://127.0.0.1:8104/health 1800 rid-qwen4b || die "Qwen 4B did not come up"
+if [ $need_4b = 1 ]; then
+  say "Starting Qwen 4B (rid-qwen4b, :8104; ~2-3 minutes)"
+  GPU_UTIL="$UTIL_4B" deploy/serve_qwen.sh qwen4b; started qwen4b
+  wait_http http://127.0.0.1:8104/health 1800 rid-qwen4b ||
+    die "Qwen 4B did not come up (full log: $DOCKER logs rid-qwen4b; look for the first ERROR line)"
+fi
 echo "Qwen 4B ready"
 
 if [ $need_router = 1 ]; then
