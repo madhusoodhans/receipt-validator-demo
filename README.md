@@ -26,62 +26,8 @@ visible, is it blurry, damaged, covered by glare, or are there several receipts.
 The page shows each step as it happens and compares the routed flow with sending everything to Qwen 27B: inference time
 and LLM tokens for the request, and dollars and inference hours per million requests like it.
 
-![The demo page](docs/screenshot.png)
+![The demo page checking a good receipt, a blurry one and a pile of receipts](docs/demo.gif)
 
-## What vllm-sr and D3 do here
-
-| Capability | In this demo |
-|---|---|
-| **One Router for decisions and generation** | D3 is served by vllm-sr next to the two Qwen models. The app calls one endpoint: D3 on `/v1/systemone`, the Qwen models by name on `/v1/chat/completions` (OpenAI-compatible). |
-| **Structured decisions, not generated text** | One `/v1/systemone` request carries all six questions: a `choice` question (receipt, invoice, other document, screenshot, photo) and five yes/no (`noul`) statements. D3 returns a probability for each, so the app sets thresholds and a "review" band instead of parsing model output. |
-| **Image input** | D3 reads the photo itself. No OCR or separate vision step before the decision. |
-| **Fast and small** | D3 answers in one forward pass and generates no tokens: about 50-350 ms for all six questions on the MI300X, against 3-6 s for a 27B read. |
-| **Gate before the expensive model** | The decision decides which model runs at all: Qwen 27B only for receipts it can read, Qwen 4B for everything else. That is where the saving comes from. |
-| **Probabilities you can tune** | Each check has a borderline and a reject threshold (`CHECKS` in `app/check.py`), tuned on real receipts; see [How it was tuned](#how-it-was-tuned). |
-
-vllm-sr can also choose the model for each request itself (semantic routing with its decision models). This demo keeps
-the routing rule in the app on purpose, so every decision and its probabilities are visible on the page.
-
-## Architecture
-
-```mermaid
-flowchart LR
-    B["Browser<br/>(React page)"]
-
-    subgraph host["Server"]
-        S["Demo server app/server.py<br/>127.0.0.1:8601<br/>prepare: upright JPEG, max 1600 px"]
-        D{"Route<br/>(app/check.py)"}
-        X["Qwen 27B reads the image<br/>into JSON (schema enforced)"]
-        M["Qwen 4B writes the<br/>re-upload message"]
-        SUM["Sum check<br/>(no model)"]
-        DB[("SQLite<br/>data/receipts.db")]
-        subgraph gpu["AMD Instinct MI300X"]
-            R["vLLM Semantic Router :8899<br/>Decision 3.0: d3-mini on /v1/systemone<br/>Qwen models on /v1/chat/completions"]
-            Q27["vLLM container: Qwen 27B<br/>:8102, image input on"]
-            Q4["vLLM container: Qwen 4B<br/>:8104"]
-        end
-    end
-
-    B -->|upload| S
-    S -->|"SSE: each step as it finishes"| B
-    S -->|"one request, all six questions<br/>(1024 px copy of the image)"| R
-    R -->|"answers with probabilities"| D
-    D -->|"extract or review"| X
-    D -->|reject| M
-    X -.->|via Router| Q27
-    M -.->|via Router| Q4
-    X --> SUM --> DB
-    M --> DB
-```
-
-- **extract**: every check clearly fine. **review**: a check in its borderline band; the 27B still reads it and the row
-  is stored with `needs_review = 1`. **reject**: not a receipt, or a check past its threshold.
-- All model calls go through vllm-sr: D3 on `/v1/systemone`, the Qwen models by name on `/v1/chat/completions`.
-- D3 gets a 1024 px copy of the image (its cost grows with the image's tokens; it decided the same at 1024 px as at full
-  size, see [How it was tuned](#how-it-was-tuned)); Qwen 27B reads the 1600 px upload.
-- A receipt that fails the sum check (items to subtotal, subtotal plus tax and service to total, a real date, total
-  above zero) is also stored with `needs_review = 1`.
-- API and event stream: [docs/API.md](docs/API.md). Page: [docs/UI.md](docs/UI.md).
 
 ## Requirements
 
@@ -167,6 +113,61 @@ ssh -L 8601:localhost:8601 user@your-gpu-server
 
 then open <http://localhost:8601> in the laptop's browser. The page uses no external resources, so it also works on a
 network without internet access.
+
+## What vllm-sr and D3 do here
+
+| Capability | In this demo |
+|---|---|
+| **One Router for decisions and generation** | D3 is served by vllm-sr next to the two Qwen models. The app calls one endpoint: D3 on `/v1/systemone`, the Qwen models by name on `/v1/chat/completions` (OpenAI-compatible). |
+| **Structured decisions, not generated text** | One `/v1/systemone` request carries all six questions: a `choice` question (receipt, invoice, other document, screenshot, photo) and five yes/no (`noul`) statements. D3 returns a probability for each, so the app sets thresholds and a "review" band instead of parsing model output. |
+| **Image input** | D3 reads the photo itself. No OCR or separate vision step before the decision. |
+| **Fast and small** | D3 answers in one forward pass and generates no tokens: about 50-350 ms for all six questions on the MI300X, against 3-6 s for a 27B read. |
+| **Gate before the expensive model** | The decision decides which model runs at all: Qwen 27B only for receipts it can read, Qwen 4B for everything else. That is where the saving comes from. |
+| **Probabilities you can tune** | Each check has a borderline and a reject threshold (`CHECKS` in `app/check.py`), tuned on real receipts; see [How it was tuned](#how-it-was-tuned). |
+
+vllm-sr can also choose the model for each request itself (semantic routing with its decision models). This demo keeps
+the routing rule in the app on purpose, so every decision and its probabilities are visible on the page.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    B["Browser<br/>(React page)"]
+
+    subgraph host["Server"]
+        S["Demo server app/server.py<br/>127.0.0.1:8601<br/>prepare: upright JPEG, max 1600 px"]
+        D{"Route<br/>(app/check.py)"}
+        X["Qwen 27B reads the image<br/>into JSON (schema enforced)"]
+        M["Qwen 4B writes the<br/>re-upload message"]
+        SUM["Sum check<br/>(no model)"]
+        DB[("SQLite<br/>data/receipts.db")]
+        subgraph gpu["AMD Instinct MI300X"]
+            R["vLLM Semantic Router :8899<br/>Decision 3.0: d3-mini on /v1/systemone<br/>Qwen models on /v1/chat/completions"]
+            Q27["vLLM container: Qwen 27B<br/>:8102, image input on"]
+            Q4["vLLM container: Qwen 4B<br/>:8104"]
+        end
+    end
+
+    B -->|upload| S
+    S -->|"SSE: each step as it finishes"| B
+    S -->|"one request, all six questions<br/>(1024 px copy of the image)"| R
+    R -->|"answers with probabilities"| D
+    D -->|"extract or review"| X
+    D -->|reject| M
+    X -.->|via Router| Q27
+    M -.->|via Router| Q4
+    X --> SUM --> DB
+    M --> DB
+```
+
+- **extract**: every check clearly fine. **review**: a check in its borderline band; the 27B still reads it and the row
+  is stored with `needs_review = 1`. **reject**: not a receipt, or a check past its threshold.
+- All model calls go through vllm-sr: D3 on `/v1/systemone`, the Qwen models by name on `/v1/chat/completions`.
+- D3 gets a 1024 px copy of the image (its cost grows with the image's tokens; it decided the same at 1024 px as at full
+  size, see [How it was tuned](#how-it-was-tuned)); Qwen 27B reads the 1600 px upload.
+- A receipt that fails the sum check (items to subtotal, subtotal plus tax and service to total, a real date, total
+  above zero) is also stored with `needs_review = 1`.
+- API and event stream: [docs/API.md](docs/API.md). Page: [docs/UI.md](docs/UI.md).
 
 ## Presenting the demo
 
