@@ -106,7 +106,6 @@ export function App() {
     <div className={styles.shell}>
       <header className={styles.bar}>
         <div className={styles.brand}>
-          <span className={styles.mark}>AMD Instinct</span>
           <span className={styles.chip}>MI300X, gfx942</span>
         </div>
         <div className={styles.title}>
