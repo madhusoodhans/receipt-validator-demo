@@ -16,7 +16,6 @@ import { useRunner } from "./run";
 import { DemoStrip, Upload } from "./Source";
 import { Stats } from "./Stats";
 import { Steps } from "./Steps";
-import amdLogo from "./assets/amd-logo.png";
 import styles from "./App.module.css";
 
 function useTheme(): [Theme, (t: Theme) => void] {
@@ -107,8 +106,7 @@ export function App() {
     <div className={styles.shell}>
       <header className={styles.bar}>
         <div className={styles.brand}>
-          <img className={styles.logo} src={amdLogo} alt="AMD" />
-          <span className={styles.mark}>Instinct</span>
+          <span className={styles.mark}>AMD Instinct</span>
           <span className={styles.chip}>MI300X, gfx942</span>
         </div>
         <div className={styles.title}>
