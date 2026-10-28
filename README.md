@@ -26,7 +26,7 @@ visible, is it blurry, damaged, covered by glare, or are there several receipts.
 The page shows each step as it happens and compares the routed flow with sending everything to Qwen 27B: inference time
 and LLM tokens for the request, and dollars and inference hours per million requests like it.
 
-![The demo page checking a good receipt, a blurry one and a pile of receipts](docs/demo.gif)
+![A bad upload, a pile of receipts: D3 flags it and Qwen 4B asks for a retake, Qwen 27B is skipped](docs/demo.gif)
 
 
 ## Requirements
