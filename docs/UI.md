@@ -58,11 +58,10 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
   Busy), the one-line `detail` and the `message`, then each step in `error.skipped` as a dashed "Skipped" step. An
   upload refused with 503 (D3 or Qwen 27B down) shows as "Receipt checking unavailable" with the server's message.
   On wide screens check and result sit in two columns; the newest step scrolls into view.
-- Side panel: "Model stats for this request", from the current run's events: one row per model (D3, Qwen 27B,
-  Qwen 4B) with its model id, time (a bar against the slowest of them) and tokens (D3: image tokens read; Qwen 4B:
-  total; Qwen 27B: prompt in, completion out), or why it did not run ("Not needed: the image was rejected", "Not
-  used: standard message (Qwen 4B unavailable)", the failure's detail, "Skipped", "Running"); then the model time in
-  all. No comparison with an all-Qwen-27B flow and no cost figures.
+- Side panel: "This request", four boxes from the current run's events, each a number with its unit and one line:
+  Decision latency (D3's call), LLM execution time (Qwen 27B and/or Qwen 4B; 0 ms when the 4B template stood in),
+  Total inference time (all model calls), and LLM tokens generated (completion tokens of the LLM calls; D3 writes
+  none). A dash until the value arrives. No bars, no comparison with an all-Qwen-27B flow and no cost figures.
   Then "Your uploads this session": uploads / extracted / needs review / rejected, rejections by problem, and Receipts /
   Rejections tabs (latest 50; the tab counts are this visitor's totals). All refresh after each run ends.
 - Light and dark themes (stored in localStorage, else the system preference). Layout checked at 1920x1080, 1280x720 and 390 px.

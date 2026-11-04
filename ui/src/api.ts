@@ -36,7 +36,7 @@ export interface Events {
   d3: D3;
   route: { route: RouteName; reasons: Reason[]; summary: string };
   /** model "template" with `fallback` set ("standard message (Qwen 4B unavailable)") when Qwen 4B could not write it. */
-  message: { text: string; model: string; ms: number; tokens?: number | null; fallback?: string };
+  message: { text: string; model: string; ms: number; tokens?: number | null; completion_tokens?: number | null; fallback?: string };
   extract: { receipt: Receipt; model: string; ms: number; prompt_tokens?: number; completion_tokens?: number };
   sumcheck: SumCheck;
   stored: { table: "receipts" | "rejections"; id: number; needs_review: number };

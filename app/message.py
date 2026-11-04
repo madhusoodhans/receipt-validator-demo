@@ -58,10 +58,9 @@ def template(route):
 
 
 def write_message(d3, route, timeout=None):
-    """Returns (text, ms, tokens). Raises gate.ModelError."""
+    """Returns (text, ms, usage) with usage the response's token counts (prompt, completion, total). Raises gate.ModelError."""
     body = {"model": MODEL, "temperature": 0, "max_tokens": 120,
             "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": describe(d3, route)}]}
     r, ms = gate.post("chat", ROUTER, body, timeout or gate.timeout("qwen4b"), model="qwen4b")
     out = r.json()
-    return (out["choices"][0]["message"]["content"].strip(), ms,
-            (out.get("usage") or {}).get("total_tokens"))
+    return out["choices"][0]["message"]["content"].strip(), ms, out.get("usage") or {}

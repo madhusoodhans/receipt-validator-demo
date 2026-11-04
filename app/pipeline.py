@@ -91,8 +91,9 @@ def run(con, upload_id, file, image_bytes, mime, size, image_sha256=None, cancel
         if route["route"] == "reject":
             step = go("message"); t = time.perf_counter()
             try:
-                text, steps["message"], model_tokens = write_message(d3, route)
-                msg = {"text": text, "model": MESSAGE_MODEL, "ms": steps["message"], "tokens": model_tokens}
+                text, steps["message"], usage = write_message(d3, route)
+                msg = {"text": text, "model": MESSAGE_MODEL, "ms": steps["message"], "tokens": usage.get("total_tokens"),
+                       "completion_tokens": usage.get("completion_tokens")}
             except Exception as e:  # noqa: BLE001 - any 4B failure: a fixed message from D3's reasons instead
                 text, fallback = standard_message(route, e)
                 steps["message"] = round((time.perf_counter() - t) * 1000, 1)

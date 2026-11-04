@@ -1,10 +1,10 @@
-/* Model stats for the current request (which models ran, each one's time and tokens, from the streamed events), then
- * this visitor's totals from GET /api/stats. */
+/* The current request's numbers in four boxes (decision latency, LLM time, total model time, LLM tokens generated,
+ * from the streamed events), then this visitor's totals from GET /api/stats. */
 import { motion, useReducedMotion } from "motion/react";
 import { motionTokens } from "./components/arc/lib/motion-tokens";
 import type { Stats as StatsT } from "./api";
 import type { Run } from "./run";
-import { ms, problemLabel } from "./format";
+import { problemLabel } from "./format";
 import styles from "./Stats.module.css";
 
 function Bar({ value, max, tone }: { value: number; max: number; tone: "accent" | "muted" }) {
@@ -20,56 +20,47 @@ function Bar({ value, max, tone }: { value: number; max: number; tone: "accent" 
 
 const n = (v: number) => v.toLocaleString("en-US");
 
-/** One model's row: its time and tokens when it ran, else why not (not needed, skipped, failed, still running). */
-interface Row { key: string; name: string; model?: string; ms?: number; tokens?: string; note?: string }
+/** A duration split into a number and its unit, so the unit can sit smaller beside it. */
+function dur(v: number): [string, string] {
+  return v < 1000 ? [String(Math.round(v)), "ms"] : [(v / 1000).toFixed(v < 10000 ? 2 : 1), "s"];
+}
 
-function rows(run: Run): Row[] {
-  const { d3, route, message, extract, error, active } = run;
-  const failed = (step: string) => (error?.step === step ? error.detail || "Failed" : undefined);
-  const waiting = active && !error && !run.stopped ? "Running" : run.stopped ? "Stopped" : "Skipped";
-  const d3Row: Row = d3
-    ? { key: "d3", name: "D3", model: d3.model, ms: d3.ms, tokens: d3.tokens != null ? `${n(d3.tokens)} image tokens read, none written` : undefined }
-    : { key: "d3", name: "D3", note: failed("d3") ?? waiting };
-  const reject = route?.route === "reject";
-  let msgRow: Row;
-  if (message && message.fallback) msgRow = { key: "qwen4b", name: "Qwen 4B", note: `Not used: ${message.fallback}` };
-  else if (message) msgRow = { key: "qwen4b", name: "Qwen 4B", model: message.model, ms: message.ms, tokens: message.tokens != null ? `${n(message.tokens)} tokens` : undefined };
-  else msgRow = { key: "qwen4b", name: "Qwen 4B", note: route && !reject ? "Not needed: the image passed the checks" : failed("message") ?? waiting };
-  let readRow: Row;
-  if (extract) {
-    const t = extract.prompt_tokens != null && extract.completion_tokens != null
-      ? `${n(extract.prompt_tokens)} in, ${n(extract.completion_tokens)} out tokens` : undefined;
-    readRow = { key: "qwen27b", name: "Qwen 27B", model: extract.model, ms: extract.ms, tokens: t };
-  } else readRow = { key: "qwen27b", name: "Qwen 27B", note: reject ? "Not needed: the image was rejected" : failed("extract") ?? waiting };
-  return [d3Row, readRow, msgRow];
+interface Tile { key: string; label: string; value: [string, string] | null; note: string }
+
+/** Four numbers for the current request: D3's time, the LLM's time and generated tokens, and all model time together. */
+function tiles(run: Run): Tile[] {
+  const { d3, message, extract, active, stopped, error } = run;
+  const done = !active || !!error || stopped;
+  const llm: { name: string; ms: number; out: number | null | undefined }[] = [];
+  if (extract) llm.push({ name: "Qwen 27B", ms: extract.ms, out: extract.completion_tokens });
+  if (message && !message.fallback) llm.push({ name: "Qwen 4B", ms: message.ms, out: message.completion_tokens });
+  const llmMs = llm.reduce((a, r) => a + r.ms, 0);
+  const outs = llm.map((r) => r.out).filter((v): v is number => v != null);
+  const llmNote = llm.length ? llm.map((r) => r.name).join(" and ") : done ? "No LLM ran" : "Waiting";
+  const total = (d3?.ms ?? 0) + llmMs;
+  return [
+    { key: "d3", label: "Decision latency", value: d3 ? dur(d3.ms) : null, note: d3 ? "D3, one call for every check" : done ? "D3 did not answer" : "Waiting" },
+    { key: "llm", label: "LLM execution time", value: llm.length ? dur(llmMs) : done && d3 ? ["0", "ms"] : null, note: llmNote },
+    { key: "total", label: "Total inference time", value: d3 ? dur(total) : null, note: "All model calls, end to end" },
+    { key: "tokens", label: "LLM tokens generated", value: outs.length ? [n(outs.reduce((a, v) => a + v, 0)), "tokens"] : done && d3 && !llm.length ? ["0", "tokens"] : null,
+      note: "Written by the LLM; D3 writes none" },
+  ];
 }
 
 function ModelStats({ run }: { run: Run | null }) {
-  const list = run ? rows(run) : [];
-  const ran = list.filter((r) => r.ms != null);
-  const max = Math.max(1, ...ran.map((r) => r.ms!));
-  const total = ran.reduce((a, r) => a + r.ms!, 0);
   return (
     <section className={styles.gpu} aria-labelledby="models-title">
-      <h2 id="models-title" className={styles.h3}>Model stats for this request</h2>
-      {!run ? <p className={styles.note}>Run an image to see which models it used, with their time and tokens.</p> : (
-        <>
-          <dl className={styles.compare}>
-            {list.map((r) => (
-              <div key={r.key} className={styles.row} data-off={r.ms == null || undefined}>
-                <dt>{r.name}{r.model && <span className={styles.modelId}>{r.model}</span>}</dt>
-                <dd><span className={styles.sec}>{r.ms != null ? ms(r.ms) : "–"}</span></dd>
-                {r.ms != null ? (
-                  <div className={styles.detail}>
-                    <Bar value={r.ms} max={max} tone="accent" />
-                    {r.tokens && <span className={styles.note}>{r.tokens}</span>}
-                  </div>
-                ) : <span className={styles.note}>{r.note}</span>}
-              </div>
-            ))}
-          </dl>
-          {ran.length > 0 && <p className={styles.note}>{`Model time in all: ${ms(total)}. Each call is timed end to end through the Router.`}</p>}
-        </>
+      <h2 id="models-title" className={styles.h3}>This request</h2>
+      {!run ? <p className={styles.note}>Run an image to see its decision and LLM times and the tokens the LLM wrote.</p> : (
+        <dl className={styles.tiles}>
+          {tiles(run).map((t) => (
+            <div key={t.key} className={styles.tile}>
+              <dt>{t.label}</dt>
+              <dd className={styles.value}>{t.value ? <>{t.value[0]}<span className={styles.unit}>{t.value[1]}</span></> : "–"}</dd>
+              <dd className={styles.note}>{t.note}</dd>
+            </div>
+          ))}
+        </dl>
       )}
     </section>
   );
