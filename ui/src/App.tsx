@@ -1,6 +1,6 @@
 /* Page shell: top bar; image source row; the current image beside its pipeline steps; running totals and recent results. */
 import { useCallback, useEffect, useState } from "react";
-import { ImageIcon, RotateCcw } from "lucide-react";
+import { ArrowLeft, ImageIcon, RotateCcw } from "lucide-react";
 import { Alert } from "./components/arc/alert/alert";
 import { Badge } from "./components/arc/badge/badge";
 import { ConfirmMorph } from "./components/arc/confirm-morph/confirm-morph";
@@ -52,6 +52,16 @@ function HealthBadge({ health, error }: { health: Health | null; error: boolean 
   );
 }
 
+/** The landing page's address with ?theme= set, so it opens in the theme chosen here; "" when there is none (or it is bad). */
+function landingHref(url: string | undefined, theme: Theme) {
+  if (!url) return "";
+  try {
+    const u = new URL(url, location.href);
+    u.searchParams.set("theme", theme);
+    return u.href;
+  } catch { return ""; }
+}
+
 export function App() {
   const [theme, setTheme] = useTheme();
   const [demo, setDemo] = useState<DemoItem[]>([]);
@@ -89,11 +99,18 @@ export function App() {
   const received = useImageSrc(run?.received?.image_url);
   const image = run?.error?.step === "upload" ? undefined : received || run?.preview;
   const playAll = config?.play_all ?? false;
+  const landing = landingHref(config?.landing_url, theme);
 
   return (
     <div className={styles.shell}>
       <header className={styles.bar}>
         <div className={styles.brand}>
+          {landing && (
+            <a className={styles.back} href={landing} aria-label="Back to all demos">
+              <ArrowLeft size={16} strokeWidth={1.75} aria-hidden="true" />
+              <span className={styles.backText}>All demos</span>
+            </a>
+          )}
           <span className={styles.chip}>MI300X, gfx942</span>
         </div>
         <div className={styles.title}>

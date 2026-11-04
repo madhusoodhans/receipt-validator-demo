@@ -53,7 +53,7 @@ export interface Stats {
   by_problem: Record<string, number>;
   money_total_by_currency?: Record<string, number>;
 }
-export interface Config { play_all: boolean; max_upload_mb: number; uploads_per_min: number }
+export interface Config { play_all: boolean; max_upload_mb: number; uploads_per_min: number; landing_url?: string }
 
 export interface ReceiptRow { id: number; file: string; image_url: string; created_at: string; needs_review: number; receipt: Receipt; sumcheck_ok: boolean; d3?: D3 }
 export interface RejectionRow { id: number; file: string; image_url: string; created_at: string; reasons: Reason[]; message: string; d3?: D3 }

@@ -1,10 +1,11 @@
 # Hugging Face Space (Docker SDK) for the demo server only: no models in the image. D3 and the Qwen models are called
 # at ROUTER_URL, set as a Space variable. Serves the committed web/; a fresh database and upload folder in /tmp on
-# every start. Space settings: PLAY_ALL=0 (no Play all button). For hosted model APIs set ROUTER_API_KEY as a secret.
+# every start. Space settings: PLAY_ALL=0 (no Play all button),
+# LANDING_URL (optional: the demos landing page the top bar links back to). For hosted model APIs set ROUTER_API_KEY as a secret.
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 MALLOC_ARENA_MAX=2 \
-    HOST=0.0.0.0 PORT=7860 PLAY_ALL=0 \
+    HOST=0.0.0.0 PORT=7860 PLAY_ALL=0 LANDING_URL= \
     DB=/tmp/receipt-intake/receipts.db UPLOAD_ROOT=/tmp/receipt-intake/uploads
 
 RUN useradd -m -u 1000 user

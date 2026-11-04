@@ -6,16 +6,25 @@
 <title>Receipt intake</title>
 <meta name="description" content="Live receipt intake: D3 checks each upload, Qwen 27B reads only receipts it can read, Qwen 4B explains the rest.">
 <script>
-  // Theme before first paint: stored choice, else the system preference. Arc themes key off data-theme on <html>.
+  // Theme before first paint: ?theme= from the demos landing page (saved, then dropped from the address), else the
+  // stored choice, else the system preference. Arc themes key off data-theme on <html>.
   (function () {
-    var t = null;
-    try { t = localStorage.getItem("theme"); } catch (e) {}
+    var q = new URLSearchParams(location.search), t = q.get("theme");
+    if (t === "light" || t === "dark") {
+      try { localStorage.setItem("theme", t); } catch (e) {}
+      q.delete("theme");
+      var s = q.toString();
+      try { history.replaceState(history.state, "", location.pathname + (s ? "?" + s : "") + location.hash); } catch (e) {}
+    } else {
+      t = null;
+      try { t = localStorage.getItem("theme"); } catch (e) {}
+    }
     if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     document.documentElement.dataset.theme = t;
   })();
 </script>
-  <script type="module" crossorigin src="./assets/index-FisvGMrO.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-Ay2GxPbJ.css">
+  <script type="module" crossorigin src="./assets/index-BGG0cGgv.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-D_zjNmij.css">
 </head>
 <body>
 <div id="root"></div>

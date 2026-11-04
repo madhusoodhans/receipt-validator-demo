@@ -9,7 +9,8 @@ short_description: Check receipt photos with D3 before an LLM reads them
 ---
 
 <!-- Draft: the Space's README.md. Copy it to the root of the Space repository, with the Dockerfile, app/, web/,
-     data/demo/ and requirements.txt from this repo. Set ROUTER_URL (and any API key) as Space variables/secrets. -->
+     data/demo/ and requirements.txt from this repo. Set ROUTER_URL (and any API key) as Space variables/secrets, and optionally
+     LANDING_URL (the demos landing page; the top bar then links back to it). -->
 
 # Receipt intake demo
 

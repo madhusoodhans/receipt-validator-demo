@@ -48,6 +48,7 @@ MAX_BYTES = 15 * 1024 * 1024
 PING_SECONDS = 2  # keep-alive interval on /api/check; the page treats a long silence as a lost connection
 ENV = os.environ.get
 PLAY_ALL = ENV("PLAY_ALL", "1") == "1"
+LANDING_URL = ENV("LANDING_URL", "")  # the page shows "All demos" back to it when set
 os.makedirs(os.path.dirname(os.path.abspath(ENV("DB", db.PATH))), exist_ok=True)
 CON = db.connect(ENV("DB", db.PATH))
 VIS = visitors.Visitors(
@@ -114,7 +115,8 @@ def multipart_image(ctype, body):
 
 
 def config_body():
-    return {"play_all": PLAY_ALL, "max_upload_mb": MAX_BYTES // (1024 * 1024), "uploads_per_min": VIS.per_visitor_min}
+    return {"play_all": PLAY_ALL, "max_upload_mb": MAX_BYTES // (1024 * 1024), "uploads_per_min": VIS.per_visitor_min,
+            "landing_url": LANDING_URL}
 
 
 def metrics_body():

@@ -155,8 +155,9 @@ Clears the caller's receipts, rejections and upload files (and so their totals);
 
 ## GET /api/config
 
-`{"play_all": true, "max_upload_mb": 15, "uploads_per_min": 6}`. `play_all` is env `PLAY_ALL` (default 1; the Space
-sets 0 and the page hides Play all; single demo images still run).
+`{"play_all": true, "max_upload_mb": 15, "uploads_per_min": 6, "landing_url": ""}`. `play_all` is env `PLAY_ALL`
+(default 1; the Space sets 0 and the page hides Play all; single demo images still run). `landing_url` is env
+`LANDING_URL` (default empty): when set, the top bar links back to it ("All demos", with `?theme=light|dark`).
 
 ## GET /api/metrics
 

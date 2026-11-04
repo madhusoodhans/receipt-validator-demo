@@ -219,6 +219,7 @@ Environment variables of the demo server (`app/server.py`, also honoured by `sta
 | `DB` | `data/receipts.db` | SQLite file; created on start if missing. |
 | `UPLOAD_ROOT` | `<temp dir>/receipt-intake-uploads` | Upload files, one folder per visitor (browser tab). |
 | `PLAY_ALL` | `1` | `0` hides Play all (the hosted Space); single demo images still run. |
+| `LANDING_URL` | empty | Demos landing page; when set the top bar shows "All demos" linking to it, with `?theme=` so it opens in the same theme. |
 | `UPLOADS_PER_MIN`, `UPLOADS_PER_MIN_IP` | 6, 20 | Checks a minute per visitor and per IP. |
 | `MAX_UPLOADS`, `MAX_UPLOAD_GB`, `MAX_VISITORS`, `IDLE_MIN` | 20, 2, 500, 60 | Uploads kept per visitor, upload disk in all, visitors, minutes before an idle visitor is removed. |
 | `MODEL_CONCURRENCY`, `MODEL_QUEUE`, `MODEL_WAIT_S` | 12, 24, 15 | Model calls in flight per API, waiting, and the longest wait before a step fails as busy. |
