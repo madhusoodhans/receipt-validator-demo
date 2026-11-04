@@ -5,7 +5,7 @@ __pycache__/
 *.pyc
 
 # Node (web/ holds the built UI and IS committed, so the demo runs without Node)
-ui/node_modules/
+ui/node_modules
 
 # Runtime data: uploads, the demo database, logs
 data/uploads/*
@@ -17,6 +17,7 @@ logs/
 
 # Bench data and outputs that can be regenerated
 data/cord_test/
+data/tampered/
 # a saved web search page, not used by any script
 data/raw/good/imgres.html
 results/*.db

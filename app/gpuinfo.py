@@ -1,4 +1,5 @@
-"""The name of the GPU this host runs on, so measured numbers can say which GPU they were measured on."""
+"""The name of the GPU this host runs on, so measured numbers can say which GPU they were measured on
+(bench/baseline_27b.py, deploy/up.sh)."""
 import re
 import subprocess
 

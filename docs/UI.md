@@ -38,8 +38,9 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
   every request, so a tab sees only its own results and a new tab starts empty. Upload images (`/api/uploads/...`) are
   fetched with that header and shown as object URLs (`src/useImage.ts`); demo images load directly.
 
-- Top bar: health (GET /health every 10 s, the server's last probe; names a failure plainly, such as "Vision off on
-  Qwen 27B" or "D3 down"; tooltip lists each service), Reset (POST /api/reset, inline confirm; clears this tab's
+- Top bar: health (GET /health every 10 s): the server's `message` in plain words, green "All systems working", amber
+  "Standard retake messages in use: Qwen 4B unavailable", red "Receipt checking unavailable" (or "Demo server offline"
+  when /health itself fails); the tooltip lists each model with why it is down. Reset (POST /api/reset, inline confirm; clears this tab's
   results only), theme switch.
 - Demo strip (GET /api/demo, grouped good / bad). Click one image, or Play all (shown only when GET /api/config says
   `play_all`; the hosted Space turns it off): runs them in order with a 1.8 s pause; Stop
@@ -51,20 +52,19 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
 - The current image, and the steps as SSE events arrive (POST /api/check read with fetch and a stream reader):
   time to answer (from `done.total_ms`), D3 (kind with probability, one bar per check with a threshold marker, the bad zone
   tinted, ok / borderline / bad), route (three lanes, the taken one filled, with reasons), then the 4B message styled as an
-  in-app notice, or the extracted receipt, sum checks and stored row id. Pending steps show a live timer. On wide screens
-  check and result sit in two columns; the newest step scrolls into view.
-- Side panel: one heading, "Inference stats for this request" (or for the images of the current Play all), and four
-  boxes in the same layout (the saving as headline, then "Routed with D3" and "Everything on Qwen 27B" bars, a note), all
-  from that request: Inference time (wall clock of each model call through the Router; in Play all the note says the
-  saving depends on the share of bad uploads, and the demo set's share), LLM tokens (Qwen prompt plus completion; D3's
-  image tokens in the note), Dollars per million requests like this one (inference hours x `gpu_price`), and Inference
-  hours per million requests like this one (both measured one request at a time, so an upper bound). A
-  `measurement_warning`, when present, shows as a small warning line at the top.
-  A rejected upload with no Qwen 27B time on a server that does not measure uploads (`done.comparison.baseline_pending`
-  false) says "No Qwen 27B baseline for this upload" and shows no comparison.
+  in-app notice, or the extracted receipt, sum checks and stored row id. Pending steps show a live timer. A message
+  from the fallback (Qwen 4B down) shows "standard message" as its model and an amber "fallback: standard message
+  (Qwen 4B unavailable)" badge. A failed model step shows the step with a red reason badge (Unavailable, Timed out,
+  Busy), the one-line `detail` and the `message`, then each step in `error.skipped` as a dashed "Skipped" step. An
+  upload refused with 503 (D3 or Qwen 27B down) shows as "Receipt checking unavailable" with the server's message.
+  On wide screens check and result sit in two columns; the newest step scrolls into view.
+- Side panel: "Model stats for this request", from the current run's events: one row per model (D3, Qwen 27B,
+  Qwen 4B) with its model id, time (a bar against the slowest of them) and tokens (D3: image tokens read; Qwen 4B:
+  total; Qwen 27B: prompt in, completion out), or why it did not run ("Not needed: the image was rejected", "Not
+  used: standard message (Qwen 4B unavailable)", the failure's detail, "Skipped", "Running"); then the model time in
+  all. No comparison with an all-Qwen-27B flow and no cost figures.
   Then "Your uploads this session": uploads / extracted / needs review / rejected, rejections by problem, and Receipts /
-  Rejections tabs (latest 50; the tab counts are this visitor's totals). All refresh after each run ends, and every 3 s
-  while a new rejected upload is being timed on the 27B.
+  Rejections tabs (latest 50; the tab counts are this visitor's totals). All refresh after each run ends.
 - Light and dark themes (stored in localStorage, else the system preference). Layout checked at 1920x1080, 1280x720 and 390 px.
 
 ## Arc components used

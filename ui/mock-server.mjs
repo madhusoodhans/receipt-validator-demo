@@ -158,23 +158,14 @@ const MESSAGES = {
 let state;
 function reset() {
   state = { nextUpload: 1, uploads: new Map(), receipts: [], rejections: [], seq: { receipts: 0, rejections: 0 },
-    stats: { uploads: 0, extracted: 0, needs_review: 0, rejected: 0, by_problem: {}, money: {} }, firstRun: new Map() };
+    stats: { uploads: 0, extracted: 0, needs_review: 0, rejected: 0, by_problem: {}, money: {} } };
 }
 reset();
 let uploadCycle = 0;
-// Like the real backend: the comparison counts the first run of each distinct image (here: by file name), and a
-// rejected image costs the 27B a canned "measured" time (the real one reads data/demo/baseline.json).
 function stats() {
-  const s = state.stats, t = { d3: 0, message: 0, extract: 0, baseline_27b: 0 };
-  for (const f of state.firstRun.values()) {
-    t.d3 += f.d3; if (f.message != null) { t.message += f.message; t.baseline_27b += f.baseline; } else t.extract += f.extract;
-  }
-  return {
-    uploads: s.uploads, extracted: s.extracted, needs_review: s.needs_review, rejected: s.rejected, by_problem: s.by_problem,
-    money_total_by_currency: s.money,
-    comparison: { images: state.firstRun.size, pending_baseline: 0, repeats: s.uploads - state.firstRun.size, time_ms: t,
-      model_seconds: { routed: r2((t.d3 + t.message + t.extract) / 1000), all_27b: r2((t.extract + t.baseline_27b) / 1000) } },
-  };
+  const s = state.stats;
+  return { uploads: s.uploads, extracted: s.extracted, needs_review: s.needs_review, rejected: s.rejected,
+    by_problem: s.by_problem, money_total_by_currency: s.money };
 }
 
 // ---------- pipeline ----------
@@ -197,7 +188,8 @@ async function runCheck(res, { file, bytes, outcome, imageUrl }) {
   send("route", route);
   const steps = { d3: d3.ms };
 
-  if (outcome.forceError) { await sleep(300); send("error", { step: "extract", message: "Qwen 27B did not answer within 30 s (mock error)" }); return res.end(); }
+  if (outcome.forceError) { await sleep(300); send("error", { step: "extract", reason: "timeout", detail: "Qwen 27B did not answer within 60 s",
+    message: "Your receipt passed the checks, but reading is unavailable right now. Please try again shortly.", skipped: ["sumcheck", "stored"] }); return res.end(); }
 
   if (route.route === "reject") {
     const ms = jitter(410);
@@ -207,7 +199,6 @@ async function runCheck(res, { file, bytes, outcome, imageUrl }) {
     send("message", { text, model: "qwen4b", ms });
     steps.message = ms;
     state.stats.uploads++; state.stats.rejected++;
-    if (!state.firstRun.has(file)) state.firstRun.set(file, { d3: d3.ms, message: ms, baseline: jitter(1900, 0.3) });
     const bad = route.reasons.filter((r) => r.status === "bad");
     for (const r of bad[0]?.key === "kind" ? bad.slice(0, 1) : bad) state.stats.by_problem[r.key] = (state.stats.by_problem[r.key] || 0) + 1;
     await sleep(8);
@@ -221,7 +212,6 @@ async function runCheck(res, { file, bytes, outcome, imageUrl }) {
     const receipt = receiptFrom(outcome.label);
     send("extract", { receipt, model: "qwen27b", ms, prompt_tokens: 1165, completion_tokens: 120 + receipt.items.length * 28 });
     steps.extract = ms;
-    if (!state.firstRun.has(file)) state.firstRun.set(file, { d3: d3.ms, extract: ms });
     await sleep(4);
     const sc = sumcheck(receipt);
     send("sumcheck", sc);
@@ -236,11 +226,7 @@ async function runCheck(res, { file, bytes, outcome, imageUrl }) {
     send("stored", { table: "receipts", id: rid, needs_review: review });
     steps.sumcheck = 4; steps.db = 8;
   }
-  // Per-image comparison (docs/API.md, done.comparison); the mock uses a fixed 2.8 s 27B time for rejected images.
-  const read = steps.extract != null;
-  const comparison = { image_sha256: `mock-${file}`, route: route.route, routed_ms: (steps.d3 || 0) + (read ? steps.extract : steps.message || 0),
-    all_27b_ms: read ? steps.extract : 2800 };
-  send("done", { total_ms: Date.now() - t0, steps, comparison });
+  send("done", { total_ms: Date.now() - t0, steps });
   res.end();
 }
 
@@ -296,7 +282,7 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   const path = decodeURIComponent(url.pathname);
   try {
-    if (req.method === "GET" && path === "/health") return json(res, 200, { ok: true, router: true, qwen27b: true, qwen4b: true });
+    if (req.method === "GET" && path === "/health") return json(res, 200, { ok: true, status: "ok", message: "All systems working", d3: true, qwen27b: true, qwen4b: true, detail: {} });
     if (req.method === "GET" && path === "/api/demo") return json(res, 200, demo);
     if (req.method === "GET" && path.startsWith("/api/demo/")) {
       const f = path.slice("/api/demo/".length);

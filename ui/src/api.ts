@@ -35,12 +35,15 @@ export interface Events {
   received: { id: string; file: string; width: number; height: number; image_url: string };
   d3: D3;
   route: { route: RouteName; reasons: Reason[]; summary: string };
-  message: { text: string; model: string; ms: number; tokens?: number };
+  /** model "template" with `fallback` set ("standard message (Qwen 4B unavailable)") when Qwen 4B could not write it. */
+  message: { text: string; model: string; ms: number; tokens?: number | null; fallback?: string };
   extract: { receipt: Receipt; model: string; ms: number; prompt_tokens?: number; completion_tokens?: number };
   sumcheck: SumCheck;
   stored: { table: "receipts" | "rejections"; id: number; needs_review: number };
-  done: { total_ms: number; steps: Record<string, number>; comparison?: Comparison };
-  error: { step: string; message: string };
+  done: { total_ms: number; steps: Record<string, number> };
+  /** Plain words only. reason: unavailable, timeout, busy, too_long or error; detail: one line on what failed;
+   * skipped: the steps that did not run because of it (route, model, sumcheck, stored). */
+  error: { step: string; message: string; reason?: string; detail?: string; skipped?: string[] };
 }
 export type EventName = keyof Events;
 
@@ -49,37 +52,19 @@ export interface Stats {
   uploads: number; extracted: number; needs_review: number; rejected: number;
   by_problem: Record<string, number>;
   money_total_by_currency?: Record<string, number>;
-  /** Model time per distinct image (first run of each), routed vs the same images all on Qwen 27B. */
-  comparison: {
-    /** no_baseline: rejected uploads the server does not time on Qwen 27B (MEASURE_BASELINE=0), left out of both sides. */
-    images: number; pending_baseline: number; no_baseline?: number; repeats: number;
-    time_ms: { d3: number; message: number; extract: number; baseline_27b: number };
-    model_seconds: { routed: number; all_27b: number };
-  };
-  /** Price of one GPU hour for the dollar box (server env GPU_USD_PER_HOUR overrides the default). */
-  gpu_price?: { usd_per_hour: number; source: string; checked: string };
-  /** Set when the 27B baseline was measured on another GPU than this server's. */
-  measurement_warning?: string;
 }
-
-/** One image: routed (D3 + 4B, or D3 + 27B) against sending it straight to Qwen 27B. The all_27b fields are null for a
- * new rejected image: while the 27B's run on it is being measured (baseline_pending), or for good when the server does
- * not measure uploads (baseline_pending false). Tokens are prompt plus completion, D3's included. */
-export interface Comparison {
-  image_sha256: string; route: RouteName; routed_ms: number; all_27b_ms: number | null;
-  routed_tokens?: number; d3_tokens?: number; all_27b_tokens?: number | null; baseline_pending?: boolean;
-}
-/** True when this image will never get a Qwen 27B time on this server (only demo images have one). */
-export const noBaseline = (c: Comparison) => c.all_27b_ms == null && c.baseline_pending === false;
-export interface Config { play_all: boolean; measure_baseline: boolean; max_upload_mb: number; uploads_per_min: number }
-export const getBaseline = (sha: string) =>
-  getJson<{ image_sha256: string; ms: number | null; tokens: number | null; measuring: boolean }>(`api/baseline/${sha}`);
+export interface Config { play_all: boolean; max_upload_mb: number; uploads_per_min: number }
 
 export interface ReceiptRow { id: number; file: string; image_url: string; created_at: string; needs_review: number; receipt: Receipt; sumcheck_ok: boolean; d3?: D3 }
 export interface RejectionRow { id: number; file: string; image_url: string; created_at: string; reasons: Reason[]; message: string; d3?: D3 }
-export type Service = "router" | "d3" | "qwen27b" | "qwen4b";
-/** GET /health: the server's last probe (every 60 s); `detail` names each failure ("down", "image input off", ...). */
-export type Health = { ok: boolean; detail?: Partial<Record<Service, string>>; checked_at?: string | null } & Partial<Record<Service, boolean>>;
+export type Service = "d3" | "qwen27b" | "qwen4b";
+/** GET /health: each model's availability (probes every 30 s plus the circuit breaker on real calls). status "down"
+ * (D3 or Qwen 27B unavailable: uploads are refused), "degraded" (Qwen 4B only: standard retake messages), or "ok";
+ * `message` is the badge text; `detail` names each failure ("unreachable", "timeout", "image input off", ...). */
+export type Health = {
+  ok: boolean; status?: "ok" | "degraded" | "down"; message?: string;
+  detail?: Partial<Record<Service, string>>; checked_at?: string | null;
+} & Partial<Record<Service, boolean>>;
 
 /** Plain JSON calls give up after this long, so a dead server shows as an error instead of hanging. */
 const JSON_TIMEOUT_MS = 8000;
@@ -111,7 +96,7 @@ export const getReceipts = () => getJson<ReceiptRow[]>("api/receipts");
 export const getRejections = () => getJson<RejectionRow[]>("api/rejections");
 export const getHealth = () => getJson<Health>("health");
 /** Older servers have no /api/config: everything on, as before. */
-export const getConfig = () => getJson<Config>("api/config").catch((): Config => ({ play_all: true, measure_baseline: true, max_upload_mb: 15, uploads_per_min: 0 }));
+export const getConfig = () => getJson<Config>("api/config").catch((): Config => ({ play_all: true, max_upload_mb: 15, uploads_per_min: 0 }));
 
 /** Upload images are served only with this tab's visitor id, which an <img> cannot send: fetch them and show an object
  * URL. Kept per URL (at most the 20 uploads the server keeps per visitor, plus the current one). */
@@ -135,8 +120,11 @@ export function forgetImages() {
 }
 export const postReset = () => getJson<{ ok: boolean }>("api/reset", { method: "POST" });
 
-/** The server answered but refused the upload (wrong file type, too large, unreadable). */
-export class Refused extends Error {}
+/** The server answered but refused the upload (wrong file type, too large, unreadable; 503: checking unavailable). */
+export class Refused extends Error {
+  status: number;
+  constructor(message: string, status = 0) { super(message); this.status = status; }
+}
 
 /** POST /api/check and feed each SSE event to onEvent. Resolves when the stream ends. */
 export async function streamCheck(
@@ -154,7 +142,7 @@ export async function streamCheck(
     const text = await r.text().catch(() => "");
     let detail = text;
     try { const j = JSON.parse(text); detail = j.error || j.detail || text; } catch { /* plain text */ }
-    throw new Refused(detail || `${r.status} ${r.statusText}`);
+    throw new Refused(detail || `${r.status} ${r.statusText}`, r.status);
   }
   const reader = r.body.getReader();
   const decoder = new TextDecoder();

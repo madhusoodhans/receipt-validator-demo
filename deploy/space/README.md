@@ -14,8 +14,9 @@ short_description: Check receipt photos with D3 before an LLM reads them
 # Receipt intake demo
 
 Upload a photo of a receipt, or pick a demo image. A small decision model (D3) checks the photo first: is it a
-receipt, is it sharp, complete, free of glare, a single receipt? Good photos are read into structured data by Qwen 27B;
-bad ones get a short re-upload message from Qwen 4B, without the large model ever seeing them.
+receipt, is it sharp, complete, free of glare, a single receipt, with nothing added to it (such as a note telling the AI
+what to do)? Good photos are read into structured data by Qwen 27B; bad ones get a short re-upload message from Qwen 4B,
+without the large model ever seeing them.
 
 ## Before you upload
 
@@ -29,8 +30,8 @@ bad ones get a short re-upload message from Qwen 4B, without the large model eve
 ## Credits
 
 - **CORD** receipts ([naver-clova-ix/cord-v2](https://huggingface.co/datasets/naver-clova-ix/cord-v2),
-  CC BY 4.0, from [clovaai/cord](https://github.com/clovaai/cord)): 12 of the 23 demo images are CORD test images
-  (converted to JPEG), and one more is cropped from one. Park et al., "CORD: A Consolidated Receipt Dataset for
+  CC BY 4.0, from [clovaai/cord](https://github.com/clovaai/cord)): 12 of the 24 demo images are CORD test images
+  (converted to JPEG), one more is cropped from one, and one has a synthetic sticky note drawn on. Park et al., "CORD: A Consolidated Receipt Dataset for
   Post-OCR Parsing", Document Intelligence Workshop at NeurIPS 2019.
 - Other demo images and their sources: see the project README (Credits and licences).
 - Models: [vllm-sr/d3-mini](https://huggingface.co/vllm-sr/d3-mini), [Qwen/Qwen3.8-27B](https://huggingface.co/Qwen/Qwen3.8-27B),

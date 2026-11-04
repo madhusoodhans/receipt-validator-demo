@@ -1,6 +1,6 @@
-"""SQLite store: receipts, line_items, rejections, and 27B baseline times. D3's answers are kept on every row.
+"""SQLite store: receipts, line_items and rejections. D3's answers are kept on every row.
 
-image_sha256 identifies the image by content, so the stats can count each distinct image once (GET /api/stats).
+image_sha256 identifies the image by content.
 visitor_id (one browser tab) owns each receipt and rejection; every read and delete of them is scoped to one visitor.
 Rows from before visitors existed have none, so no one sees them.
 
@@ -26,8 +26,6 @@ CREATE TABLE IF NOT EXISTS line_items (
 CREATE TABLE IF NOT EXISTS rejections (
   id INTEGER PRIMARY KEY, upload_id TEXT, file TEXT, created_at TEXT, reasons_json TEXT, message TEXT, d3_json TEXT,
   message_ms REAL);
-CREATE TABLE IF NOT EXISTS baseline_27b (
-  image_sha256 TEXT PRIMARY KEY, file TEXT, measured_at TEXT, ms REAL, completion_tokens INTEGER, prompt_tokens INTEGER);
 """
 UPLOADS = "data/uploads"
 
@@ -51,8 +49,6 @@ def _migrate(con):
     """Adds image_sha256 to databases made before it existed, hashing the stored upload files, and visitor_id."""
     files = None
     with LOCK, con:
-        if "prompt_tokens" not in [r[1] for r in con.execute("PRAGMA table_info(baseline_27b)")]:
-            con.execute("ALTER TABLE baseline_27b ADD COLUMN prompt_tokens INTEGER")
         for table in ("receipts", "rejections"):
             if "visitor_id" not in [r[1] for r in con.execute(f"PRAGMA table_info({table})")]:
                 con.execute(f"ALTER TABLE {table} ADD COLUMN visitor_id TEXT")
@@ -94,26 +90,6 @@ def add_rejection(con, upload_id, file, reasons, message, d3, message_ms, image_
             " visitor_id) VALUES (?,?,?,?,?,?,?,?,?)",
             (upload_id, file, _now(), json.dumps(reasons), message, json.dumps(d3), message_ms, image_sha256,
              visitor_id)).lastrowid
-
-
-def add_baseline(con, image_sha256, file, ms, completion_tokens, prompt_tokens=None):
-    with LOCK, con:
-        con.execute("INSERT OR REPLACE INTO baseline_27b (image_sha256, file, measured_at, ms, completion_tokens, prompt_tokens)"
-                    " VALUES (?,?,?,?,?,?)", (image_sha256, file, _now(), ms, completion_tokens, prompt_tokens))
-
-
-def baselines(con):
-    """{image_sha256: ms} of the 27B baseline times measured for uploads (the demo set's are in data/demo/baseline.json)."""
-    with LOCK:
-        return {r[0]: r[1] for r in con.execute("SELECT image_sha256, ms FROM baseline_27b")}
-
-
-def baseline_tokens(con, image_sha256):
-    """Prompt plus completion tokens of the 27B baseline on this upload, or None (not measured, or measured before
-    prompt tokens were kept)."""
-    with LOCK:
-        r = con.execute("SELECT prompt_tokens, completion_tokens FROM baseline_27b WHERE image_sha256 = ?", (image_sha256,)).fetchone()
-    return r[0] + (r[1] or 0) if r and r[0] is not None else None
 
 
 def all_runs(con, visitor_id):
@@ -170,7 +146,7 @@ def _runs(con, visitor_id):
 
 
 def reset(con, visitor_id):
-    """Clears this visitor's results; returns their upload ids. The baseline_27b times stay: they describe images."""
+    """Clears this visitor's results; returns their upload ids."""
     with LOCK, con:
         runs = _runs(con, visitor_id)
         _delete(con, [(r[0], r[1]) for r in runs])

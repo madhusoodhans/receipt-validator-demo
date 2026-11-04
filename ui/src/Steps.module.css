@@ -12,6 +12,7 @@
 .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .step { border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface); padding: var(--space-4) var(--space-5); min-width: 0; }
 .step[data-pending] { background: var(--surface-muted); border-style: dashed; }
+.step[data-skipped] { background: transparent; border-style: dashed; color: var(--text-secondary); padding-block: var(--space-3); }
 .head { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
 .icon { display: inline-flex; color: var(--text-secondary); flex: none; }
 .title { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); font-family: var(--font-body); font-size: var(--text-lg); letter-spacing: var(--tracking-body); flex: 1; min-width: 0; }

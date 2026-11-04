@@ -7,14 +7,21 @@ so uploads of demo photos (re-encoded or shrunk) answer like the demo image; any
 
   python bench/stub_models.py            # 127.0.0.1:8931
 Env: STUB_PORT (8931), STUB_SPEED (1.0: delays x this), STUB_429 (0.0: share of model calls answered 429 with
-Retry-After: 1), STUB_SLOW (0.0: share of calls 10x slower). POST /stub/config {"speed":..,"p429":..,"slow":..} changes
-them live; GET /stub/stats returns calls, 429s and the most calls in flight at once per endpoint.
+Retry-After: 1), STUB_SLOW (0.0: share of calls 10x slower). POST /stub/config changes them live, plus per-model
+failures (models d3, qwen27b, qwen4b; probes included):
+  {"speed": 1.0, "p429": 0.0, "slow": 0.0,
+   "down": ["qwen4b"],          # the connection is dropped without an answer, as with a stopped container
+   "delay": {"qwen27b": 30},    # seconds added before answering (timeouts)
+   "status": {"d3": 502}}       # answered with this HTTP status and a Router-style JSON error body
+Each of down, delay and status replaces the previous value. GET /stub/stats returns calls, 429s and the most calls in
+flight at once per endpoint.
 """
 import base64
 import io
 import json
 import os
 import random
+import socket
 import sys
 import threading
 import time
@@ -29,10 +36,9 @@ import check  # noqa: E402
 DEMO = os.path.join(ROOT, "data/demo")
 LABELS = json.load(open(os.path.join(DEMO, "labels.json")))
 CONF = {"speed": float(os.environ.get("STUB_SPEED", "1")), "p429": float(os.environ.get("STUB_429", "0")),
-        "slow": float(os.environ.get("STUB_SLOW", "0"))}
+        "slow": float(os.environ.get("STUB_SLOW", "0")), "down": [], "delay": {}, "status": {}}
 STATS = {}
 LOCK = threading.Lock()
-RENAMED = {"15_bad_shadow.jpg": "bad_glare"}  # demo files renamed since results/d3_demo.json was made
 
 
 def thumb(raw):
@@ -42,7 +48,7 @@ def thumb(raw):
 
 def made_answers(label):
     """D3-shaped answers for a demo image d3_demo.json does not have, from its expected route and problems."""
-    p = {"complete": 0.95, "blurry": 0.05, "damaged": 0.05, "glare": 0.05, "multiple": 0.02}
+    p = {"complete": 0.95, "blurry": 0.05, "damaged": 0.05, "glare": 0.05, "multiple": 0.02, "added_text": 0.05}
     kind = "receipt"
     for prob in label.get("problems") or []:
         if prob == "kind":
@@ -62,9 +68,12 @@ def load_demo():
             for x in json.load(open(os.path.join(ROOT, "results/d3_demo.json")))}
     out = []
     for l in LABELS:
-        key = RENAMED.get(l["file"]) or "_".join(l["file"].split("_")[1:]).removesuffix(".jpg")
+        key = "_".join(l["file"].split("_")[1:]).removesuffix(".jpg")
         raw = open(os.path.join(DEMO, l["file"]), "rb").read()
         answers = real.get(key)
+        for k, (*_s, bad_when, _b, _t) in check.CHECKS.items():  # checks added since the file was made: clearly fine
+            if answers and k not in answers:
+                answers[k] = {"type": "noul", "noul": 0.95 if bad_when == "low" else 0.05}
         if not answers or check.decide(answers)[1]["route"] != l["expected_route"]:  # thresholds moved since
             answers = made_answers(l)
         out.append({"label": l, "answers": answers, "thumb": thumb(check.for_d3(raw, "image/jpeg")[0])})
@@ -125,7 +134,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
         if self.path == "/stub/config":
-            CONF.update({k: float(v) for k, v in body.items() if k in CONF})
+            CONF.update({k: float(v) for k, v in body.items() if k in ("speed", "p429", "slow")})
+            CONF.update({k: v for k, v in body.items() if k in ("down", "delay", "status")})
             with LOCK:
                 STATS.clear()
             return self.send(200, CONF)
@@ -139,6 +149,16 @@ class Handler(BaseHTTPRequestHandler):
             s = STATS.setdefault(name, {"calls": 0, "refused": 0, "in_flight": 0, "max_in_flight": 0})
             s["calls"] += 1; s["in_flight"] += 1; s["max_in_flight"] = max(s["max_in_flight"], s["in_flight"])
         try:
+            if name in CONF["down"]:
+                self.close_connection = True
+                self.connection.shutdown(socket.SHUT_RDWR)  # no answer at all: the client sees a dropped connection
+                return
+            if CONF["delay"].get(name):
+                time.sleep(float(CONF["delay"][name]))
+            if CONF["status"].get(name):
+                code = int(CONF["status"][name])
+                return self.send(code, {"error": {"message": f"upstream connect error or disconnect/reset before headers "
+                                                             f"({name})", "type": "server_error", "code": code}})
             if random.random() < CONF["p429"]:
                 with LOCK:
                     s["refused"] += 1

@@ -1,7 +1,7 @@
 """Load test: many simulated visitors uploading at once against the stub models (bench/stub_models.py), no GPU.
 
-Starts the stub on :8931 and the demo server on :8631 (temp database and upload folder, the Space's settings:
-PLAY_ALL=0, MEASURE_BASELINE=0), runs VISITORS visitors in parallel, each from its own IP (X-Forwarded-For) doing
+Starts the stub on :8931 and the demo server on :8631 (env STUB_PORT, LOAD_PORT; temp database and upload folder, the
+Space's settings: PLAY_ALL=0), runs VISITORS visitors in parallel, each from its own IP (X-Forwarded-For) doing
 UPLOADS checks (a mix of demo images, re-encoded demo photos as file uploads, and one large phone-sized photo), then:
   - routes match data/demo/labels.json; no run failed;
   - isolation: each visitor's /api/receipts, /api/rejections and /api/stats hold exactly their own runs, their upload
@@ -35,7 +35,8 @@ PY = sys.executable
 DEMO = os.path.join(ROOT, "data/demo")
 LABELS = json.load(open(os.path.join(DEMO, "labels.json")))
 EXPECTED = {l["file"]: l["expected_route"] for l in LABELS}
-URL, STUB = "http://127.0.0.1:8631", "http://127.0.0.1:8931"
+PORT, STUB_PORT = os.environ.get("LOAD_PORT", "8631"), os.environ.get("STUB_PORT", "8931")
+URL, STUB = f"http://127.0.0.1:{PORT}", f"http://127.0.0.1:{STUB_PORT}"
 
 
 def wait_up(url, timeout=30):
@@ -150,15 +151,18 @@ def main():
     a = ap.parse_args()
     tmp = tempfile.mkdtemp(prefix="receipt-load-")
     db_path, up = os.path.join(tmp, "load.db"), os.path.join(tmp, "uploads")
-    env = {**os.environ, "STUB_SPEED": str(a.speed), "STUB_429": str(a.p429)}
+    env = {**os.environ, "STUB_SPEED": str(a.speed), "STUB_429": str(a.p429), "STUB_PORT": STUB_PORT}
     stub = subprocess.Popen([PY, "-I", os.path.join(ROOT, "bench/stub_models.py")], env=env, stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL)
+    wait_up(f"{STUB}/v1/models")  # before the server starts: its first health probe must find the models up
     log = open(os.path.join(tmp, "server.log"), "w")
     srv = subprocess.Popen([PY, "-I", os.path.join(ROOT, "app/server.py")], stdout=log, stderr=subprocess.STDOUT, env={
-        **os.environ, "PORT": "8631", "ROUTER_URL": STUB, "DB": db_path, "UPLOAD_ROOT": up, "PLAY_ALL": "0",
-        "MEASURE_BASELINE": "0", "IDLE_MIN": "0.5", "CLEANUP_S": "5", "MALLOC_ARENA_MAX": "2"})  # as in the Dockerfile
+        **os.environ, "PORT": PORT, "ROUTER_URL": STUB, "DB": db_path, "UPLOAD_ROOT": up, "PLAY_ALL": "0",
+        "IDLE_MIN": "0.5", "CLEANUP_S": "5", "MALLOC_ARENA_MAX": "2"})  # as in the Dockerfile
     try:
-        wait_up(f"{STUB}/v1/models"); wait_up(f"{URL}/healthz")
+        wait_up(f"{URL}/healthz")
+        if requests.get(f"{URL}/health", timeout=10).json().get("status") != "ok":
+            raise RuntimeError("the stub models are not all up")
         time.sleep(3)  # warm-up calls (one D3 per demo image) finish
         rss0, peak = rss_mb(srv.pid), [0.0]
         stop = threading.Event()

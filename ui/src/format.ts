@@ -38,6 +38,7 @@ export const kindLabel = (k: string) => KIND[k] || (k.charAt(0).toUpperCase() + 
 
 const PROBLEM: Record<string, string> = {
   blurry: "Blurry", complete: "Cut off", damaged: "Damaged", glare: "Glare or shadow", multiple: "Several receipts", kind: "Not a receipt",
+  added_text: "Added note or text",
 };
 export const problemLabel = (k: string) => PROBLEM[k] || (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, " ");
 

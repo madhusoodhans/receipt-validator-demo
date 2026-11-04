@@ -1,7 +1,16 @@
-"""Model calls under load: at most LIMIT requests in flight per API kind (D3, chat completions), a short wait queue,
-and one retry on 429/503. A call that cannot get a slot, or is refused twice, fails with Busy.
+"""Model calls under load and when a model is down.
 
-Env: MODEL_CONCURRENCY (12 per kind), MODEL_QUEUE (24 waiting per kind), MODEL_WAIT_S (15).
+Slots: at most LIMIT requests in flight per API kind (D3, chat completions), a short wait queue, and one retry on
+429/503. A call that cannot get a slot, or is refused twice, fails with Busy.
+
+Availability: TRACKER keeps one state per model (d3, qwen27b, qwen4b), fed by the background probes (app/health.py) and
+by every real call. BREAKER_FAILS consecutive failures (no connection, timeout, 5xx) mark a model down for BREAKER_S
+seconds, and calls to it then fail at once without a request; any success, or a successful probe, marks it up again.
+Every failure is a ModelError with a reason (unavailable, timeout, busy, error); the full detail goes to the log only.
+
+Env: MODEL_CONCURRENCY (12 per kind), MODEL_QUEUE (24 waiting per kind), MODEL_WAIT_S (15); BREAKER_FAILS (3),
+BREAKER_S (30); read timeouts D3_TIMEOUT_S (10), MESSAGE_TIMEOUT_S (15, Qwen 4B), EXTRACT_TIMEOUT_S (60, Qwen 27B);
+ROUTER_API_KEY (sent as a Bearer token when set, for hosted APIs).
 """
 import os
 import threading
@@ -9,16 +18,97 @@ import time
 
 import requests
 
-LIMIT = int(os.environ.get("MODEL_CONCURRENCY", "12"))
-QUEUE = int(os.environ.get("MODEL_QUEUE", "24"))
-WAIT_S = float(os.environ.get("MODEL_WAIT_S", "15"))
+ENV = os.environ.get
+LIMIT = int(ENV("MODEL_CONCURRENCY", "12"))
+QUEUE = int(ENV("MODEL_QUEUE", "24"))
+WAIT_S = float(ENV("MODEL_WAIT_S", "15"))
 RETRY_CAP_S = 5.0
+CONNECT_S = 3.0
+TIMEOUT_S = {"d3": float(ENV("D3_TIMEOUT_S", "10")), "qwen4b": float(ENV("MESSAGE_TIMEOUT_S", "15")),
+             "qwen27b": float(ENV("EXTRACT_TIMEOUT_S", "60"))}
+HEADERS = {"Authorization": f"Bearer {ENV('ROUTER_API_KEY')}"} if ENV("ROUTER_API_KEY") else {}
+NAMES = {"d3": "D3", "qwen27b": "Qwen 27B", "qwen4b": "Qwen 4B"}
 BUSY = "The service is busy, please try again."
 
 
-class Busy(Exception):
-    def __init__(self):
-        super().__init__(BUSY)
+def timeout(model):
+    """(connect, read) seconds for a call to `model`."""
+    return CONNECT_S, TIMEOUT_S[model]
+
+
+class ModelError(Exception):
+    """A model call that failed. reason: unavailable, timeout, busy or error; str() is one plain line for the UI."""
+
+    def __init__(self, model, reason, seconds=None):
+        self.model, self.reason, self.seconds = model, reason, seconds
+        super().__init__(self.line())
+
+    def line(self, model=None):
+        """The failure in one plain line, naming `model` when the error itself does not know it (a full queue)."""
+        who = NAMES.get(self.model or model, "The model")
+        if self.reason == "timeout":
+            return f"{who} did not answer within {self.seconds or TIMEOUT_S.get(self.model or model, 0):g} s"
+        return {"unavailable": f"{who} is unavailable", "busy": f"{who} is busy"}.get(
+            self.reason, f"{who} could not handle the request")
+
+
+class Busy(ModelError):
+    def __init__(self, model=None):
+        super().__init__(model, "busy")
+
+    def __str__(self):
+        return BUSY
+
+
+class Tracker:
+    """Per-model availability: the last probe, plus a circuit breaker fed by real calls."""
+
+    def __init__(self, models=tuple(NAMES), fails=int(ENV("BREAKER_FAILS", "3")), open_s=float(ENV("BREAKER_S", "30")),
+                 clock=time.monotonic):
+        self.fails, self.open_s, self.clock = fails, open_s, clock
+        self.lock = threading.Lock()
+        self.s = {m: {"probe_ok": None, "fails": 0, "open_until": 0.0, "why": None} for m in models}
+
+    def __contains__(self, model):
+        return model in self.s
+
+    def ok(self, model):
+        with self.lock:
+            self.s[model].update(probe_ok=True, fails=0, open_until=0.0, why=None)
+
+    def fail(self, model, why):
+        with self.lock:
+            s = self.s[model]
+            s["fails"] += 1; s["why"] = why
+            if s["fails"] >= self.fails:
+                if s["open_until"] <= self.clock():
+                    print(f"breaker: {model} marked down for {self.open_s:g} s after {s['fails']} failures ({why})",
+                          flush=True)
+                s["open_until"] = self.clock() + self.open_s
+
+    def probed(self, model, ok, why=None):
+        if ok:
+            return self.ok(model)
+        with self.lock:
+            self.s[model].update(probe_ok=False, why=why)
+
+    def available(self, model):
+        """False while the last probe failed or the breaker is open. Unknown (no probe yet) counts as available."""
+        with self.lock:
+            s = self.s[model]
+            return s["probe_ok"] is not False and s["open_until"] <= self.clock()
+
+    def why(self, model):
+        with self.lock:
+            return self.s[model]["why"]
+
+    def reset(self):
+        with self.lock:
+            for s in self.s.values():
+                s.update(probe_ok=None, fails=0, open_until=0.0, why=None)
+
+
+TRACKER = Tracker()
 
 
 class Gate:
@@ -50,7 +140,7 @@ class Gate:
 
 
 GATES = {"d3": Gate(), "chat": Gate()}
-STATS = {"retries_429": 0, "busy": 0}  # since start, for GET /api/metrics
+STATS = {"retries_429": 0, "busy": 0, "failed": 0, "skipped_down": 0}  # since start, for GET /api/metrics
 _stats_lock = threading.Lock()
 local = threading.local()  # local.refused: 429/503 answers seen by this thread's current run (the upload log line)
 
@@ -68,26 +158,55 @@ def retry_after(r):
         return 1.0
 
 
-def post(kind, url, json, timeout, sleep=time.sleep):
-    """requests.post through the gate of `kind`. Returns (response, ms of the answered attempt, queue wait left out).
-    Raises Busy when no slot frees within WAIT_S, the queue is full, or the model refuses twice with 429/503."""
+def _failed(model, reason, detail, breaker=True, seconds=None):
+    """Logs the full detail, feeds the breaker, and returns the plain ModelError to raise."""
+    _count("failed")
+    print(f"model call failed: {model or '?'} {reason}: {detail}", flush=True)
+    if breaker and model in TRACKER:
+        TRACKER.fail(model, reason)
+    return ModelError(model, reason, seconds)
+
+
+def post(kind, url, json, timeout, sleep=time.sleep, model=None):
+    """requests.post through the gate of `kind`, for `model` (d3, qwen27b, qwen4b; None: not tracked). Returns (2xx
+    response, ms of the answered attempt, queue wait left out). Raises ModelError: at once when the model is marked
+    down; Busy when no slot frees within WAIT_S, the queue is full, or the model refuses twice with 429/503."""
+    if model in TRACKER and not TRACKER.available(model):
+        _count("skipped_down")
+        raise ModelError(model, "unavailable")
     for attempt in (0, 1):
         try:
             with GATES[kind]:
                 t = time.perf_counter()
-                r = requests.post(url, json=json, timeout=timeout)
+                try:
+                    r = requests.post(url, json=json, timeout=timeout, headers=HEADERS)
+                except requests.Timeout as e:
+                    raise _failed(model, "timeout", repr(e), seconds=timeout[1] if isinstance(timeout, tuple) else timeout) from None
+                except requests.RequestException as e:
+                    raise _failed(model, "unavailable", repr(e)) from None
                 ms = round((time.perf_counter() - t) * 1000, 1)
         except Busy:
             _count("busy")
             raise
         if r.status_code not in (429, 503):
-            return r, ms
+            break
         _count("retries_429")
         local.refused = getattr(local, "refused", 0) + 1
         if attempt == 0:
             sleep(retry_after(r))
-    _count("busy")
-    raise Busy
+    else:
+        _count("busy")
+        if r.status_code == 503 and model in TRACKER:  # a 503 twice is as likely down as busy: it feeds the breaker
+            TRACKER.fail(model, "busy")
+        print(f"model call refused twice: {model or '?'} HTTP {r.status_code}", flush=True)
+        raise Busy(model)
+    if r.status_code >= 500:
+        raise _failed(model, "unavailable", f"HTTP {r.status_code}: {getattr(r, 'text', '')[:500]}")
+    if r.status_code >= 400:  # our request was refused (a bad image, an unknown model name): not an outage
+        raise _failed(model, "error", f"HTTP {r.status_code}: {getattr(r, 'text', '')[:500]}", breaker=False)
+    if model in TRACKER:
+        TRACKER.ok(model)
+    return r, ms
 
 
 def queued():

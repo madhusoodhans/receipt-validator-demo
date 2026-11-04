@@ -1,7 +1,7 @@
 /* The current check: one image streaming through the pipeline, plus the Play all queue. */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { shrinkForUpload } from "./shrink";
-import { errText, getBaseline, noBaseline, Refused, streamCheck, unreachable, type Comparison, type DemoItem, type EventName, type Events, type RouteName } from "./api";
+import { errText, Refused, streamCheck, unreachable, type DemoItem, type EventName, type Events, type RouteName } from "./api";
 
 export interface Run {
   key: number;
@@ -26,13 +26,10 @@ export interface Run {
   stopped?: boolean;
 }
 
-/** What the Model time panel compares: the last image on its own, or every image of the current Play all. */
-export interface Tally { mode: "image" | "playall"; items: (Comparison & { name: string })[]; total?: number }
-
 /** The server sends a keep-alive every 2 s, but a proxy in between (VS Code port forwarding, an SSH tunnel) can hold
- * those back while a slow step runs. The server times out every step itself (Qwen 27B after 120 s) and reports it, so
- * only this much silence means the connection is really gone. */
-const SILENCE_MS = 150000;
+ * those back while a slow step runs. The server times out every step itself (Qwen 27B after 60 s, plus up to 15 s
+ * waiting for a slot) and reports it, so only this much silence means the connection is really gone. */
+const SILENCE_MS = 120000;
 
 const sleep = (ms: number, signal: AbortSignal) => new Promise<void>((ok) => {
   const t = setTimeout(ok, ms);
@@ -43,8 +40,6 @@ export function useRunner(onFinished: () => void) {
   const [run, setRun] = useState<Run | null>(null);
   const [outcomes, setOutcomes] = useState<Record<string, RouteName | "error">>({});
   const [playing, setPlaying] = useState(false);
-  const [tally, setTally] = useState<Tally | null>(null);
-  const playingRef = useRef(false);
   const busy = useRef(false);
   const stopOnError = useRef(false);
   const playCtl = useRef<AbortController | null>(null);
@@ -52,18 +47,6 @@ export function useRunner(onFinished: () => void) {
   const keyRef = useRef(0);
   const finished = useRef(onFinished);
   finished.current = onFinished;
-
-  /** A new rejected image has no 27B time yet: the server measures it right after the run. Poll for up to a minute. */
-  const fillBaseline = useCallback(async (sha: string) => {
-    for (let i = 0; i < 30; i++) {
-      await new Promise((r) => setTimeout(r, 2000));
-      const b = await getBaseline(sha).catch(() => null);
-      if (b?.ms != null) {
-        setTally((t) => (t ? { ...t, items: t.items.map((x) => (x.image_sha256 === sha ? { ...x, all_27b_ms: b.ms, all_27b_tokens: b.tokens } : x)) } : t));
-        return;
-      }
-    }
-  }, []);
 
   const start = useCallback(async (input: { demo: DemoItem } | { file: File }) => {
     busy.current = true;
@@ -78,16 +61,6 @@ export function useRunner(onFinished: () => void) {
     let route: RouteName | "error" | undefined;
     const onEvent = <E extends EventName>(event: E, data: Events[E]) => {
       if (event === "route") route = (data as Events["route"]).route;
-      if (event === "done") {
-        const c = (data as Events["done"]).comparison;
-        if (c) {
-          const item = { ...c, name };
-          setTally((t) => (playingRef.current && t?.mode === "playall"
-            ? { ...t, items: [...t.items.filter((x) => x.image_sha256 !== c.image_sha256), item] }
-            : { mode: "image", items: [item] }));
-          if (c.all_27b_ms == null && !noBaseline(c)) void fillBaseline(c.image_sha256);
-        }
-      }
       if (event === "error") route = "error";
       setRun((r) => (r && r.key === key ? { ...r, [event]: data, at: { ...r.at, [event]: performance.now() - t0 } } : r));
     };
@@ -117,7 +90,8 @@ export function useRunner(onFinished: () => void) {
         const message = why === "silent"
           ? `No reply from the demo server for ${SILENCE_MS / 1000} s. The connection was lost or the server stopped.`
           : unreachable(e) ? "Cannot reach the demo server. Is it running (start_server.sh)?" : errText(e);
-        setRun((r) => (r && r.key === key ? { ...r, error: { step: e instanceof Refused ? "upload" : "connection", message } } : r));
+        const step = e instanceof Refused ? (e.status === 503 ? "unavailable" : "upload") : "connection";
+        setRun((r) => (r && r.key === key ? { ...r, error: { step, message } } : r));
       }
     } finally {
       clearInterval(watchdog);
@@ -135,8 +109,6 @@ export function useRunner(onFinished: () => void) {
     const ctl = new AbortController();
     playCtl.current = ctl;
     stopOnError.current = false;
-    playingRef.current = true;
-    setTally({ mode: "playall", items: [], total: items.length });
     setPlaying(true);
     try {
       for (const item of items) {
@@ -149,7 +121,6 @@ export function useRunner(onFinished: () => void) {
       }
     } finally {
       playCtl.current = null;
-      playingRef.current = false;
       setPlaying(false);
     }
   }, [start]);
@@ -159,9 +130,9 @@ export function useRunner(onFinished: () => void) {
     playCtl.current?.abort();
     runCtl.current?.abort("stopped");
   }, []);
-  const clear = useCallback(() => { setRun(null); setOutcomes({}); setTally(null); }, []);
+  const clear = useCallback(() => { setRun(null); setOutcomes({}); }, []);
 
   useEffect(() => () => { playCtl.current?.abort(); runCtl.current?.abort("stopped"); }, []);
 
-  return { run, outcomes, playing, busy, tally, start, playAll, stop, clear };
+  return { run, outcomes, playing, busy, start, playAll, stop, clear };
 }

@@ -4,7 +4,7 @@
 # loading. Re-running is safe: parts that are already up and healthy are left alone.
 #
 # Environment (all optional): DOCKER ("sudo docker" where Docker needs sudo), VLLM_SR (vllm-sr CLI path),
-# GPU (GPU index, default 0), HF_HOME, HOST/PORT (demo server, default 127.0.0.1:8601), GPU_USD_PER_HOUR,
+# GPU (GPU index, default 0), HF_HOME, HOST/PORT (demo server, default 127.0.0.1:8601),
 # plus GPU_UTIL_27B / GPU_UTIL_4B (vLLM memory shares, default 0.62 / 0.08).
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -90,5 +90,4 @@ echo "health: $health"
 case "$health" in *'"ok": true'*|*'"ok":true'*) ;; *) die "health is not ok: the false entry names the part that is down" ;; esac
 
 say "Up. Open http://$HOST:$PORT (from a laptop: ssh -L $PORT:localhost:$PORT <user>@<this server>)"
-echo "First start on this server? Run deploy/measure.sh once (~2 min) so the comparison uses this GPU's numbers."
 echo "Next: deploy/smoke_test.sh"

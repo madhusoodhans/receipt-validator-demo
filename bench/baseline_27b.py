@@ -1,6 +1,6 @@
 """Measures the all-27B baseline: Qwen 27B reads every demo image (good and bad), one request at a time, with the same
-call the pipeline makes (app/extract.py, cold cache). Writes data/demo/baseline.json, which the server uses for the
-"everything on Qwen 27B" side of the comparison, with the GPU it was measured on. Run from the repo root:
+call the pipeline makes (app/extract.py, cold cache). Writes data/demo/baseline.json with the GPU it was measured on.
+Kept for reference: the page no longer compares with an all-27B flow. Run from the repo root:
 
   .venv/bin/python -I bench/baseline_27b.py [--out data/demo/baseline.json]
 """

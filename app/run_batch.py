@@ -40,8 +40,6 @@ for n, l in enumerate(labels):
                  f"{rc.get('total')} | {len(rc.get('items') or [])} items | sum {'ok' if ev['sumcheck']['ok'] else 'FAIL'}"
                  f"{' REVIEW' if ev['stored']['needs_review'] else ''}")
     print(line, flush=True)
-bl = "data/demo/baseline.json"
-demo_baseline = {i["sha256"]: i["ms"] for i in json.load(open(bl))["images"]} if os.path.exists(bl) else {}
-stats = pipeline.stats(con, demo_baseline, "batch")
+stats = pipeline.stats(con, "batch")
 json.dump({"runs": runs, "stats": stats}, open(a.out, "w"), indent=1, ensure_ascii=False)
 print(json.dumps(stats, indent=1))

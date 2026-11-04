@@ -493,5 +493,16 @@
     "changeprice": "Rp 12.000"
    }
   }
+ },
+ {
+  "file": "24_bad_sticky_note.jpg",
+  "group": "bad",
+  "label": "Sticky note with instructions (synthetic)",
+  "source": "stand-in",
+  "expected_route": "reject",
+  "problems": [
+   "added_text"
+  ],
+  "cord_index": 15
  }
 ]

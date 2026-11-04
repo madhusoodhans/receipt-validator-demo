@@ -14,13 +14,14 @@ import styles from "./Steps.module.css";
 const TONE: Record<Status, "success" | "warning" | "danger"> = { ok: "success", borderline: "warning", bad: "danger" };
 const STATUS_TEXT: Record<Status, string> = { ok: "Ok", borderline: "Borderline", bad: "Bad" };
 
-function Step({ icon, title, time, pending, children, label }: { icon: ReactNode; title: ReactNode; time?: ReactNode; pending?: boolean; children?: ReactNode; label: string }) {
+function Step({ icon, title, time, pending, skipped, children, label }: { icon: ReactNode; title: ReactNode; time?: ReactNode; pending?: boolean; skipped?: boolean; children?: ReactNode; label: string }) {
   const reduce = useReducedMotion();
   return (
     <motion.li
       className={styles.step}
       aria-label={label}
       data-pending={pending || undefined}
+      data-skipped={skipped || undefined}
       initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={reduce ? { duration: motionTokens.duration.fast } : motionTokens.spring.smooth}
@@ -139,6 +140,25 @@ function RouteBody({ route }: { route: Events["route"] }) {
   );
 }
 
+/** A model step that failed: one plain line on what failed, then what the user should do. */
+const REASON: Record<string, string> = { unavailable: "Unavailable", timeout: "Timed out", busy: "Busy", too_long: "Too long", error: "Failed" };
+const SKIPPED: Record<string, string> = { route: "Route", model: "Read or explain (Qwen 27B or 4B)", sumcheck: "Sum check", stored: "Store" };
+
+function Failed({ title, error }: { title: ReactNode; error: Events["error"] }) {
+  return (
+    <Step icon={<CircleAlert size={18} strokeWidth={1.75} />} label="Failed step"
+      title={<>{title} <Badge tone="danger" size="sm">{REASON[error.reason ?? "error"] ?? "Failed"}</Badge></>}>
+      {error.detail && <p className={styles.error}>{error.detail}</p>}
+      <p>{error.message}</p>
+    </Step>
+  );
+}
+
+function Skipped({ step }: { step: string }) {
+  return <Step icon={<CircleStop size={18} strokeWidth={1.75} />} label={`${SKIPPED[step] ?? step}: skipped`} skipped
+    title={<>{SKIPPED[step] ?? step} <Badge tone="neutral" size="sm">Skipped</Badge></>} />;
+}
+
 function MessageBody({ text }: { text: string }) {
   return (
     <figure className={styles.notice}>
@@ -196,9 +216,14 @@ function SumBody({ s }: { s: Events["sumcheck"] }) {
   );
 }
 
-/** The error step's title: plain words for a refused upload or a lost connection, else the step that failed. */
-const errorTitle = (step: string) =>
-  step === "upload" ? "Upload not accepted" : step === "connection" ? "Connection lost" : `Failed at ${step}`;
+/** The error's headline: plain words for a refused upload, checking unavailable, a lost connection or a failed step. */
+const ERROR_TITLE: Record<string, string> = {
+  upload: "Upload not accepted", unavailable: "Receipt checking unavailable", connection: "Connection lost",
+  d3: "Could not check the image", extract: "Checked, but could not read it", server: "Something went wrong",
+};
+const errorTitle = (step: string) => ERROR_TITLE[step] ?? "Something went wrong";
+/** Failures shown on their own step, with the steps after them marked skipped. */
+const MODEL_STEP = new Set(["d3", "extract"]);
 
 export function Steps({ run, onStop }: { run: Run; onStop: () => void }) {
   const { d3, route, message, extract, sumcheck, stored, done, error, at } = run;
@@ -209,6 +234,8 @@ export function Steps({ run, onStop }: { run: Run; onStop: () => void }) {
   const cols = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
   const count = Object.keys(at).length + (error ? 1 : 0);
+  const failedAt = error && MODEL_STEP.has(error.step) ? error.step : null;
+  const skipped = (keys: string[]) => (error?.skipped ?? []).filter((k) => keys.includes(k)).map((k) => <Skipped key={k} step={k} />);
   // Keep the newest step in view: on a projector the result usually lands below the fold.
   useEffect(() => {
     const items = cols.current?.querySelectorAll("li[aria-label]");
@@ -249,21 +276,26 @@ export function Steps({ run, onStop }: { run: Run; onStop: () => void }) {
             <D3Body d3={d3} />
           </Step>
         )}
+        {failedAt === "d3" && <Failed title={<>D3 check <span className={styles.model}>vllm-sr/d3-mini</span></>} error={error!} />}
         {route && (
           <Step icon={<ArrowRight size={18} strokeWidth={1.75} />} label="Route" title="Route">
             <RouteBody route={route} />
           </Step>
         )}
+        {skipped(["route"])}
       </ol>
       <ol className={styles.list} aria-label="Result">
         {route?.route === "reject" && !message && live && <Pending run={run} text="Qwen 4B writes a message" from={at.route} model="qwen4b" />}
         {message && (
           <Step icon={<MessageSquareText size={18} strokeWidth={1.75} />} label="Message to the user"
-            title={<>Message to the user <span className={styles.model}>{message.model}</span></>} time={ms(message.ms)}>
+            title={<>Message to the user <span className={styles.model}>{message.fallback ? "standard message" : message.model}</span></>}
+            time={message.fallback ? undefined : ms(message.ms)}>
+            {message.fallback && <p><Badge tone="warning" size="sm">{`fallback: ${message.fallback}`}</Badge></p>}
             <MessageBody text={message.text} />
           </Step>
         )}
         {reading && !extract && live && <Pending run={run} text="Qwen 27B reads the receipt" from={at.route} model="qwen27b" />}
+        {failedAt === "extract" && <Failed title={<>Read the receipt <span className={styles.model}>qwen27b</span></>} error={error!} />}
         {extract && (
           <Step icon={<Eye size={18} strokeWidth={1.75} />} label="Extracted receipt"
             title={<>Extracted receipt <span className={styles.model}>{extract.model}</span></>}
@@ -291,7 +323,8 @@ export function Steps({ run, onStop }: { run: Run; onStop: () => void }) {
             <p className={styles.stoppedText}>The server cancels the run after its current step; nothing is stored or counted.</p>
           </Step>
         )}
-        {error && (
+        {skipped(["model", "sumcheck", "stored"])}
+        {error && !failedAt && (
           <Step icon={<CircleAlert size={18} strokeWidth={1.75} />} label="Error" title={errorTitle(error.step)}>
             <p className={styles.error}>{error.message}</p>
           </Step>

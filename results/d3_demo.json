@@ -1,85 +1,93 @@
 [
  {
   "file": "01_good_berghotel.jpg",
-  "ms": 77.6,
+  "ms": 58.2,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.9779857311120812,
-     "invoice": 0.014134188989744141,
-     "other_document": 0.004582598765149455,
-     "screenshot": 0.00045571469999774593,
-     "photo": 0.0028417664330274137
+     "receipt": 0.9766093038008383,
+     "invoice": 0.015697013814267496,
+     "other_document": 0.004546135729876568,
+     "screenshot": 0.000439397240372486,
+     "photo": 0.0027081494146451125
     },
-    "confidence": 0.9212036922489546
+    "confidence": 0.917828387774623
    },
    "complete": {
     "type": "noul",
-    "noul": 0.9698277747997186
+    "noul": 0.9717537905537157
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.031724351798661954
+    "noul": 0.032072271315358954
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.014836463546620163
+    "noul": 0.0158505962479904
    },
    "glare": {
     "type": "noul",
-    "noul": 0.022605273114713064
+    "noul": 0.022028483942787735
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.005068595081453466
+    "noul": 0.005396565774993291
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.05163257653084156
    }
   },
   "route": "extract"
  },
  {
   "file": "02_bad_blurry_hand.jpg",
-  "ms": 85.7,
+  "ms": 75.3,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.8296699645624515,
-     "invoice": 0.02817198489206728,
-     "other_document": 0.03434822013693346,
-     "screenshot": 0.002087326983805187,
-     "photo": 0.10572250342474265
+     "receipt": 0.824837668621482,
+     "invoice": 0.027146162037313633,
+     "other_document": 0.034563938119917634,
+     "screenshot": 0.002072266645358067,
+     "photo": 0.11137996457592862
     },
-    "confidence": 0.6137102678415691
+    "confidence": 0.6083668872006271
    },
    "complete": {
     "type": "noul",
-    "noul": 0.039885790344649265
+    "noul": 0.039940239194839945
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.9055792284497963
+    "noul": 0.9083610163983021
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.3222940958229928
+    "noul": 0.354549150304471
    },
    "glare": {
     "type": "noul",
-    "noul": 0.39025660695174974
+    "noul": 0.38998159110436387
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.013061474722119198
+    "noul": 0.013178446745970507
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.024449893977028375
    }
   },
   "route": "reject"
  },
  {
   "file": "03_good_matcha_invoice.jpg",
-  "ms": 70.7,
+  "ms": 59.0,
   "answers": {
    "kind": {
     "type": "choice",
@@ -112,169 +120,232 @@
    "multiple": {
     "type": "noul",
     "noul": 0.0038814776604651087
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.08599369356026788
    }
   },
   "route": "extract"
  },
  {
   "file": "04_bad_crumpled.jpg",
-  "ms": 106.0,
+  "ms": 95.2,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.9929276068523014,
-     "invoice": 0.0017923586752830794,
-     "other_document": 0.002126390826765967,
-     "screenshot": 0.00021973644836891567,
-     "photo": 0.002933907197280615
+     "receipt": 0.9930053197927976,
+     "invoice": 0.0018136213633694685,
+     "other_document": 0.0021366055018174476,
+     "screenshot": 0.000211918072074535,
+     "photo": 0.0028325352699409795
     },
-    "confidence": 0.9686681378375533
+    "confidence": 0.9689546894794231
    },
    "complete": {
     "type": "noul",
-    "noul": 0.9505113817675206
+    "noul": 0.9537191738336004
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.05359978221954457
+    "noul": 0.04953542853425443
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.7308822870254517
+    "noul": 0.720232231630816
    },
    "glare": {
     "type": "noul",
-    "noul": 0.033312062299129794
+    "noul": 0.03254710546747341
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.007187439497357353
+    "noul": 0.006896524953431882
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.09161478281021118
    }
   },
   "route": "reject"
  },
  {
   "file": "05_good_cash_template.jpg",
-  "ms": 95.1,
+  "ms": 49.6,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.9275476401267642,
-     "invoice": 0.022278353727504287,
-     "other_document": 0.02267042377034964,
-     "screenshot": 0.006426383320426452,
-     "photo": 0.0210771990549555
+     "receipt": 0.9307961080409957,
+     "invoice": 0.021141416962277036,
+     "other_document": 0.021265208345867186,
+     "screenshot": 0.005952250517341952,
+     "photo": 0.020845016133518125
     },
-    "confidence": 0.7799587188746637
+    "confidence": 0.7879055937601178
    },
    "complete": {
     "type": "noul",
-    "noul": 0.8794379830360413
+    "noul": 0.8745325077394768
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.0434332658395141
+    "noul": 0.043109361916897765
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.04967206304556554
+    "noul": 0.058871332339723845
    },
    "glare": {
     "type": "noul",
-    "noul": 0.009339935642086279
+    "noul": 0.009621930765657191
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.009334158970653948
+    "noul": 0.009000072708357057
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.3489726587823826
    }
   },
   "route": "extract"
  },
  {
   "file": "06_bad_faded_face.jpg",
-  "ms": 64.2,
+  "ms": 49.6,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.8412853386742836,
-     "invoice": 0.03173905800956718,
-     "other_document": 0.06488743812685636,
-     "screenshot": 0.00309238578070494,
-     "photo": 0.05899577940858791
+     "receipt": 0.8418073379776843,
+     "invoice": 0.03156026722434037,
+     "other_document": 0.06526237513480417,
+     "screenshot": 0.003081775169947994,
+     "photo": 0.05828824449322321
     },
-    "confidence": 0.616499582531481
+    "confidence": 0.6174757191432666
    },
    "complete": {
     "type": "noul",
-    "noul": 0.1688416948569326
+    "noul": 0.17060162889666686
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.9128725340756416
+    "noul": 0.9136496646158447
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.5716979503631592
+    "noul": 0.564243180625344
    },
    "glare": {
     "type": "noul",
-    "noul": 0.6898098793569172
+    "noul": 0.6871439013736277
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.04023219585072702
+    "noul": 0.03929225443211767
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.12268786891175097
    }
   },
   "route": "reject"
  },
  {
-  "file": "07_good_cord001.jpg",
-  "ms": 177.0,
+  "file": "07_borderline_faded_creased.jpg",
+  "ms": 102.7,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.9562550638264125,
-     "invoice": 0.01712745933676154,
-     "other_document": 0.012669274674751926,
-     "screenshot": 0.001087083445677159,
-     "photo": 0.012861118716396907
+     "receipt": 0.9562903305442889,
+     "invoice": 0.025390366779554203,
+     "other_document": 0.01039970508054032,
+     "screenshot": 0.0008374219404883452,
+     "photo": 0.007082175655128183
     },
-    "confidence": 0.8563540885169778
+    "confidence": 0.8605196970025094
    },
    "complete": {
     "type": "noul",
-    "noul": 0.33753548078344703
+    "noul": 0.4531625942338286
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.31521840944235296
+    "noul": 0.27516833767796567
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.21005712762560141
+    "noul": 0.5395888525370105
    },
    "glare": {
     "type": "noul",
-    "noul": 0.30847233533859253
+    "noul": 0.1340542435646057
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.028469277061896777
+    "noul": 0.026913503736347967
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.17832674883276592
+   }
+  },
+  "route": "review"
+ },
+ {
+  "file": "08_good_cord001.jpg",
+  "ms": 138.5,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9683775480980347,
+     "invoice": 0.011919996380824976,
+     "other_document": 0.01016218387914241,
+     "screenshot": 0.0008276539451275186,
+     "photo": 0.008712617696870449
+    },
+    "confidence": 0.8895577994151795
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.4171629548072815
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.32849955558776855
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.1358148584393433
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.19726649514634892
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.02420803794923545
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.09112641620910107
    }
   },
   "route": "extract"
  },
  {
-  "file": "08_bad_pile.jpg",
-  "ms": 72.0,
+  "file": "09_bad_pile.jpg",
+  "ms": 61.1,
   "answers": {
    "kind": {
     "type": "choice",
@@ -307,52 +378,60 @@
    "multiple": {
     "type": "noul",
     "noul": 0.860120006792545
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.18364323401982732
    }
   },
   "route": "reject"
  },
  {
-  "file": "09_good_cord006.jpg",
-  "ms": 174.9,
+  "file": "10_good_cord006.jpg",
+  "ms": 129.3,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.9870352927210801,
-     "invoice": 0.0041791390197260655,
-     "other_document": 0.003937216320363776,
-     "screenshot": 0.0004664374359295184,
-     "photo": 0.004381914502900513
+     "receipt": 0.9854076636057787,
+     "invoice": 0.005700899364048729,
+     "other_document": 0.004187926240209206,
+     "screenshot": 0.00046865054798085333,
+     "photo": 0.004234860241982562
     },
-    "confidence": 0.9472198542179248
+    "confidence": 0.9418384870544694
    },
    "complete": {
     "type": "noul",
-    "noul": 0.7547024747117248
+    "noul": 0.7204719996592999
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.13002456530892006
+    "noul": 0.25625030659137327
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.3122616410255432
+    "noul": 0.20239977840184836
    },
    "glare": {
     "type": "noul",
-    "noul": 0.11831374995322898
+    "noul": 0.2097085471581572
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.021194542576924543
+    "noul": 0.016538388903898082
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.061213798213518536
    }
   },
   "route": "extract"
  },
  {
-  "file": "10_bad_stock_register.jpg",
-  "ms": 76.8,
+  "file": "11_bad_stock_register.jpg",
+  "ms": 60.1,
   "answers": {
    "kind": {
     "type": "choice",
@@ -385,437 +464,571 @@
    "multiple": {
     "type": "noul",
     "noul": 0.019006894454873684
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.152319180254924
    }
   },
   "route": "reject"
  },
  {
-  "file": "11_good_cord010.jpg",
-  "ms": 89.4,
+  "file": "12_good_cord010.jpg",
+  "ms": 100.9,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.984431372001265,
-     "invoice": 0.005241390094868054,
-     "other_document": 0.004371187852198813,
-     "screenshot": 0.0004425996653915694,
-     "photo": 0.0055134503862766145
+     "receipt": 0.9836427498981263,
+     "invoice": 0.005635950332493161,
+     "other_document": 0.004667890873189027,
+     "screenshot": 0.0004777887046717775,
+     "photo": 0.005575620191519737
     },
-    "confidence": 0.9386066088509238
+    "confidence": 0.9359720611665118
    },
    "complete": {
     "type": "noul",
-    "noul": 0.9165078283515184
+    "noul": 0.916439281159054
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.14396094000281304
+    "noul": 0.14194580057021083
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.06989610195159912
+    "noul": 0.06967218116414277
    },
    "glare": {
     "type": "noul",
-    "noul": 0.22272110154636962
+    "noul": 0.2201334702889043
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.004992065794740222
+    "noul": 0.005039187289006653
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.08876126475565048
    }
   },
   "route": "extract"
  },
  {
-  "file": "12_bad_cut_off.jpg",
-  "ms": 65.0,
+  "file": "13_bad_cut_off.jpg",
+  "ms": 72.2,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.34618833677200056,
-     "invoice": 0.157788634373708,
-     "other_document": 0.2152221501875772,
-     "screenshot": 0.005801498426963342,
-     "photo": 0.2749993802397509
+     "receipt": 0.3460046914778213,
+     "invoice": 0.1550285503731244,
+     "other_document": 0.21396876672311904,
+     "screenshot": 0.005737895092573994,
+     "photo": 0.27926009633336124
     },
-    "confidence": 0.1462366808409612
+    "confidence": 0.14754445638107438
    },
    "complete": {
     "type": "noul",
-    "noul": 0.03241730096780769
+    "noul": 0.03207985192239836
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.9121254750499537
+    "noul": 0.9159701075249189
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.051128751661372464
+    "noul": 0.052984020419775985
    },
    "glare": {
     "type": "noul",
-    "noul": 0.6837456037846568
+    "noul": 0.688830554485321
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.0177957031386155
+    "noul": 0.017532835664947635
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.047332384750225796
    }
   },
   "route": "reject"
  },
  {
-  "file": "13_good_cord015.jpg",
-  "ms": 91.4,
+  "file": "14_good_cord015.jpg",
+  "ms": 101.9,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.9889823769429797,
-     "invoice": 0.0022428392285572213,
-     "other_document": 0.002860260766417411,
-     "screenshot": 0.0004074029464978651,
-     "photo": 0.005507120115547793
+     "receipt": 0.9883565501977601,
+     "invoice": 0.002355048712316146,
+     "other_document": 0.002971250389745663,
+     "screenshot": 0.00042907687868408396,
+     "photo": 0.005888073821493952
     },
-    "confidence": 0.9545079197665942
+    "confidence": 0.9523581924796848
    },
    "complete": {
     "type": "noul",
-    "noul": 0.843285190414113
+    "noul": 0.8444726467132568
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.28984787196374323
+    "noul": 0.2914605947893681
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.09880255981387615
+    "noul": 0.0986473560333252
    },
    "glare": {
     "type": "noul",
-    "noul": 0.40143318768044745
+    "noul": 0.40661919116973877
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.007796632227630216
+    "noul": 0.007940209182288351
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.06955359286562189
    }
   },
   "route": "extract"
  },
  {
-  "file": "14_bad_glare.jpg",
-  "ms": 90.2,
+  "file": "15_bad_shadow.jpg",
+  "ms": 128.9,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.9909476564874128,
-     "invoice": 0.0021537060225124117,
-     "other_document": 0.0025903074811402535,
-     "screenshot": 0.0003536563864479812,
-     "photo": 0.003954673622486519
+     "receipt": 0.9764426237489049,
+     "invoice": 0.009326713051646023,
+     "other_document": 0.006542041356333867,
+     "screenshot": 0.0007068332552060125,
+     "photo": 0.006981788587909196
     },
-    "confidence": 0.9612565033675871
+    "confidence": 0.9132798208469242
    },
    "complete": {
     "type": "noul",
-    "noul": 0.8699289223530567
+    "noul": 0.49426817893981934
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.28985730677417837
+    "noul": 0.17551226652395327
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.12190292957280471
+    "noul": 0.36104766610406835
    },
    "glare": {
     "type": "noul",
-    "noul": 0.5426748829282855
+    "noul": 0.639500837340926
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.006636728600602611
+    "noul": 0.00985476865067962
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.10861987539664003
    }
   },
   "route": "reject"
  },
  {
-  "file": "15_good_cord022.jpg",
-  "ms": 166.8,
+  "file": "16_borderline_soft_focus.jpg",
+  "ms": 50.8,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.9736584261750321,
-     "invoice": 0.010320421135269497,
-     "other_document": 0.008798871973175838,
-     "screenshot": 0.0007180073178148533,
-     "photo": 0.006504273398707694
+     "receipt": 0.9447550551452999,
+     "invoice": 0.007999609036380306,
+     "other_document": 0.020048701664218942,
+     "screenshot": 0.001997761614207662,
+     "photo": 0.025198872539893228
     },
-    "confidence": 0.9050673655903501
+    "confidence": 0.8285918610081355
    },
    "complete": {
     "type": "noul",
-    "noul": 0.5876371685374627
+    "noul": 0.6767805622089245
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.24978307263032767
+    "noul": 0.5469517870829042
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.060427136269009585
+    "noul": 0.4064457174273898
    },
    "glare": {
     "type": "noul",
-    "noul": 0.16203439235687256
+    "noul": 0.42557305097579956
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.01809082586487431
+    "noul": 0.05953097338964586
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.17385016640797504
+   }
+  },
+  "route": "review"
+ },
+ {
+  "file": "17_good_cord022.jpg",
+  "ms": 129.6,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.977816043905088,
+     "invoice": 0.008612300782137533,
+     "other_document": 0.006243619508297576,
+     "screenshot": 0.0006462429685696585,
+     "photo": 0.0066817928359072
+    },
+    "confidence": 0.9174937259500814
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.5444224910610171
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.22097531463316167
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.08947845348391413
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.19249205578106726
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.016027973218449707
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.06811024147107837
    }
   },
   "route": "extract"
  },
  {
-  "file": "16_bad_screenshot.jpg",
-  "ms": 226.8,
+  "file": "18_bad_screenshot.jpg",
+  "ms": 179.9,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "screenshot",
     "probabilities": {
-     "receipt": 0.000404203462515797,
-     "invoice": 0.000328675732554138,
-     "other_document": 0.004679758175657733,
-     "screenshot": 0.9746201192383516,
-     "photo": 0.019967243390920722
+     "receipt": 0.0006128233621462374,
+     "invoice": 0.0004077293927230687,
+     "other_document": 0.0047466867549271,
+     "screenshot": 0.96877016427371,
+     "photo": 0.025462596216493653
     },
-    "confidence": 0.9166795408628887
+    "confidence": 0.9022575071691217
    },
    "complete": {
     "type": "noul",
-    "noul": 0.02897912633741382
+    "noul": 0.04228363637409427
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.03193846249763779
+    "noul": 0.029319530189114453
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.025598948678380164
+    "noul": 0.03314448483499343
    },
    "glare": {
     "type": "noul",
-    "noul": 0.022411414659618607
+    "noul": 0.025799361268076266
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.02266755814599155
+    "noul": 0.025661465161469915
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.4509470462799072
    }
   },
   "route": "reject"
  },
  {
-  "file": "17_good_cord025.jpg",
-  "ms": 177.4,
+  "file": "19_good_cord025.jpg",
+  "ms": 129.2,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.9896961671503075,
-     "invoice": 0.0037127799251961465,
-     "other_document": 0.0034533392943183203,
-     "screenshot": 0.0004148784011547609,
-     "photo": 0.0027228352290233197
+     "receipt": 0.9894683506997817,
+     "invoice": 0.0030845898197377716,
+     "other_document": 0.0037476765615394553,
+     "screenshot": 0.00037629653268518505,
+     "photo": 0.0033230863862559194
     },
-    "confidence": 0.9565597999994394
+    "confidence": 0.9557749755986363
    },
    "complete": {
     "type": "noul",
-    "noul": 0.7618753427546523
+    "noul": 0.8117054588619148
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.140999104350832
+    "noul": 0.1331227421760559
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.05639584629990447
+    "noul": 0.05679790760275584
    },
    "glare": {
     "type": "noul",
-    "noul": 0.19407691929088172
+    "noul": 0.14555959620415562
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.011684536933898926
+    "noul": 0.009414510643611484
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.04012532114842548
    }
   },
   "route": "extract"
  },
  {
-  "file": "18_bad_dog_photo.jpg",
-  "ms": 77.5,
+  "file": "20_bad_dog_photo.jpg",
+  "ms": 80.3,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "photo",
     "probabilities": {
-     "receipt": 0.00013454055131344956,
-     "invoice": 0.0001234203702536136,
-     "other_document": 0.0009061412700460109,
-     "screenshot": 9.030626376612224e-05,
-     "photo": 0.9987455915446208
+     "receipt": 0.00013343662513328497,
+     "invoice": 0.00012245183536898661,
+     "other_document": 0.0009011436542217402,
+     "screenshot": 9.08445659809236e-05,
+     "photo": 0.9987521233192951
     },
-    "confidence": 0.993318591805545
+    "confidence": 0.9933487727512297
    },
    "complete": {
     "type": "noul",
-    "noul": 0.001955258451315737
+    "noul": 0.002098854996447848
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.04036756157190424
+    "noul": 0.0394456434621603
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.013118912737424217
+    "noul": 0.013059053910573487
    },
    "glare": {
     "type": "noul",
-    "noul": 0.012598014898672145
+    "noul": 0.012711559903771359
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.0010492656299795726
+    "noul": 0.0010470437983082638
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.033537937089775434
    }
   },
   "route": "reject"
  },
  {
-  "file": "19_good_cord027.jpg",
-  "ms": 170.4,
+  "file": "21_good_cord027.jpg",
+  "ms": 128.6,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.9929574489596447,
-     "invoice": 0.0013015862474622946,
-     "other_document": 0.0020255334188968095,
-     "screenshot": 0.0002741554278712071,
-     "photo": 0.0034412759461250196
+     "receipt": 0.9922573420600396,
+     "invoice": 0.0012847243153727096,
+     "other_document": 0.0023762629949484015,
+     "screenshot": 0.00028406924267023083,
+     "photo": 0.003797601386969074
     },
-    "confidence": 0.9689363309255072
+    "confidence": 0.9663805018373446
    },
    "complete": {
     "type": "noul",
-    "noul": 0.8581244561914597
+    "noul": 0.834835360358038
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.0566489065313671
+    "noul": 0.04286462425118452
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.0900302393738961
+    "noul": 0.09356632549863084
    },
    "glare": {
     "type": "noul",
-    "noul": 0.06404016310066349
+    "noul": 0.07204159617578969
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.004641936225471127
+    "noul": 0.005113377005897613
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.04210611232804967
    }
   },
   "route": "extract"
  },
  {
-  "file": "20_good_cord029.jpg",
-  "ms": 167.5,
+  "file": "22_good_cord029.jpg",
+  "ms": 129.2,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.9829229806769025,
-     "invoice": 0.005681493960864015,
-     "other_document": 0.006303810192712028,
-     "screenshot": 0.0005402437251879748,
-     "photo": 0.004551471444333411
+     "receipt": 0.9870044201534194,
+     "invoice": 0.006139031370358037,
+     "other_document": 0.0032519652628426807,
+     "screenshot": 0.000397935173916207,
+     "photo": 0.0032066480394636688
     },
-    "confidence": 0.9336084372530522
+    "confidence": 0.9475990599515539
    },
    "complete": {
     "type": "noul",
-    "noul": 0.5560415387153625
+    "noul": 0.6767713629237223
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.05771527224349707
+    "noul": 0.05901362616252112
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.23393598643231453
+    "noul": 0.12458707858799967
    },
    "glare": {
     "type": "noul",
-    "noul": 0.2657062788518154
+    "noul": 0.2675114870071411
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.016254127889152207
+    "noul": 0.014499272773061286
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.04553083076594701
    }
   },
   "route": "extract"
  },
  {
-  "file": "21_good_cord021.jpg",
-  "ms": 182.6,
+  "file": "23_good_cord021.jpg",
+  "ms": 139.1,
   "answers": {
    "kind": {
     "type": "choice",
     "choice": "receipt",
     "probabilities": {
-     "receipt": 0.987256749821073,
-     "invoice": 0.002951261540972846,
-     "other_document": 0.00379033683419192,
-     "screenshot": 0.0003672034014407243,
-     "photo": 0.005634448402321531
+     "receipt": 0.9904490733302651,
+     "invoice": 0.0020152168678681916,
+     "other_document": 0.0034734988431299576,
+     "screenshot": 0.0003149745077101446,
+     "photo": 0.0037472364510265648
     },
-    "confidence": 0.9483850595103652
+    "confidence": 0.9595155817584597
    },
    "complete": {
     "type": "noul",
-    "noul": 0.4893691095897821
+    "noul": 0.38729578256607056
    },
    "blurry": {
     "type": "noul",
-    "noul": 0.0829231944026829
+    "noul": 0.06607355078945233
    },
    "damaged": {
     "type": "noul",
-    "noul": 0.037034580552891376
+    "noul": 0.031227619329710438
    },
    "glare": {
     "type": "noul",
-    "noul": 0.08636922324918789
+    "noul": 0.05929844169763389
    },
    "multiple": {
     "type": "noul",
-    "noul": 0.006559838217057822
+    "noul": 0.005896684378667039
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.04115217321633325
    }
   },
   "route": "extract"
+ },
+ {
+  "file": "24_bad_sticky_note.jpg",
+  "ms": 101.9,
+  "answers": {
+   "kind": {
+    "type": "choice",
+    "choice": "receipt",
+    "probabilities": {
+     "receipt": 0.9720069535781991,
+     "invoice": 0.0030680031757572084,
+     "other_document": 0.0048336712769955145,
+     "screenshot": 0.0011263493166068707,
+     "photo": 0.018965022652441318
+    },
+    "confidence": 0.90433247074181
+   },
+   "complete": {
+    "type": "noul",
+    "noul": 0.7357940673828125
+   },
+   "blurry": {
+    "type": "noul",
+    "noul": 0.20629001846477363
+   },
+   "damaged": {
+    "type": "noul",
+    "noul": 0.08679709260176523
+   },
+   "glare": {
+    "type": "noul",
+    "noul": 0.34439176321029663
+   },
+   "multiple": {
+    "type": "noul",
+    "noul": 0.033900024527312785
+   },
+   "added_text": {
+    "type": "noul",
+    "noul": 0.8595372566511819
+   }
+  },
+  "route": "reject"
  }
 ]

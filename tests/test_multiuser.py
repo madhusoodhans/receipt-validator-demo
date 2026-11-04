@@ -1,4 +1,6 @@
-"""Many visitors at once: isolation, scoped reset, cleanup, caps, rate limits, the model-call gate and 429 retry.
+"""Many visitors at once: isolation, scoped reset, cleanup, caps, rate limits, the model-call gate and 429 retry; and
+models that are down, slow or failing: pre-flight refusal, the circuit breaker, the Qwen 4B template fallback, a Qwen
+27B failure mid-run, and no raw error text in any event or response.
 Runs the real server in-process against bench/stub_models.py (no GPU, no Router), on free ports, in a temp dir.
 
   .venv/bin/python tests/test_multiuser.py
@@ -30,7 +32,7 @@ def serve(handler):
 _probe = ThreadingHTTPServer(("127.0.0.1", 0), None); STUB_PORT = _probe.server_address[1]; _probe.server_close()
 os.environ.update(ROUTER_URL=f"http://127.0.0.1:{STUB_PORT}", DB=os.path.join(TMP, "t.db"),
                   UPLOAD_ROOT=os.path.join(TMP, "up"), UPLOADS_PER_MIN="1000", UPLOADS_PER_MIN_IP="1000",
-                  MEASURE_BASELINE="0", PLAY_ALL="0")
+                  PLAY_ALL="0")
 sys.path[:0] = [os.path.join(ROOT, "app"), os.path.join(ROOT, "bench")]
 import stub_models  # noqa: E402
 stub = ThreadingHTTPServer(("127.0.0.1", STUB_PORT), stub_models.Handler)
@@ -39,6 +41,9 @@ stub_models.CONF["speed"] = 0.05
 import server  # noqa: E402  (chdirs to the repo root and opens the temp database)
 import db  # noqa: E402
 import gate  # noqa: E402
+import health  # noqa: E402
+import message  # noqa: E402
+import pipeline  # noqa: E402
 import visitors  # noqa: E402
 
 URL = serve(server.Handler)
@@ -91,10 +96,8 @@ def test_isolation():
     assert len(get("/api/receipts", a).json()) == 1 and len(get("/api/rejections", a).json()) == 1
     assert get("/api/receipts", b).json() == [] and get("/api/rejections", b).json() == []
     sa, sb = get("/api/stats", a).json(), get("/api/stats", b).json()
-    assert sa["uploads"] == 2 and sb["uploads"] == 0 and sb["comparison"]["images"] == 0, (sa, sb)
-    # a rejected upload with no 27B time: no baseline, not pending (MEASURE_BASELINE=0)
-    assert ev2["done"]["comparison"]["all_27b_ms"] is None and ev2["done"]["comparison"]["baseline_pending"] is False
-    assert sa["comparison"]["no_baseline"] == 1 and sa["comparison"]["pending_baseline"] == 0
+    assert sa["uploads"] == 2 and sa["rejected"] == 1 and sb["uploads"] == 0, (sa, sb)
+    assert "comparison" not in sa and "comparison" not in ev2["done"] and "gpu_price" not in sa, "no all-27B comparison"
     # unknown or malformed visitor ids see nothing, and cannot upload
     assert get("/api/receipts", vid()).json() == []
     assert get("/api/receipts", "not-a-uuid").json() == [] and get("/api/stats", "x").json()["uploads"] == 0
@@ -113,7 +116,7 @@ def test_demo_runs_share_images():
     row = get("/api/rejections", a).json()[0]
     assert row["image_url"] == "/api/demo/04_bad_crumpled.jpg", row
     assert not os.path.isdir(server.VIS.folder(a)), "demo runs store no file"
-    assert "event: done" in r.text and '"all_27b_ms": null' not in r.text, "demo images keep their shared baseline"
+    assert "event: done" in r.text
     print("demo runs ok")
 
 
@@ -299,10 +302,166 @@ def test_decode():
 def test_endpoints():
     assert get("/healthz").json() == {"ok": True}
     c = get("/api/config").json()
-    assert c["play_all"] is False and c["measure_baseline"] is False
+    assert c["play_all"] is False and "measure_baseline" not in c
+    assert get("/api/baseline/abc").status_code == 404, "no baseline endpoint"
     m = get("/api/metrics").json()
     assert {"visitors", "uploads_last_hour", "model_calls", "model_429_503", "upload_disk_bytes"} <= set(m), m
     print("endpoints ok", m)
+
+
+# -- models down, slow or failing ----------------------------------------------------------------------------------
+RAW = ("{", "}", "HTTP", "Error", "Traceback", "upstream", "http://", "Exception")
+
+
+def stub(**conf):
+    """Sets the stub's per-model failures (down, delay, status); everything else back to normal."""
+    stub_models.CONF.update(down=[], delay={}, status={}); stub_models.CONF.update(conf)
+
+
+def healthy():
+    stub(); gate.TRACKER.reset(); health.round_once()
+    assert get("/health").json()["status"] == "ok"
+
+
+def calls():
+    return sum(s["calls"] for s in stub_models.STATS.values())
+
+
+def plain(ev):
+    """Every string the UI shows from an error or message event, and every error in an API answer, is plain words."""
+    for name in ("error", "message"):
+        for v in (ev[name].values() if isinstance(ev.get(name), dict) else []):
+            for x in (v if isinstance(v, list) else [v]):
+                assert not isinstance(x, str) or not any(r in x for r in RAW), (name, x)
+    if "error" in ev and isinstance(ev["error"], str):  # a JSON refusal
+        assert not any(r in ev["error"] for r in RAW), ev
+
+
+def test_preflight():
+    healthy()
+    for model in ("d3", "qwen27b"):
+        stub(down=[model]); health.round_once()
+        hl = get("/health").json()
+        assert hl["status"] == "down" and hl["message"] == "Receipt checking unavailable" and hl[model] is False, hl
+        n = calls()
+        code, body = upload(vid())
+        assert code == 503 and body["error"] == "Receipt checking is unavailable right now. Please try again in a minute."
+        r = requests.post(f"{URL}/api/check", json={"demo": "01_good_berghotel.jpg"}, headers=h(vid()))
+        assert r.status_code == 503
+        assert calls() == n, "no model call when refused"
+        plain(body)
+        healthy()
+    stub(down=["qwen4b"]); health.round_once()
+    hl = get("/health").json()
+    assert hl["status"] == "degraded" and hl["message"] == "Standard retake messages in use: Qwen 4B unavailable", hl
+    n4 = stub_models.STATS.get("qwen4b", {}).get("calls", 0)
+    code, ev = upload(vid(), "02_bad_blurry_hand.jpg", reencode("02_bad_blurry_hand.jpg"))
+    assert code == 200 and ev["message"]["model"] == "template", ev
+    assert ev["message"]["fallback"] == "standard message (Qwen 4B unavailable)" and "stored" in ev
+    assert stub_models.STATS.get("qwen4b", {}).get("calls", 0) == n4, "4B marked down: not called"
+    code, ev = upload(vid())
+    assert code == 200 and "stored" in ev and ev["stored"]["table"] == "receipts", "good receipts still read"
+    healthy()
+    print("pre-flight ok")
+
+
+def test_breaker_unit():
+    clock = [0.0]
+    t = gate.Tracker(fails=3, open_s=30, clock=lambda: clock[0])
+    assert t.available("d3"), "unknown counts as up"
+    t.fail("d3", "timeout"); t.fail("d3", "timeout")
+    assert t.available("d3")
+    t.fail("d3", "timeout")
+    assert not t.available("d3") and t.why("d3") == "timeout"
+    clock[0] += 29.9
+    assert not t.available("d3")
+    clock[0] += 0.2
+    assert t.available("d3"), "open for 30 s only"
+    t.fail("d3", "unavailable")
+    assert not t.available("d3"), "still failing after the 30 s: open again at once"
+    t.ok("d3")
+    assert t.available("d3") and t.why("d3") is None, "a success closes it"
+    t.probed("qwen4b", False, "unreachable")
+    assert not t.available("qwen4b")
+    t.probed("qwen4b", True)
+    assert t.available("qwen4b")
+    print("breaker (unit) ok")
+
+
+def test_breaker_http():
+    """3 failed 27B calls (5xx) open the breaker: the next upload is refused before any model call; a success closes it."""
+    healthy()
+    stub(status={"qwen27b": 500})
+    for _ in range(3):
+        code, ev = upload(vid())
+        e = ev["error"]
+        assert e["step"] == "extract" and e["reason"] == "unavailable" and e["detail"] == "Qwen 27B is unavailable", e
+        assert e["message"] == pipeline.UNAVAILABLE["extract"] and e["skipped"] == ["sumcheck", "stored"]
+        assert "stored" not in ev and "done" not in ev
+        plain(ev)
+    assert not gate.TRACKER.available("qwen27b")
+    n = calls()
+    code, body = upload(vid())
+    assert code == 503 and calls() == n, "breaker open: refused, no model call"
+    assert get("/health").json()["detail"]["qwen27b"] == "unavailable"
+    stub()
+    health.round_once()  # a successful probe marks it up
+    assert gate.TRACKER.available("qwen27b") and upload(vid())[1].get("stored")
+    # D3 answering 502 with a JSON body: the step says unavailable, nothing of the body reaches the page
+    stub(status={"d3": 502})
+    code, ev = upload(vid())
+    assert ev["error"]["step"] == "d3" and ev["error"]["reason"] == "unavailable", ev
+    assert ev["error"]["message"] == pipeline.UNAVAILABLE["d3"] and ev["error"]["skipped"] == ["route", "model", "stored"]
+    assert "route" not in ev and "stored" not in ev
+    plain(ev)
+    healthy()
+    print("breaker (http) ok")
+
+
+def test_timeouts_mid_run():
+    """Models that are up at the start but fail during the run."""
+    healthy()
+    old = dict(gate.TIMEOUT_S)
+    gate.TIMEOUT_S.update(qwen27b=0.5, qwen4b=0.5, d3=0.5)
+    try:
+        stub(delay={"qwen27b": 2})
+        code, ev = upload(vid())
+        e = ev["error"]
+        assert e["step"] == "extract" and e["reason"] == "timeout", e
+        assert e["detail"] == "Qwen 27B did not answer within 0.5 s"
+        assert e["message"] == "Your receipt passed the checks, but reading is unavailable right now. Please try again shortly."
+        assert "d3" in ev and "route" in ev and "stored" not in ev
+        plain(ev)
+        stub(delay={"qwen4b": 2})
+        code, ev = upload(vid(), "04_bad_crumpled.jpg", reencode("04_bad_crumpled.jpg"))
+        m = ev["message"]
+        assert m["model"] == "template" and m["fallback"] == "standard message (Qwen 4B timed out)", m
+        assert m["text"] == message.template(ev["route"]) and "crumpled" in m["text"], m
+        assert ev["stored"]["table"] == "rejections" and "done" in ev
+        assert get("/api/rejections", vid()).json() == []
+        stub(down=["qwen4b"])
+        code, ev = upload(vid(), "24_bad_sticky_note.jpg", reencode("24_bad_sticky_note.jpg"))
+        m = ev["message"]
+        assert m["fallback"] == "standard message (Qwen 4B unavailable)", m
+        assert "original receipt only" in m["text"], m["text"]
+        stub(delay={"d3": 2})
+        code, ev = upload(vid())
+        assert ev["error"]["step"] == "d3" and ev["error"]["reason"] == "timeout" and "received" in ev, ev
+        plain(ev)
+    finally:
+        gate.TIMEOUT_S.update(old)
+        healthy()
+    print("timeouts mid-run ok")
+
+
+def test_template():
+    route = lambda *keys: {"reasons": [{"key": k, "label": k, "prob": 0.9, "status": "bad"} for k in keys]}  # noqa: E731
+    assert message.template(route("kind")).startswith("This image does not look like a receipt")
+    t = message.template(route("blurry", "glare"))
+    assert t == ("This photo cannot be used: the text is blurry and glare or a shadow covers part of the text. "
+                 "Please hold the phone steady and let it focus and move out of direct light, then try again."), t
+    assert "original receipt only" in message.template(route("added_text"))
+    print("template ok")
 
 
 if __name__ == "__main__":
@@ -316,4 +475,9 @@ if __name__ == "__main__":
     test_gate_and_retry()
     test_decode()
     test_endpoints()
+    test_template()
+    test_breaker_unit()
+    test_preflight()
+    test_breaker_http()
+    test_timeouts_mid_run()
     print("all tests passed")

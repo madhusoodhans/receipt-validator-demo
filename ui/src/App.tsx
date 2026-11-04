@@ -31,25 +31,17 @@ function useTheme(): [Theme, (t: Theme) => void] {
   return [theme, setTheme];
 }
 
-const SERVICES: [Service, string][] = [["router", "Router"], ["d3", "D3"], ["qwen27b", "Qwen 27B"], ["qwen4b", "Qwen 4B"]];
+const SERVICES: [Service, string][] = [["d3", "D3"], ["qwen27b", "Qwen 27B"], ["qwen4b", "Qwen 4B"]];
+const TONE = { ok: "success", degraded: "warning", down: "danger" } as const;
 
-/** One failure in plain words: vision off is its own problem (the 27B is up but cannot read images). */
-function failure(key: Service, name: string, why?: string) {
-  if (why === "image input off") return `Vision off on ${name}`;
-  if (why === "not served by the Router") return `${name} not on the Router`;
-  return `${name} down`;
-}
-
+/** The server's availability state in plain words (GET /health `message`); the tooltip lists each model. */
 function HealthBadge({ health, error }: { health: Health | null; error: boolean }) {
-  const failed = SERVICES.filter(([k]) => health && health[k] === false);
-  // With the Router down every probe fails; naming the Router alone says it.
-  const shown = failed.some(([k]) => k === "router") ? failed.filter(([k]) => k === "router") : failed;
-  const tone = error ? "danger" : !health ? "neutral" : health.ok ? "success" : "warning";
-  const text = error ? "Backend offline" : !health ? "Checking"
-    : shown.length ? shown.map(([k, n]) => failure(k, n, health.detail?.[k])).join(", ") : "All models up";
-  const detail = error ? "GET /health failed"
-    : !health ? "Waiting for /health"
-    : SERVICES.map(([k, n]) => `${n}: ${health[k] ? "up" : health.detail?.[k] ?? "down"}`).join(", ")
+  const status = health?.status ?? (health ? (health.ok ? "ok" : "down") : undefined);
+  const tone = error ? "danger" : status ? TONE[status] : "neutral";
+  const text = error ? "Demo server offline" : !health ? "Checking" : health.message ?? (health.ok ? "All systems working" : "Receipt checking unavailable");
+  const detail = error ? "The demo server does not answer"
+    : !health ? "Waiting for the first check"
+    : SERVICES.map(([k, n]) => `${n}: ${health[k] === false ? health.detail?.[k] ?? "unavailable" : "working"}`).join(", ")
       + (health.checked_at ? `. Checked ${new Date(health.checked_at).toLocaleTimeString()}` : "");
   return (
     <Tooltip content={detail}>
@@ -91,17 +83,7 @@ export function App() {
     return () => clearInterval(t);
   }, [refresh]);
 
-  // A new rejected upload is timed on Qwen 27B in the background; refresh the totals until that lands.
-  const pending = stats?.comparison?.pending_baseline ?? 0;
-  useEffect(() => {
-    if (!pending) return;
-    const t = setTimeout(refresh, 3000);
-    return () => clearTimeout(t);
-  }, [pending, stats, refresh]);
-
   const busy = !!run?.active;
-  // Share of bad uploads in the demo set (labels.json), for the note on how the saving depends on it.
-  const badShare = demo.length ? demo.filter((d) => d.group === "bad").length / demo.length : null;
   // A refused upload (not an image) has nothing to show.
   // An upload's own image is fetched with the visitor id; the local preview shows until it arrives.
   const received = useImageSrc(run?.received?.image_url);
@@ -172,7 +154,7 @@ export function App() {
           </div>
         </main>
         <aside className={styles.side} aria-label="Running totals">
-          <Stats stats={stats} tally={runner.tally} badShare={badShare} />
+          <Stats stats={stats} run={run} />
           <Recent receipts={receipts} rejections={rejections} receiptCount={stats?.extracted} rejectionCount={stats?.rejected} />
         </aside>
       </div>

@@ -2,7 +2,7 @@
 # Checks the running demo end to end: GET /health, then one good, one borderline and one bad demo image through
 # POST /api/check, each route compared with data/demo/labels.json (expected_route). Exit code 0 = all passed.
 #   deploy/smoke_test.sh            three images (~15 s)
-#   deploy/smoke_test.sh --all      every demo image (~1-2 min)
+#   deploy/smoke_test.sh --all      every demo image (~1-2 min; longer where uploads per minute are limited)
 #   add --reset                     clear its receipts and rejections afterwards (POST /api/reset); measured 27B
 #                                   baseline times are kept
 # The test is its own visitor (a random X-Visitor-Id), so its runs never show on anyone's page; the idle cleanup
@@ -13,6 +13,7 @@ source deploy/common.sh
 exec .venv/bin/python -I - "http://$HOST:$PORT" "$@" <<'PY'
 import json
 import sys
+import time
 import uuid
 
 import requests
@@ -49,11 +50,20 @@ else:
     picked = [next(l for l in labels if l["group"] == g) for g in ("good", "borderline", "bad")
               if any(l["group"] == g for l in labels)]
 
+def check(file):
+    """POST /api/check; a 429 (the per-minute upload limit, as on the Space) waits and tries again."""
+    for _ in range(12):
+        r = requests.post(f"{base}/api/check", json={"demo": file}, headers=VISITOR, stream=True, timeout=(5, 180))
+        if r.status_code != 429:
+            return r
+        r.close(); time.sleep(10)
+    return r
+
+
 for l in picked:
     events, event = {}, None
     try:
-        with requests.post(f"{base}/api/check", json={"demo": l["file"]}, headers=VISITOR, stream=True,
-                           timeout=(5, 180)) as r:
+        with check(l["file"]) as r:
             r.raise_for_status()
             for line in r.iter_lines(decode_unicode=True):
                 if line.startswith("event: "):
