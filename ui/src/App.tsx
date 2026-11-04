@@ -111,7 +111,6 @@ export function App() {
               <span className={styles.backText}>All demos</span>
             </a>
           )}
-          <span className={styles.chip}>MI300X, gfx942</span>
         </div>
         <div className={styles.title}>
           <h1>Receipt Intake Demo using vllm-sr &amp; Decision 3.0</h1>

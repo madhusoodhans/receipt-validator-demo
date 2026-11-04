@@ -38,7 +38,6 @@
 @media (hover: hover) and (pointer: fine) { .back:hover { color: var(--foreground); background: var(--surface-muted); } }
 .back:active { color: var(--foreground); background: var(--surface-muted); }
 @media (prefers-reduced-motion: reduce) { .back { transition: none; } }
-.chip { color: var(--text-secondary); font-size: var(--text-xs); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .title { display: flex; align-items: center; justify-content: center; gap: var(--space-3); min-width: 0; }
 .title h1 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-size: var(--text-lg); letter-spacing: var(--tracking-display); }
 .actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); }
@@ -46,7 +45,6 @@
   .bar { grid-template-columns: minmax(0, 1fr) auto; }
   .title { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; }
   .title h1 { white-space: normal; font-size: var(--text-base); }
-  .chip { display: none; }
 }
 @media (max-width: 560px) {
   .back { padding-inline: var(--space-2); }
