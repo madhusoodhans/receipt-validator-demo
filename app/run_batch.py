@@ -24,7 +24,8 @@ labels = [l for l in labels if not a.files or l["file"] in a.files]
 runs = []
 for n, l in enumerate(labels):
     path = f"data/demo/{l['file']}"
-    ev = dict(pipeline.run(con, f"b{n}", l["file"], open(path, "rb").read(), "image/jpeg", Image.open(path).size))
+    ev = dict(pipeline.run(con, f"b{n}", l["file"], open(path, "rb").read(), "image/jpeg", Image.open(path).size,
+                           visitor_id="batch"))
     runs.append({"label": l, "events": ev})
     if "error" in ev:
         print(f"{l['file']:28} ERROR {ev['error']}"); continue
@@ -41,6 +42,6 @@ for n, l in enumerate(labels):
     print(line, flush=True)
 bl = "data/demo/baseline.json"
 demo_baseline = {i["sha256"]: i["ms"] for i in json.load(open(bl))["images"]} if os.path.exists(bl) else {}
-stats = pipeline.stats(con, demo_baseline)
+stats = pipeline.stats(con, demo_baseline, "batch")
 json.dump({"runs": runs, "stats": stats}, open(a.out, "w"), indent=1, ensure_ascii=False)
 print(json.dumps(stats, indent=1))

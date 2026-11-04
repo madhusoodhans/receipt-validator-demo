@@ -30,6 +30,8 @@ export function Upload({ busy, onFile }: { busy: boolean; onFile: (f: File) => v
 
 export function DemoStrip(props: {
   demo: DemoItem[]; demoError: string | null; current: string | null; busy: boolean; playing: boolean;
+  /** Off on the hosted demo (server env PLAY_ALL=0): single demo images still run. */
+  playAll: boolean;
   outcomes: Record<string, RouteName | "error">;
   onDemo: (d: DemoItem) => void; onPlay: () => void; onStop: () => void;
 }) {
@@ -39,7 +41,7 @@ export function DemoStrip(props: {
     <section className={styles.demo} aria-label="Demo images">
       <div className={styles.demoHead}>
         <h2 className={styles.h2}>Demo images</h2>
-        {playing ? (
+        {!props.playAll && !playing ? null : playing ? (
           <Button variant="secondary" onClick={props.onStop}><Square size={16} strokeWidth={1.75} aria-hidden="true" />Stop</Button>
         ) : (
           <Button variant="primary" onClick={props.onPlay} disabled={busy || demo.length === 0}><Play size={16} strokeWidth={1.75} aria-hidden="true" />Play all</Button>

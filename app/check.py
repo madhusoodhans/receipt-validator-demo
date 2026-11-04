@@ -8,10 +8,10 @@ One request per image with every question; the answers decide the route:
 import base64
 import io
 import os
-import time
 
-import requests
 from PIL import Image
+
+import gate
 
 ROUTER_URL = os.environ.get("ROUTER_URL", "http://localhost:8899").rstrip("/")  # the vllm-sr Router
 ROUTER = f"{ROUTER_URL}/v1/systemone"
@@ -82,11 +82,9 @@ def ask_d3(image_bytes, mime="image/jpeg", timeout=(3, 20), with_tokens=False):
     """Returns (raw answers, ms), plus the tokens D3 read with `with_tokens`."""
     image_bytes, mime = for_d3(image_bytes, mime)
     url = f"data:{mime};base64,{base64.b64encode(image_bytes).decode()}"
-    t = time.perf_counter()
-    r = requests.post(ROUTER, json={"model": MODEL, "state": STATE, "images": [url], "questions": questions()},
-                      timeout=timeout)
+    r, ms = gate.post("d3", ROUTER, {"model": MODEL, "state": STATE, "images": [url], "questions": questions()}, timeout)
     r.raise_for_status()
-    out, ms = r.json(), round((time.perf_counter() - t) * 1000, 1)
+    out = r.json()
     if with_tokens:
         u = out.get("usage") or {}
         return out["answers"], ms, (u.get("input_tokens") or 0) + (u.get("output_tokens") or 0)

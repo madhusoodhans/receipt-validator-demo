@@ -3,8 +3,14 @@ import { useState } from "react";
 import { Badge } from "./components/arc/badge/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/arc/tabs/tabs";
 import type { ReceiptRow, RejectionRow } from "./api";
+import { useImageSrc } from "./useImage";
 import { badReasons, money, problemLabel, receiptWhole, timeAgo } from "./format";
 import styles from "./Recent.module.css";
+
+function Thumb({ url }: { url: string }) {
+  const src = useImageSrc(url);
+  return src ? <img className={styles.thumb} src={src} alt="" loading="lazy" /> : <span className={styles.thumb} aria-hidden="true" />;
+}
 
 /** The lists hold the latest 50; the tab counts are the database totals (GET /api/stats), so they can be larger. */
 export function Recent({ receipts, rejections, receiptCount, rejectionCount }: {
@@ -23,7 +29,7 @@ export function Recent({ receipts, rejections, receiptCount, rejectionCount }: {
           <ul className={styles.list}>
             {receipts.map((r) => (
               <li key={r.id} className={styles.row}>
-                <img className={styles.thumb} src={r.image_url} alt="" loading="lazy" />
+                <Thumb url={r.image_url} />
                 <div className={styles.main}>
                   <span className={styles.title}>{r.receipt.store_name || r.file}</span>
                   <span className={styles.meta}>
@@ -48,7 +54,7 @@ export function Recent({ receipts, rejections, receiptCount, rejectionCount }: {
           <ul className={styles.list}>
             {rejections.map((r) => (
               <li key={r.id} className={styles.row}>
-                <img className={styles.thumb} src={r.image_url} alt="" loading="lazy" />
+                <Thumb url={r.image_url} />
                 <div className={styles.main}>
                   <span className={styles.title}>{badReasons(r.reasons).map((x) => problemLabel(x.key)).join(", ") || "Rejected"}</span>
                   <span className={styles.message} title={r.message}>{r.message}</span>

@@ -3,13 +3,12 @@ import base64
 import io
 import json
 import re
-import time
 import uuid
 
-import requests
 from PIL import Image
 
 import check
+import gate
 from check import ROUTER_URL, fit_for_router
 
 ROUTER = f"{ROUTER_URL}/v1/chat/completions"
@@ -75,10 +74,8 @@ def extract(image_bytes, mime="image/jpeg", timeout=(3, 120), upscale=True, cold
             "response_format": {"type": "json_schema", "json_schema": {"name": "receipt", "schema": SCHEMA, "strict": True}}}
     if cold:
         body["cache_salt"] = uuid.uuid4().hex
-    t = time.perf_counter()
-    r = requests.post(ROUTER, json=body, timeout=timeout)
+    r, ms = gate.post("chat", ROUTER, body, timeout)
     r.raise_for_status()
-    ms = round((time.perf_counter() - t) * 1000, 1)
     out = r.json()
     choice = out["choices"][0]
     text = choice["message"].get("content") or ""

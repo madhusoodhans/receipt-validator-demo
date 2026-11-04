@@ -229,7 +229,17 @@ Environment variables of the demo server (`app/server.py`, also honoured by `sta
 | `HOST` | `127.0.0.1` | Address the demo server listens on. Keep it on loopback and use an SSH tunnel. |
 | `PORT` | `8601` | Port of the demo server. |
 | `DB` | `data/receipts.db` | SQLite file; created on start if missing. |
+| `UPLOAD_ROOT` | `<temp dir>/receipt-intake-uploads` | Upload files, one folder per visitor (browser tab). |
+| `PLAY_ALL` | `1` | `0` hides Play all (the hosted Space); single demo images still run. |
+| `MEASURE_BASELINE` | `1` | Time Qwen 27B on each new rejected upload after its run, for the comparison. The Space sets `0` (no hidden 27B calls; such uploads show "no baseline"). |
+| `UPLOADS_PER_MIN`, `UPLOADS_PER_MIN_IP` | 6, 20 | Checks a minute per visitor and per IP. |
+| `MAX_UPLOADS`, `MAX_UPLOAD_GB`, `MAX_VISITORS`, `IDLE_MIN` | 20, 2, 500, 60 | Uploads kept per visitor, upload disk in all, visitors, minutes before an idle visitor is removed. |
+| `MODEL_CONCURRENCY`, `MODEL_QUEUE`, `MODEL_WAIT_S` | 12, 24, 15 | Model calls in flight per API, waiting, and the longest wait before a step fails as busy. |
 | `GPU_USD_PER_HOUR` | 2.59 | Price of one GPU hour for the dollar figures. The default is DigitalOcean's on-demand MI300X GPU Droplet price per GPU (checked 2026-10-26, set in `app/server.py`); the page shows the price and its source. Set your own cloud's price. |
+
+Each browser tab is its own visitor and sees only its own results; Reset clears only that tab's. Limits and the
+multi-visitor behaviour are in [docs/API.md](docs/API.md#visitors). `GET /healthz` is a cheap liveness check;
+`GET /api/metrics` shows visitors, uploads in the last hour, queued model calls and upload disk use.
 
 `GET /health` (the badge in the top bar) probes each part through `ROUTER_URL` the way the pipeline calls it: the
 Router, D3 and both Qwen models (the 27B with a tiny image, so it also catches a 27B started without image input).
@@ -268,7 +278,9 @@ app/                 demo server and pipeline
   extract.py         Qwen 27B extraction (JSON schema)
   message.py         Qwen 4B re-upload message
   sumcheck.py        arithmetic checks
-  db.py              SQLite schema and queries
+  db.py              SQLite schema and queries (every run belongs to one visitor)
+  visitors.py        visitors: upload files, rate limits, caps, idle cleanup
+  gate.py            model calls: concurrency limit, wait queue, 429/503 retry
   pipeline.py        one upload through all steps, as events
   gpuinfo.py         GPU name, recorded with measured numbers
   run_batch.py       the demo set headless (writes results/batch.json)
@@ -278,11 +290,12 @@ docs/                API.md (HTTP and SSE contract), UI.md (page)
 data/demo/           the 23 demo images, labels.json, baseline.json
 data/phase0/         first stand-in set (feeds bench/make_demo.py and the UI mock server)
 data/raw/            source images for the demo set
-data/uploads/        uploaded images (not committed)
 deploy/              model servers, Router config, up/down, measure, smoke test
 bench/               measurement and data-building scripts (see below)
 results/             raw results behind the findings below
 start_server.sh      start or restart the demo server (--bg: detached)
+tests/               test_multiuser.py: isolation, reset, cleanup, caps, limits, 429 retry (stub models, no GPU)
+Dockerfile           Hugging Face Space image (demo server only, no models); deploy/space/README.md is its draft README
 ```
 
 Bench scripts (`requirements-bench.txt` adds what they need beyond the demo):
@@ -297,6 +310,8 @@ Bench scripts (`requirements-bench.txt` adds what they need beyond the demo):
 | `d3_summary.py` | Compares D3 model sizes on the stand-in set from saved results (`results/d3_*_gpu.json`). |
 | `extract_phase0.py` | First 27B extraction test on 12 CORD receipts, scored against CORD labels. |
 | `score_batch.py` | Scores `results/batch.json` (from `app/run_batch.py`) against the labels. |
+| `stub_models.py` | A fake Router (D3, Qwen 27B and 4B answers per demo image, realistic delays, optional 429s) on :8931. |
+| `load_test.py` | 30 simulated visitors against the stub: isolation, database consistency, p95, memory and disk after cleanup. |
 
 ## How it was tuned
 

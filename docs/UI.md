@@ -34,9 +34,15 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
 
 ## Page
 
+- Each tab is one visitor: `src/api.ts` makes a random id (kept in `sessionStorage`) and sends it as `X-Visitor-Id` on
+  every request, so a tab sees only its own results and a new tab starts empty. Upload images (`/api/uploads/...`) are
+  fetched with that header and shown as object URLs (`src/useImage.ts`); demo images load directly.
+
 - Top bar: health (GET /health every 10 s, the server's last probe; names a failure plainly, such as "Vision off on
-  Qwen 27B" or "D3 down"; tooltip lists each service), Reset (POST /api/reset, inline confirm), theme switch.
-- Demo strip (GET /api/demo, grouped good / bad). Click one image, or Play all: runs them in order with a 1.8 s pause; Stop
+  Qwen 27B" or "D3 down"; tooltip lists each service), Reset (POST /api/reset, inline confirm; clears this tab's
+  results only), theme switch.
+- Demo strip (GET /api/demo, grouped good / bad). Click one image, or Play all (shown only when GET /api/config says
+  `play_all`; the hosted Space turns it off): runs them in order with a 1.8 s pause; Stop
   ends the queue after the image in flight. A dot on each thumbnail shows the route it took (green extract, amber review, red reject).
 - Upload drop zone (JPEG, PNG, WebP or HEIC, up to 60 MB), sent as multipart field `image`. A JPEG, PNG or WebP over
   15 MB or over 1600 px on the long side is decoded in the browser (EXIF rotation applied) and re-encoded as a JPEG at
@@ -54,9 +60,11 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
   image tokens in the note), Dollars per million requests like this one (inference hours x `gpu_price`), and Inference
   hours per million requests like this one (both measured one request at a time, so an upper bound). A
   `measurement_warning`, when present, shows as a small warning line at the top.
-  Then uploads / extracted / needs review / rejected, rejections by problem, and Receipts / Rejections tabs (latest 50;
-  the tab counts are the database totals). All refresh after each run ends, and every 3 s while a new rejected upload
-  is being timed on the 27B.
+  A rejected upload with no Qwen 27B time on a server that does not measure uploads (`done.comparison.baseline_pending`
+  false) says "No Qwen 27B baseline for this upload" and shows no comparison.
+  Then "Your uploads this session": uploads / extracted / needs review / rejected, rejections by problem, and Receipts /
+  Rejections tabs (latest 50; the tab counts are this visitor's totals). All refresh after each run ends, and every 3 s
+  while a new rejected upload is being timed on the 27B.
 - Light and dark themes (stored in localStorage, else the system preference). Layout checked at 1920x1080, 1280x720 and 390 px.
 
 ## Arc components used

@@ -1,5 +1,23 @@
 /* Types and I/O for the receipt-intake API (docs/API.md). All paths are relative: same origin as the page. */
 
+/** This tab's visitor id, sent as X-Visitor-Id on every call: the server shows each visitor only their own results.
+ * Kept in sessionStorage, so it lasts as long as the tab (reloads included) and every new tab starts empty. */
+export const VISITOR: string = (() => {
+  const make = () => {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    const b = crypto.getRandomValues(new Uint8Array(16));  // plain-http pages have no randomUUID
+    b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+    const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+    return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+  };
+  try {
+    const v = sessionStorage.getItem("visitor") || make();
+    sessionStorage.setItem("visitor", v);
+    return v;
+  } catch { return make(); }  // storage blocked: a fresh id per page load
+})();
+const VISITOR_HEADER = { "X-Visitor-Id": VISITOR };
+
 export type Status = "ok" | "borderline" | "bad";
 export type RouteName = "extract" | "review" | "reject";
 
@@ -33,7 +51,8 @@ export interface Stats {
   money_total_by_currency?: Record<string, number>;
   /** Model time per distinct image (first run of each), routed vs the same images all on Qwen 27B. */
   comparison: {
-    images: number; pending_baseline: number; repeats: number;
+    /** no_baseline: rejected uploads the server does not time on Qwen 27B (MEASURE_BASELINE=0), left out of both sides. */
+    images: number; pending_baseline: number; no_baseline?: number; repeats: number;
     time_ms: { d3: number; message: number; extract: number; baseline_27b: number };
     model_seconds: { routed: number; all_27b: number };
   };
@@ -43,12 +62,16 @@ export interface Stats {
   measurement_warning?: string;
 }
 
-/** One image: routed (D3 + 4B, or D3 + 27B) against sending it straight to Qwen 27B. The all_27b fields are null while
- * the 27B's run on a new rejected image is still being measured. Tokens are prompt plus completion, D3's included. */
+/** One image: routed (D3 + 4B, or D3 + 27B) against sending it straight to Qwen 27B. The all_27b fields are null for a
+ * new rejected image: while the 27B's run on it is being measured (baseline_pending), or for good when the server does
+ * not measure uploads (baseline_pending false). Tokens are prompt plus completion, D3's included. */
 export interface Comparison {
   image_sha256: string; route: RouteName; routed_ms: number; all_27b_ms: number | null;
-  routed_tokens?: number; d3_tokens?: number; all_27b_tokens?: number | null;
+  routed_tokens?: number; d3_tokens?: number; all_27b_tokens?: number | null; baseline_pending?: boolean;
 }
+/** True when this image will never get a Qwen 27B time on this server (only demo images have one). */
+export const noBaseline = (c: Comparison) => c.all_27b_ms == null && c.baseline_pending === false;
+export interface Config { play_all: boolean; measure_baseline: boolean; max_upload_mb: number; uploads_per_min: number }
 export const getBaseline = (sha: string) =>
   getJson<{ image_sha256: string; ms: number | null; tokens: number | null; measuring: boolean }>(`api/baseline/${sha}`);
 
@@ -69,7 +92,7 @@ export function unreachable(e: unknown): boolean {
 async function getJson<T>(path: string, init?: RequestInit): Promise<T> {
   let r: Response;
   try {
-    r = await fetch(path, { cache: "no-store", signal: AbortSignal.timeout(JSON_TIMEOUT_MS), ...init });
+    r = await fetch(path, { cache: "no-store", signal: AbortSignal.timeout(JSON_TIMEOUT_MS), ...init, headers: VISITOR_HEADER });
   } catch (e) {
     if ((e as Error)?.name === "TimeoutError") throw new Error(`The demo server did not answer within ${JSON_TIMEOUT_MS / 1000} s`);
     if (unreachable(e)) throw new Error("Cannot reach the demo server");
@@ -87,6 +110,29 @@ export const getStats = () => getJson<Stats>("api/stats");
 export const getReceipts = () => getJson<ReceiptRow[]>("api/receipts");
 export const getRejections = () => getJson<RejectionRow[]>("api/rejections");
 export const getHealth = () => getJson<Health>("health");
+/** Older servers have no /api/config: everything on, as before. */
+export const getConfig = () => getJson<Config>("api/config").catch((): Config => ({ play_all: true, measure_baseline: true, max_upload_mb: 15, uploads_per_min: 0 }));
+
+/** Upload images are served only with this tab's visitor id, which an <img> cannot send: fetch them and show an object
+ * URL. Kept per URL (at most the 20 uploads the server keeps per visitor, plus the current one). */
+const imageCache = new Map<string, Promise<string>>();
+export function imageSrc(url: string): Promise<string> {
+  if (!url.includes("/api/uploads/")) return Promise.resolve(url);
+  let p = imageCache.get(url);
+  if (!p) {
+    p = fetch(url, { headers: VISITOR_HEADER }).then(async (r) => {
+      if (!r.ok) throw new Error(`${r.status}`);
+      return URL.createObjectURL(await r.blob());
+    });
+    p.catch(() => imageCache.delete(url));
+    imageCache.set(url, p);
+  }
+  return p;
+}
+export function forgetImages() {
+  for (const p of imageCache.values()) p.then(URL.revokeObjectURL, () => {});
+  imageCache.clear();
+}
 export const postReset = () => getJson<{ ok: boolean }>("api/reset", { method: "POST" });
 
 /** The server answered but refused the upload (wrong file type, too large, unreadable). */
@@ -100,8 +146,8 @@ export async function streamCheck(
   /** Called on every chunk received, keep-alive pings included. */
   onActivity?: () => void,
 ): Promise<void> {
-  let body: BodyInit, headers: HeadersInit = {};
-  if ("demo" in input) { body = JSON.stringify({ demo: input.demo }); headers = { "Content-Type": "application/json" }; }
+  let body: BodyInit, headers: Record<string, string> = { ...VISITOR_HEADER };
+  if ("demo" in input) { body = JSON.stringify({ demo: input.demo }); headers["Content-Type"] = "application/json"; }
   else { const form = new FormData(); form.append("image", input.file, input.file.name); body = form; }
   const r = await fetch("api/check", { method: "POST", body, headers, signal, cache: "no-store" });
   if (!r.ok || !r.body) {

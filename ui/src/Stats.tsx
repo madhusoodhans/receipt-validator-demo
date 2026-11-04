@@ -4,7 +4,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { AnimatedCounter } from "./components/arc/animated-counter/animated-counter";
 import { motionTokens } from "./components/arc/lib/motion-tokens";
-import type { Stats as StatsT } from "./api";
+import { noBaseline, type Stats as StatsT } from "./api";
 import type { Tally } from "./run";
 import { problemLabel } from "./format";
 import styles from "./Stats.module.css";
@@ -81,7 +81,8 @@ function describe(t: Tally | null, routed: number, all: number, pending: number,
   }
   const c = t.items[0];
   const d3 = routed - (c.route === "reject" ? 0 : all);
-  const note = c.all_27b_ms == null ? "Measuring how long Qwen 27B takes on this image..."
+  const note = noBaseline(c) ? "No Qwen 27B baseline for this upload: this server times Qwen 27B only on the demo images, so there is nothing to compare it with. Try a demo image."
+    : c.all_27b_ms == null ? "Measuring how long Qwen 27B takes on this image..."
     : c.route === "reject" ? `D3 and the Qwen 4B message took ${sec(routed)}; Qwen 27B was skipped. It would have taken ${sec(all)} on this image (measured).${TIMED}`
     : `Qwen 27B read this image either way; D3 added ${sec(Math.max(0, d3))} to check it first.${TIMED}`;
   return { heading: "Inference stats for this request", note };
@@ -149,7 +150,7 @@ function Costs({ tally, price }: { tally: Tally | null; price: StatsT["gpu_price
 export function Stats({ stats, tally, badShare }: { stats: StatsT | null; tally: Tally | null; badShare: number | null }) {
   const s = stats;
   const counted = (tally?.items ?? []).filter((x) => x.all_27b_ms != null);
-  const pending = (tally?.items.length ?? 0) - counted.length;
+  const pending = (tally?.items ?? []).filter((x) => x.all_27b_ms == null && !noBaseline(x)).length;
   const routed = counted.reduce((a, x) => a + x.routed_ms, 0) / 1000;
   const all = counted.reduce((a, x) => a + (x.all_27b_ms ?? 0), 0) / 1000;
   // Signed: an image the 27B reads anyway costs a little more routed (D3 runs first), and the page says so.
@@ -174,7 +175,7 @@ export function Stats({ stats, tally, badShare }: { stats: StatsT | null; tally:
       <Costs tally={tally} price={s?.gpu_price} />
 
       <section aria-labelledby="problems-title" className={styles.problems}>
-        <h2 id="problems-title" className={styles.h3}>Rejections by problem</h2>
+        <h2 id="problems-title" className={styles.h3}>Your uploads this session</h2>
         <dl className={styles.counts} aria-label="Totals">
           {([["Uploads", s?.uploads], ["Extracted", s?.extracted], ["Review", s?.needs_review], ["Rejected", s?.rejected]] as const).map(([label, v], i) => (
             <div key={label} className={styles.count} data-kind={i}>
@@ -183,6 +184,7 @@ export function Stats({ stats, tally, badShare }: { stats: StatsT | null; tally:
             </div>
           ))}
         </dl>
+        <h3 className={styles.h3}>Rejections by problem</h3>
         {multi && <p className={styles.note}>One rejection can count under more than one problem.</p>}
         {problems.length === 0 ? <p className="muted">None yet</p> : (
           <ul className={styles.problemList}>

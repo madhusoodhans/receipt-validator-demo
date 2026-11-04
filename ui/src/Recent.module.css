@@ -3,7 +3,7 @@
 .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .row { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-2) 0; border-bottom: 1px solid var(--border-subtle); }
 .row:last-child { border-bottom: 0; }
-.thumb { width: 36px; height: 48px; object-fit: cover; border-radius: 6px; background: var(--surface-muted); }
+.thumb { display: block; width: 36px; height: 48px; object-fit: cover; border-radius: 6px; background: var(--surface-muted); }
 .main { display: flex; flex-direction: column; min-width: 0; }
 .title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .meta { font-size: var(--text-xs); color: var(--text-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }

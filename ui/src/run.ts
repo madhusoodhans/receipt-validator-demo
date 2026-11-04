@@ -1,7 +1,7 @@
 /* The current check: one image streaming through the pipeline, plus the Play all queue. */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { shrinkForUpload } from "./shrink";
-import { errText, getBaseline, Refused, streamCheck, unreachable, type Comparison, type DemoItem, type EventName, type Events, type RouteName } from "./api";
+import { errText, getBaseline, noBaseline, Refused, streamCheck, unreachable, type Comparison, type DemoItem, type EventName, type Events, type RouteName } from "./api";
 
 export interface Run {
   key: number;
@@ -85,7 +85,7 @@ export function useRunner(onFinished: () => void) {
           setTally((t) => (playingRef.current && t?.mode === "playall"
             ? { ...t, items: [...t.items.filter((x) => x.image_sha256 !== c.image_sha256), item] }
             : { mode: "image", items: [item] }));
-          if (c.all_27b_ms == null) void fillBaseline(c.image_sha256);
+          if (c.all_27b_ms == null && !noBaseline(c)) void fillBaseline(c.image_sha256);
         }
       }
       if (event === "error") route = "error";

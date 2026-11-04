@@ -8,14 +8,15 @@ import { EmptyState } from "./components/arc/empty-state/empty-state";
 import { ThemeSwitch, type Theme } from "./components/arc/theme-switch/theme-switch";
 import { Tooltip } from "./components/arc/tooltip/tooltip";
 import {
-  errText, getDemo, getHealth, getReceipts, getRejections, getStats, postReset,
-  type DemoItem, type Health, type ReceiptRow, type Service, type RejectionRow, type Stats as StatsT,
+  errText, forgetImages, getConfig, getDemo, getHealth, getReceipts, getRejections, getStats, postReset,
+  type Config, type DemoItem, type Health, type ReceiptRow, type Service, type RejectionRow, type Stats as StatsT,
 } from "./api";
 import { Recent } from "./Recent";
 import { useRunner } from "./run";
 import { DemoStrip, Upload } from "./Source";
 import { Stats } from "./Stats";
 import { Steps } from "./Steps";
+import { useImageSrc } from "./useImage";
 import styles from "./App.module.css";
 
 function useTheme(): [Theme, (t: Theme) => void] {
@@ -69,6 +70,7 @@ export function App() {
   const [health, setHealth] = useState<Health | null>(null);
   const [healthError, setHealthError] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [config, setConfig] = useState<Config | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -81,6 +83,7 @@ export function App() {
 
   useEffect(() => {
     getDemo().then(setDemo, (e) => setDemoError(errText(e)));
+    getConfig().then(setConfig);
     refresh();
     const ping = () => getHealth().then((h) => { setHealth(h); setHealthError(false); }, () => setHealthError(true));
     ping();
@@ -100,7 +103,10 @@ export function App() {
   // Share of bad uploads in the demo set (labels.json), for the note on how the saving depends on it.
   const badShare = demo.length ? demo.filter((d) => d.group === "bad").length / demo.length : null;
   // A refused upload (not an image) has nothing to show.
-  const image = run?.error?.step === "upload" ? undefined : run?.received?.image_url || run?.preview;
+  // An upload's own image is fetched with the visitor id; the local preview shows until it arrives.
+  const received = useImageSrc(run?.received?.image_url);
+  const image = run?.error?.step === "upload" ? undefined : received || run?.preview;
+  const playAll = config?.play_all ?? false;
 
   return (
     <div className={styles.shell}>
@@ -116,12 +122,12 @@ export function App() {
           <ConfirmMorph
             label="Reset"
             icon={<RotateCcw size={16} strokeWidth={1.75} />}
-            prompt="Clear all results?"
+            prompt="Clear your results?"
             confirmLabel="Clear"
             pendingLabel="Clearing"
             doneLabel="Cleared"
             disabled={busy || runner.playing}
-            onConfirm={async () => { await postReset(); runner.clear(); await refresh(); }}
+            onConfirm={async () => { await postReset(); runner.clear(); forgetImages(); await refresh(); }}
           />
           <ThemeSwitch theme={theme} iconOnly variant="rise" onThemeChange={(next) => setTheme(next)} />
         </div>
@@ -131,6 +137,7 @@ export function App() {
         <main className={styles.main}>
           <DemoStrip
             demo={demo} demoError={demoError} current={run?.name ?? null} busy={busy || runner.playing} playing={runner.playing}
+            playAll={playAll}
             outcomes={runner.outcomes}
             onDemo={(d) => runner.start({ demo: d })}
             onPlay={() => runner.playAll(demo)}
@@ -156,7 +163,8 @@ export function App() {
                   <EmptyState
                     icon={<ImageIcon size={24} />}
                     title="Pick an image to check"
-                    description="Upload a receipt photo, click a demo image, or press Play all to run the whole demo set."
+                    description={playAll ? "Upload a receipt photo, click a demo image, or press Play all to run the whole demo set."
+                      : "Upload a receipt photo or click a demo image."}
                   />
                 </div>
               )}

@@ -1,8 +1,5 @@
 """Qwen 4B writes the re-upload message from D3's answers (text only; it never sees the image), through the Router."""
-import time
-
-import requests
-
+import gate
 from check import ROUTER_URL
 
 ROUTER = f"{ROUTER_URL}/v1/chat/completions"
@@ -38,9 +35,8 @@ def write_message(d3, route, timeout=(3, 30)):
     """Returns (text, ms, tokens)."""
     body = {"model": MODEL, "temperature": 0, "max_tokens": 120,
             "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": describe(d3, route)}]}
-    t = time.perf_counter()
-    r = requests.post(ROUTER, json=body, timeout=timeout)
+    r, ms = gate.post("chat", ROUTER, body, timeout)
     r.raise_for_status()
     out = r.json()
-    return (out["choices"][0]["message"]["content"].strip(), round((time.perf_counter() - t) * 1000, 1),
+    return (out["choices"][0]["message"]["content"].strip(), ms,
             (out.get("usage") or {}).get("total_tokens"))

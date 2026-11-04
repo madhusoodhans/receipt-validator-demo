@@ -1,0 +1,18 @@
+# Only app/, web/, data/demo/ and requirements.txt go into the image (see Dockerfile)
+.git
+.venv
+.venv-*
+**/__pycache__
+ui/
+bench/
+tests/
+results/
+docs/
+logs/
+deploy/
+data/*
+!data/demo/
+*.db
+*.log
+.env
+.env.*
