@@ -3,8 +3,7 @@
 # POST /api/check, each route compared with data/demo/labels.json (expected_route). Exit code 0 = all passed.
 #   deploy/smoke_test.sh            three images (~15 s)
 #   deploy/smoke_test.sh --all      every demo image (~1-2 min; longer where uploads per minute are limited)
-#   add --reset                     clear its receipts and rejections afterwards (POST /api/reset); measured 27B
-#                                   baseline times are kept
+#   add --reset                     clear its receipts and rejections afterwards (POST /api/reset)
 # The test is its own visitor (a random X-Visitor-Id), so its runs never show on anyone's page; the idle cleanup
 # removes them after an hour if --reset is not given.
 set -uo pipefail
