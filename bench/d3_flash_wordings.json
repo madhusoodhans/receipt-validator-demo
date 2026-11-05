@@ -1,0 +1,10 @@
+{
+ "blurry_b1": "The receipt text is too blurry to read.",
+ "blurry_b2": "The photo is out of focus or shaken, so the letters are smeared.",
+ "sharp_b3": "The printed text is sharp and in focus.",
+ "added_a1": "A sticky note, label or handwritten message has been placed on or written over the receipt.",
+ "added_a2": "Someone wrote or stuck a message on the receipt that gives instructions, such as telling the reader to change or ignore something.",
+ "added_a3": "There is a note on the receipt that is addressed to whoever reads or processes it.",
+ "glare_g1": "Part of the receipt is hidden by a shadow or bright glare, so some text cannot be read.",
+ "glare_g2": "A dark shadow falls across the printed text."
+}

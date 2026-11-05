@@ -1,8 +1,8 @@
 """A fake Router for load tests: /v1/systemone (D3), /v1/chat/completions (qwen27b extraction JSON, qwen4b message),
 /v1/models, with realistic delays and no GPU.
 
-D3 answers come from results/d3_demo.json (real d3-mini answers on the demo set, matched by name); demo images not in it,
-or whose old answers no longer give the expected route, get answers made from data/demo/labels.json. The image in a request is matched to a demo image by a 16x16 thumbnail,
+D3 answers come from results/d3_flash_final.json (real d3-flash answers on the demo set, matched by name); demo images not
+in it, or whose saved answers no longer give the expected route, get answers made from data/demo/labels.json. The image in a request is matched to a demo image by a 16x16 thumbnail,
 so uploads of demo photos (re-encoded or shrunk) answer like the demo image; anything else answers as a good receipt.
 
   python bench/stub_models.py            # 127.0.0.1:8931
@@ -47,16 +47,21 @@ def thumb(raw):
 
 
 def made_answers(label):
-    """D3-shaped answers for a demo image d3_demo.json does not have, from its expected route and problems."""
-    p = {"complete": 0.95, "blurry": 0.05, "damaged": 0.05, "glare": 0.05, "multiple": 0.02, "added_text": 0.05}
+    """D3-shaped answers for a demo image without saved answers, from its expected route and problems: each check
+    clearly fine, a problem past its reject threshold, a review image inside one borderline band."""
+    fine = lambda k: 0.95 if check.CHECKS[k][2] == "low" else 0.05  # noqa: E731
+    p = {k: fine(k) for k in check.CHECKS}
     kind = "receipt"
     for prob in label.get("problems") or []:
         if prob == "kind":
             kind = "screenshot" if "screenshot" in label["file"] else "photo" if "photo" in label["file"] else "other_document"
         else:
-            p[prob] = 0.08 if prob == "complete" else 0.85
+            *_s, when, _border, bad = check.CHECKS[prob]
+            p[prob] = bad / 2 if when == "low" else (1 + bad) / 2
     if label["expected_route"] == "review":
-        p["blurry" if "focus" in label["file"] else "damaged"] = 0.5
+        k = "blurry" if "focus" in label["file"] else "damaged"
+        *_s, _when, border, bad = check.CHECKS[k]
+        p[k] = (border + bad) / 2
     probs = {k: 0.01 for k in check.KIND["criteria"]}; probs[kind] = 0.95
     out = {"kind": {"type": "choice", "choice": kind, "probabilities": probs}}
     out.update({k: {"type": "noul", "noul": v} for k, v in p.items()})
@@ -65,7 +70,8 @@ def made_answers(label):
 
 def load_demo():
     real = {"_".join(x["file"].split("_")[1:]).removesuffix(".jpg"): x["answers"]
-            for x in json.load(open(os.path.join(ROOT, "results/d3_demo.json")))}
+            for x in json.load(open(os.path.join(ROOT, "results/d3_flash_final.json")))["rows"]
+            if x["set"] == "demo" and x["status"] == 200}
     out = []
     for l in LABELS:
         key = "_".join(l["file"].split("_")[1:]).removesuffix(".jpg")

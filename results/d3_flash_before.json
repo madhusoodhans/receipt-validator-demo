@@ -1,0 +1,306 @@
+{
+ "mini_current": {
+  "routes": {
+   "demo_ok": 24,
+   "demo_n": 24,
+   "demo_wrong": [],
+   "cord_extract": 78,
+   "cord_review": 13,
+   "cord_reject": 3,
+   "false_review": [
+    "019.png",
+    "030.png",
+    "032.png",
+    "039.png",
+    "044.png",
+    "046.png",
+    "048.png",
+    "050.png",
+    "065.png",
+    "067.png",
+    "083.png",
+    "086.png",
+    "091.png"
+   ],
+   "false_reject": [],
+   "bad_rejected": 3,
+   "bad_n": 3,
+   "wrong_reason": []
+  },
+  "separation": {
+   "complete": {
+    "bad_when": "low",
+    "good_n": 103,
+    "good_worst": [
+     0.157,
+     "065.png"
+    ],
+    "good_p95": 0.397,
+    "problem": {
+     "13_bad_cut_off.jpg": 0.032
+    },
+    "margin": 0.125,
+    "border": 0.25,
+    "reject": 0.15
+   },
+   "blurry": {
+    "bad_when": "high",
+    "good_n": 103,
+    "good_worst": [
+     0.539,
+     "091.png"
+    ],
+    "good_p95": 0.347,
+    "problem": {
+     "02_bad_blurry_hand.jpg": 0.903,
+     "06_bad_faded_face.jpg": 0.915
+    },
+    "margin": 0.364,
+    "border": 0.45,
+    "reject": 0.6
+   },
+   "damaged": {
+    "bad_when": "high",
+    "good_n": 103,
+    "good_worst": [
+     0.553,
+     "067.png"
+    ],
+    "good_p95": 0.408,
+    "problem": {
+     "06_bad_faded_face.jpg": 0.578,
+     "04_bad_crumpled.jpg": 0.72
+    },
+    "margin": 0.025,
+    "border": 0.45,
+    "reject": 0.6
+   },
+   "glare": {
+    "bad_when": "high",
+    "good_n": 103,
+    "good_worst": [
+     0.592,
+     "044.png"
+    ],
+    "good_p95": 0.452,
+    "problem": {
+     "15_bad_shadow.jpg": 0.643
+    },
+    "margin": 0.051,
+    "border": 0.47,
+    "reject": 0.62
+   },
+   "multiple": {
+    "bad_when": "high",
+    "good_n": 103,
+    "good_worst": [
+     0.184,
+     "082.png"
+    ],
+    "good_p95": 0.043,
+    "problem": {
+     "09_bad_pile.jpg": 0.86
+    },
+    "margin": 0.676,
+    "border": 0.35,
+    "reject": 0.5
+   },
+   "added_text": {
+    "bad_when": "high",
+    "good_n": 103,
+    "good_worst": [
+     0.774,
+     "050.png"
+    ],
+    "good_p95": 0.179,
+    "problem": {
+     "24_bad_sticky_note.jpg": 0.86
+    },
+    "margin": 0.086,
+    "border": 0.5,
+    "reject": 0.8
+   }
+  }
+ },
+ "flash_current": {
+  "routes": {
+   "demo_ok": 17,
+   "demo_n": 24,
+   "demo_wrong": [
+    "08_good_cord001.jpg review",
+    "10_good_cord006.jpg review",
+    "12_good_cord010.jpg review",
+    "14_good_cord015.jpg review",
+    "17_good_cord022.jpg review",
+    "22_good_cord029.jpg review",
+    "24_bad_sticky_note.jpg review"
+   ],
+   "cord_extract": 32,
+   "cord_review": 47,
+   "cord_reject": 15,
+   "false_review": [
+    "000.png",
+    "001.png",
+    "003.png",
+    "006.png",
+    "009.png",
+    "010.png",
+    "012.png",
+    "015.png",
+    "019.png",
+    "020.png",
+    "022.png",
+    "023.png",
+    "028.png",
+    "029.png",
+    "030.png",
+    "034.png",
+    "035.png",
+    "037.png",
+    "042.png",
+    "044.png",
+    "045.png",
+    "048.png",
+    "049.png",
+    "050.png",
+    "051.png",
+    "054.png",
+    "055.png",
+    "061.png",
+    "062.png",
+    "063.png",
+    "064.png",
+    "065.png",
+    "066.png",
+    "072.png",
+    "073.png",
+    "075.png",
+    "079.png",
+    "080.png",
+    "082.png",
+    "083.png",
+    "086.png",
+    "087.png",
+    "088.png",
+    "093.png",
+    "097.png",
+    "098.png"
+   ],
+   "false_reject": [
+    "008.png",
+    "011.png",
+    "024.png",
+    "032.png",
+    "033.png",
+    "039.png",
+    "040.png",
+    "046.png",
+    "058.png",
+    "067.png",
+    "068.png",
+    "089.png",
+    "091.png"
+   ],
+   "bad_rejected": 2,
+   "bad_n": 3,
+   "wrong_reason": [
+    "02_bad_blurry_hand.jpg"
+   ]
+  },
+  "separation": {
+   "complete": {
+    "bad_when": "low",
+    "good_n": 103,
+    "good_worst": [
+     0.332,
+     "033.png"
+    ],
+    "good_p95": 0.397,
+    "problem": {
+     "13_bad_cut_off.jpg": 0.09
+    },
+    "margin": 0.242,
+    "border": 0.25,
+    "reject": 0.15
+   },
+   "blurry": {
+    "bad_when": "high",
+    "good_n": 103,
+    "good_worst": [
+     0.61,
+     "091.png"
+    ],
+    "good_p95": 0.555,
+    "problem": {
+     "02_bad_blurry_hand.jpg": 0.031,
+     "06_bad_faded_face.jpg": 0.124
+    },
+    "margin": -0.579,
+    "border": 0.45,
+    "reject": 0.6
+   },
+   "damaged": {
+    "bad_when": "high",
+    "good_n": 103,
+    "good_worst": [
+     0.635,
+     "046.png"
+    ],
+    "good_p95": 0.45,
+    "problem": {
+     "04_bad_crumpled.jpg": 0.85,
+     "06_bad_faded_face.jpg": 0.868
+    },
+    "margin": 0.215,
+    "border": 0.45,
+    "reject": 0.6
+   },
+   "glare": {
+    "bad_when": "high",
+    "good_n": 103,
+    "good_worst": [
+     0.818,
+     "068.png"
+    ],
+    "good_p95": 0.671,
+    "problem": {
+     "15_bad_shadow.jpg": 0.847
+    },
+    "margin": 0.029,
+    "border": 0.47,
+    "reject": 0.62
+   },
+   "multiple": {
+    "bad_when": "high",
+    "good_n": 103,
+    "good_worst": [
+     0.451,
+     "098.png"
+    ],
+    "good_p95": 0.021,
+    "problem": {
+     "09_bad_pile.jpg": 0.796
+    },
+    "margin": 0.344,
+    "border": 0.35,
+    "reject": 0.5
+   },
+   "added_text": {
+    "bad_when": "high",
+    "good_n": 103,
+    "good_worst": [
+     0.75,
+     "050.png"
+    ],
+    "good_p95": 0.163,
+    "problem": {
+     "24_bad_sticky_note.jpg": 0.614
+    },
+    "margin": -0.136,
+    "border": 0.5,
+    "reject": 0.8
+   }
+  }
+ },
+ "use": {}
+}
