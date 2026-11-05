@@ -320,16 +320,10 @@ def test_client_ip():
 
 
 def test_key_check():
-    assert gate.key_problem("http://127.0.0.1:8899") is None, "a local Router needs no key"
-    old = gate.API_KEY
-    try:
-        gate.API_KEY = ""
-        why = gate.key_problem("https://app.vllm-sr.ai")
-        assert why and "VLLM_SR_API_KEY" in why
-        gate.API_KEY = "x"
-        assert gate.key_problem("https://app.vllm-sr.ai") is None
-    finally:
-        gate.API_KEY = old
+    """A local Router (the stub) needs no visitor key; the hosted API does unless the server has its own."""
+    import keys
+    assert keys.LOCAL and not keys.REQUIRED, "a local Router needs no key"
+    assert server.config_body()["key_required"] is False
     print("key check ok")
 
 

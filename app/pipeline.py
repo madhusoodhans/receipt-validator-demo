@@ -6,6 +6,7 @@ import traceback
 import check
 import db
 import gate
+import keys
 from extract import MODEL as EXTRACT_MODEL, TooLong, extract
 from message import MODEL as MESSAGE_MODEL, template, write_message
 from sumcheck import sumcheck
@@ -47,13 +48,16 @@ class Cancelled(Exception):
 STEP_MODEL = {"d3": "d3", "message": "retake", "extract": "extract"}
 UNAVAILABLE = {"d3": "Receipt checking is unavailable right now. Please try again in a minute.",
                "extract": "Your receipt passed the checks, but reading is unavailable right now. Please try again shortly."}
-SKIPPED = {"d3": ["route", "model", "stored"], "extract": ["sumcheck", "stored"]}  # steps that did not run after a failure
+SKIPPED = {"d3": ["route", "model", "stored"], "extract": ["sumcheck", "stored"], "message": ["stored"]}  # steps that did not run after a failure
 FALLBACK_WORDS = {"timeout": "timed out", "busy": "busy"}  # else "unavailable"
 
 
 def failure(step, e):
     """The `error` event for a failed step, in plain words only: the reason, one line on what failed, the message for
     the user and the steps skipped. Exception text and model responses never reach it (they go to the log)."""
+    if isinstance(e, gate.KeyFailed):  # the visitor's key, not the model: said as such, never hidden by a fallback
+        return {"step": step, "reason": "key", "code": e.code, "detail": e.line(STEP_MODEL.get(step)),
+                "message": keys.run_message(e.code), "skipped": SKIPPED.get(step, [])}
     if isinstance(e, TooLong):
         reason, detail, message = "too_long", "The receipt is too long to read", str(e)  # already plain words
     elif isinstance(e, gate.ModelError):
@@ -100,6 +104,8 @@ def run(con, upload_id, file, image_bytes, mime, size, image_sha256=None, cancel
                 msg = {"text": text, "model": MESSAGE_MODEL, "routed": picked, "ms": steps["message"],
                        "tokens": usage.get("total_tokens"), "completion_tokens": usage.get("completion_tokens"),
                        "reasoning_tokens": reasoning_tokens(usage)}
+            except gate.KeyFailed:
+                raise  # the key failed, not the LLM: the run stops with a key error (no standard message)
             except Exception as e:  # noqa: BLE001 - any LLM failure: a fixed message from D3's reasons instead
                 text, fallback = standard_message(route, e)
                 steps["message"] = round((time.perf_counter() - t) * 1000, 1)

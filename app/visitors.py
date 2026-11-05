@@ -44,6 +44,7 @@ class Visitors:
         self.running = set()  # visitors with a run in progress
         self.hits = {}  # ("v", id) or ("ip", address) -> deque of upload times in the last minute
         self.uploads = deque()  # every accepted upload's time in the last hour (GET /api/metrics)
+        self.on_purge = None  # called with the visitor id when a visitor is removed (the server drops their key)
         os.makedirs(root, exist_ok=True)
         for v, iso in db.visitors(con).items():
             self.seen[v] = _epoch(iso)
@@ -149,6 +150,8 @@ class Visitors:
         with self.lock:
             self.seen.pop(visitor_id, None)
             self.hits.pop(("v", visitor_id), None)
+        if self.on_purge:
+            self.on_purge(visitor_id)
 
     def _cap_visitor(self, visitor_id):
         """Keeps the newest max_uploads uploads (files and their rows) and max_rows runs of this visitor."""

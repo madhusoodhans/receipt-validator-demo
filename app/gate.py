@@ -15,12 +15,16 @@ short, or fail as busy at once without a request when it is long, so the shared 
 
 Env: MODEL_CONCURRENCY (12 per kind), MODEL_QUEUE (24 waiting per kind), MODEL_WAIT_S (15); BREAKER_FAILS (3),
 BREAKER_S (30); read timeouts D3_TIMEOUT_S (15), MESSAGE_TIMEOUT_S (20), EXTRACT_TIMEOUT_S (30), all under the hosted
-API's 35 s cap; VLLM_SR_API_KEY (sent as a Bearer token; required for the hosted API, see key_problem()).
+API's 35 s cap.
+
+Keys: each call carries the key of the visitor whose run it is (local.key, set by the run's worker thread; see
+app/keys.py), else the optional server key VLLM_SR_API_KEY, else none (a local Router). A call refused because of the
+key (401, 403, 429 quota_exceeded) raises KeyFailed at once: no retry, and it does not feed the breaker (the model is
+fine, the key is not).
 """
 import os
 import threading
 import time
-from urllib.parse import urlparse
 
 import requests
 
@@ -38,14 +42,41 @@ NAMES = {"d3": "D3", "extract": "The LLM", "retake": "The LLM"}
 BUSY = "The service is busy, please try again."
 
 
-def key_problem(router_url):
-    """None when the server can start, else why not: the hosted API needs VLLM_SR_API_KEY; a Router on this machine
-    (localhost, a stub) does not."""
-    host = urlparse(router_url).hostname or ""
-    if API_KEY or host in ("localhost", "127.0.0.1", "::1"):
+def auth():
+    """The Authorization header for this thread's call: the visitor's key (local.key), else the server key, else none."""
+    key = getattr(local, "key", None)
+    return {"Authorization": f"Bearer {key}"} if key else HEADERS
+
+
+def classify(status, body, retry_after=1.0):
+    """(code, retry seconds or None) of a refused vllm-sr API call with HTTP `status` and parsed JSON `body`; (None,
+    None) when not refused. Codes: invalid (401), disabled (403), quota (429 quota_exceeded), rate_limited (other 429),
+    unreachable (5xx), error."""
+    if status < 400:
+        return None, None
+    err = body.get("error") if isinstance(body, dict) else None
+    code = err.get("code") if isinstance(err, dict) else None
+    if status == 401:
+        return "invalid", None
+    if status == 403:
+        return "disabled", None
+    if status == 429:
+        return ("quota", None) if code == "quota_exceeded" else ("rate_limited", retry_after)
+    if status >= 500:
+        return "unreachable", None
+    return "error", None
+
+
+def key_code(r):
+    """invalid, disabled or quota when the response `r` refused the call because of the key, else None."""
+    if r.status_code not in (401, 403, 429):
         return None
-    return (f"VLLM_SR_API_KEY is not set. The demo calls the vllm-sr API at {router_url}, which needs an API key: set "
-            "VLLM_SR_API_KEY in the environment (on a Hugging Face Space, as a Space secret).")
+    try:
+        body = r.json()
+    except Exception:  # noqa: BLE001
+        body = None
+    code, _retry = classify(r.status_code, body)
+    return code if code in ("invalid", "disabled", "quota") else None
 
 
 def timeout(model):
@@ -67,6 +98,20 @@ class ModelError(Exception):
             return f"{who} did not answer within {self.seconds or TIMEOUT_S.get(self.model or model, 0):g} s"
         return {"unavailable": f"{who} is unavailable", "busy": f"{who} is busy"}.get(
             self.reason, f"{who} could not handle the request")
+
+
+class KeyFailed(ModelError):
+    """The API refused the call because of the key. code: invalid, disabled or quota."""
+
+    def __init__(self, model, code):
+        self.code = code
+        super().__init__(model, "key")
+
+    def line(self, model=None):
+        who = NAMES.get(self.model or model, "The model")
+        why = {"invalid": "the key is not valid", "disabled": "the key is disabled or not allowed",
+               "quota": "the key's daily quota is used up"}.get(self.code, "the key was refused")
+        return f"{who} call was refused: {why}"
 
 
 class Busy(ModelError):
@@ -213,7 +258,7 @@ def post(kind, url, json, timeout, sleep=time.sleep, model=None, headers=None):
             with gate:
                 t = time.perf_counter()
                 try:
-                    r = requests.post(url, json=json, timeout=timeout, headers={**HEADERS, **(headers or {})})
+                    r = requests.post(url, json=json, timeout=timeout, headers={**auth(), **(headers or {})})
                 except requests.Timeout as e:
                     raise _failed(model, "timeout", repr(e), seconds=timeout[1] if isinstance(timeout, tuple) else timeout) from None
                 except requests.RequestException as e:
@@ -222,6 +267,11 @@ def post(kind, url, json, timeout, sleep=time.sleep, model=None, headers=None):
         except Busy:
             _count("busy")
             raise
+        code = key_code(r)
+        if code:
+            _count("failed")
+            print(f"model call refused: {model or '?'} HTTP {r.status_code}: key {code}", flush=True)
+            raise KeyFailed(model, code)
         if r.status_code not in (429, 503):
             break
         _count("retries_429")

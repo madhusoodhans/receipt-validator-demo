@@ -1,8 +1,9 @@
 """HTTP server for the demo (docs/API.md): the pipeline as Server-Sent Events, the demo set, stats, and the built UI.
 
   python app/server.py            # 127.0.0.1:8601, serves web/ and /api/...
-Env: ROUTER_URL (https://app.vllm-sr.ai, the vllm-sr API for D3 and the LLM), VLLM_SR_API_KEY (required for the
-hosted API; the server will not start without it), D3_MODEL / EXTRACT_MODEL / MESSAGE_MODEL (vllm-sr/d3-flash,
+Env: ROUTER_URL (https://app.vllm-sr.ai, the vllm-sr API for D3 and the LLM), VLLM_SR_API_KEY (optional and unset by
+default: each visitor enters their own key in the browser, see app/keys.py; a server key, when set, serves visitors who
+have not), KEY_REQUIRED, KEY_CHECKS_PER_MIN (app/keys.py), D3_MODEL / EXTRACT_MODEL / MESSAGE_MODEL (vllm-sr/d3-flash,
 vllm-sr/auto, vllm-sr/auto), HOST (127.0.0.1), PORT (8601), DB (data/receipts.db), UPLOAD_ROOT (upload files, one folder
 per visitor; default <temp dir>/receipt-intake-uploads), PLAY_ALL (1: show Play all; the Space sets 0), HEALTH_INTERVAL
 (60 s between availability checks), TRUST_PROXY (0; 1 behind a reverse proxy such as a Hugging Face Space: per-IP limits
@@ -42,8 +43,11 @@ import check  # noqa: E402
 import db  # noqa: E402
 import gate  # noqa: E402
 import health  # noqa: E402
+import keys  # noqa: E402
 import pipeline  # noqa: E402
 import visitors  # noqa: E402
+
+keys.install_redaction()  # nothing key-shaped reaches the log, whatever prints it
 
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "8601"))
@@ -60,12 +64,24 @@ VIS = visitors.Visitors(
     idle_s=float(ENV("IDLE_MIN", "60")) * 60, max_uploads=int(ENV("MAX_UPLOADS", "20")),
     max_bytes=float(ENV("MAX_UPLOAD_GB", "2")) * 1024 ** 3, max_visitors=int(ENV("MAX_VISITORS", "500")),
     per_visitor_min=int(ENV("UPLOADS_PER_MIN", "6")), per_ip_min=int(ENV("UPLOADS_PER_MIN_IP", "20")))
+KEYS = keys.Store(idle_s=float(ENV("IDLE_MIN", "60")) * 60, max_keys=2 * int(ENV("MAX_VISITORS", "500")))
+VIS.on_purge = KEYS.forget
 SEQ = itertools.count(int(time.time()) % 100000)
 DECODE = threading.BoundedSemaphore(4)  # images decoded at once: a 48 MP photo is ~150 MB decoded
 LABELS = json.load(open(f"{DEMO}/labels.json"))
 EXT = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
 UPLOAD_LONG_SIDE = 1600  # an iPhone receipt photo read the same at 1600 px as at full size, with the LLM 2.3x faster
 TRUST_PROXY = ENV("TRUST_PROXY", "0") == "1"
+KEY_BODY_MAX = 4096
+
+
+def origin_of(url):
+    u = urlparse(url or "")
+    return f"{u.scheme}://{u.netloc}" if u.scheme and u.netloc else None
+
+
+# POST /api/key/check answers these origins (the landing page checks a key before handing it to a demo)
+CORS_ORIGINS = {o for o in (origin_of(LANDING_URL), "http://localhost:8630", "http://127.0.0.1:8630") if o}
 WARM_UP = ENV("WARM_UP", "0") == "1"
 
 
@@ -122,7 +138,7 @@ def multipart_image(ctype, body):
 
 def config_body():
     return {"play_all": PLAY_ALL, "max_upload_mb": MAX_BYTES // (1024 * 1024), "uploads_per_min": VIS.per_visitor_min,
-            "landing_url": LANDING_URL,
+            "landing_url": LANDING_URL, "key_required": keys.REQUIRED, "key_url": keys.KEY_URL,
             "models": {"d3": check.MODEL, "extract": pipeline.EXTRACT_MODEL, "message": pipeline.MESSAGE_MODEL}}
 
 
@@ -201,12 +217,14 @@ class Handler(BaseHTTPRequestHandler):
             return client_ip_from(self.headers.get_all("X-Forwarded-For") or [], self.client_address[0])
         return self.client_address[0]
 
-    def _json(self, code, body):
+    def _json(self, code, body, headers=None):
         data = json.dumps(body, ensure_ascii=False).encode()
         self.send_response(code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-store")
+        for k, val in (headers or {}).items():
+            self.send_header(k, val)
         self.end_headers()
         self.wfile.write(data)
 
@@ -221,13 +239,39 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def cors(self):
+        """CORS headers for POST /api/key/check: the request's Origin when it is the landing page, else none."""
+        o = self.headers.get("Origin")
+        h = {"Vary": "Origin"}
+        if o in CORS_ORIGINS:
+            h.update({"Access-Control-Allow-Origin": o, "Access-Control-Allow-Methods": "POST, OPTIONS",
+                      "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Max-Age": "600"})
+        return h
+
+    def do_OPTIONS(self):
+        if urlparse(self.path).path != "/api/key/check":
+            return self.refuse(404, "not found")
+        self.send_response(204)
+        for k, val in self.cors().items():
+            self.send_header(k, val)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    def key_state(self, v):
+        """The caller's key for /health: set (their own), server (the server key serves them), missing."""
+        if v and KEYS.has(v):
+            return "set"
+        return "server" if keys.ENV_KEY else "missing"
+
     def do_GET(self):
         p = unquote(urlparse(self.path).path)
         if p == "/healthz":
             return self._json(200, {"ok": True})
         if p == "/health":
             health.wait_ready()
-            return self._json(200, health.state())
+            return self._json(200, {**health.state(), "key": self.key_state(self.visitor())})
+        if p == "/api/key":
+            return self._json(200, KEYS.state(self.visitor()))
         if p == "/api/config":
             return self._json(200, config_body())
         if p == "/api/metrics":
@@ -262,8 +306,50 @@ class Handler(BaseHTTPRequestHandler):
         self.close_connection = True
         return self._json(code, {"error": message})
 
+    def do_DELETE(self):
+        if urlparse(self.path).path != "/api/key":
+            return self.refuse(404, "not found")
+        v = self.visitor()
+        if v:
+            KEYS.forget(v)
+        return self._json(200, {"ok": True, "set": False})
+
+    def key_body(self):
+        """The "key" of a small JSON body, or None (the connection is closed when the body is not read)."""
+        try:
+            n = int(self.headers.get("Content-Length") or -1)
+        except ValueError:
+            n = -1
+        if n < 0 or n > KEY_BODY_MAX:
+            self.close_connection = True
+            return None
+        try:
+            return json.loads(self.rfile.read(n) or b"{}").get("key")
+        except Exception:  # noqa: BLE001
+            return None
+
+    def post_key(self, p):
+        """POST /api/key/check (validate only; CORS for the landing page) and POST /api/key (validate and keep for this
+        visitor). The key is never logged or echoed."""
+        cors = self.cors() if p == "/api/key/check" else {}
+        v = self.visitor()
+        if p == "/api/key" and not v:
+            return self.refuse(400, "Missing visitor id (X-Visitor-Id). Reload the page.")
+        key = self.key_body()
+        if not KEYS.allow_check(v, self.client_ip()):
+            return self._json(*keys.failure("too_many"), headers=cors)
+        status, body = keys.check_key(key)
+        print(f"key {'check' if p == '/api/key/check' else 'set'}"
+              f"{f' v={v[:8]}' if v else ''}: {body.get('code') or 'ok'}", flush=True)
+        if status == 200 and p == "/api/key":
+            KEYS.put(v, keys.shape(key)[0])
+            body = {"ok": True, "set": True}
+        return self._json(status, body, headers=cors)
+
     def do_POST(self):
         p = urlparse(self.path).path
+        if p in ("/api/key/check", "/api/key"):
+            return self.post_key(p)
         if p not in ("/api/reset", "/api/check"):
             return self.refuse(404, "not found")
         v = self.visitor()
@@ -274,6 +360,11 @@ class Handler(BaseHTTPRequestHandler):
                 return self.refuse(409, "A check is running in this tab. Stop it first.")
             VIS.reset(v)
             return self._json(200, {"ok": True})
+        key = KEYS.get(v)
+        if not key and keys.REQUIRED:  # nothing runs without the visitor's key
+            msg = keys.message("no_key")
+            self.close_connection = True
+            return self._json(401, {"ok": False, "code": "no_key", "error": msg, "message": msg})
         why = health.preflight()  # D3 or the reading LLM down: refuse before storing anything or calling a model
         if why:
             return self.refuse(503, why)
@@ -315,9 +406,9 @@ class Handler(BaseHTTPRequestHandler):
         finally:
             if not started:
                 VIS.done(v)
-        self.stream(v, uid, file, raw, mime, size)
+        self.stream(v, uid, file, raw, mime, size, key)
 
-    def stream(self, v, uid, file, raw, mime, size):
+    def stream(self, v, uid, file, raw, mime, size, key=None):
         """Runs the pipeline in a worker thread and streams its events (SSE), with keep-alive pings."""
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
@@ -332,11 +423,14 @@ class Handler(BaseHTTPRequestHandler):
 
         def work():
             gate.local.refused = 0
+            gate.local.key = key  # every model call of this run carries the visitor's key (None: the server key)
             t = time.perf_counter()
             try:
                 for item in pipeline.run(CON, uid, file, raw, mime, size, sha, cancelled=gone.is_set, visitor_id=v):
                     if item[0] == "route":
                         out["route"] = item[1]["route"]
+                    if item[0] == "error" and item[1].get("reason") == "key":
+                        KEYS.fail(v, item[1]["code"])  # the next action asks for a key again
                     events.put(item)
             except Exception:  # noqa: BLE001
                 print(f"run failed:\n{traceback.format_exc()}", flush=True)
@@ -391,13 +485,12 @@ def warm_up():
 
 
 if __name__ == "__main__":
-    problem = gate.key_problem(check.ROUTER_URL)
-    if problem:
-        sys.exit(f"receipt intake demo cannot start: {problem}")
     threading.Thread(target=health.loop, daemon=True).start()
     threading.Thread(target=VIS.loop, args=(float(ENV("CLEANUP_S", "300")),), daemon=True).start()
+    threading.Thread(target=KEYS.loop, args=(float(ENV("CLEANUP_S", "300")),), daemon=True).start()
     if WARM_UP:
         threading.Thread(target=warm_up, daemon=True).start()
     print(f"receipt intake demo on http://{HOST}:{PORT} (vllm-sr API: {check.ROUTER_URL}, D3 {check.MODEL}, "
-          f"LLM {pipeline.EXTRACT_MODEL} / {pipeline.MESSAGE_MODEL}, proxy trusted: {TRUST_PROXY})", flush=True)
+          f"LLM {pipeline.EXTRACT_MODEL} / {pipeline.MESSAGE_MODEL}, proxy trusted: {TRUST_PROXY}, server key: "
+          f"{'on' if keys.ENV_KEY else 'off'}, visitor key required: {keys.REQUIRED})", flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()

@@ -1,7 +1,7 @@
 """Model availability for GET /health, the top-bar badge and the pre-flight check of POST /api/check.
 
 A background thread checks the API every HEALTH_INTERVAL seconds (default 60) with free GETs only, never a model call,
-so availability costs no quota however many people visit: GET /v1/models must list the D3 model, and GET /pt/api/info
+so availability costs no quota however many people visit, and needs no API key (both GETs are public): GET /v1/models must list the D3 model, and GET /pt/api/info
 (System Two) must list the chat models (a local Router without /pt/api/info: GET /v1/models). One round is at most two
 requests. Each result goes to gate.TRACKER, which real calls feed too (its circuit breaker), so the state here is the
 tracker's: a model that answers the GETs but fails real calls is marked down by the breaker.
@@ -32,7 +32,7 @@ REFUSED = "Receipt checking is unavailable right now. Please try again in a minu
 def listing(path, pick):
     """(set of model ids, None) from a GET, or (None, why) in a few plain words; the response is only logged."""
     try:
-        r = requests.get(f"{check.ROUTER_URL}{path}", timeout=PROBE_TIMEOUT, headers=gate.HEADERS)
+        r = requests.get(f"{check.ROUTER_URL}{path}", timeout=PROBE_TIMEOUT)  # public, no key
     except requests.Timeout:
         return None, "timed out"
     except requests.RequestException:
