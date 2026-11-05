@@ -1,7 +1,7 @@
 """Load test: many simulated visitors uploading at once against the stub models (bench/stub_models.py), no GPU.
 
-Starts the stub on :8931 and the demo server on :8631 (env STUB_PORT, LOAD_PORT; temp database and upload folder, the
-Space's settings: PLAY_ALL=0), runs VISITORS visitors in parallel, each from its own IP (X-Forwarded-For) doing
+Starts the stub on :8931 and the demo server on :8641 (env STUB_PORT, LOAD_PORT; temp database and upload folder, the
+Space's settings: PLAY_ALL=0, TRUST_PROXY=1), runs VISITORS visitors in parallel, each from its own IP (X-Forwarded-For) doing
 UPLOADS checks (a mix of demo images, re-encoded demo photos as file uploads, and one large phone-sized photo), then:
   - routes match data/demo/labels.json; no run failed;
   - isolation: each visitor's /api/receipts, /api/rejections and /api/stats hold exactly their own runs, their upload
@@ -35,7 +35,7 @@ PY = sys.executable
 DEMO = os.path.join(ROOT, "data/demo")
 LABELS = json.load(open(os.path.join(DEMO, "labels.json")))
 EXPECTED = {l["file"]: l["expected_route"] for l in LABELS}
-PORT, STUB_PORT = os.environ.get("LOAD_PORT", "8631"), os.environ.get("STUB_PORT", "8931")
+PORT, STUB_PORT = os.environ.get("LOAD_PORT", "8641"), os.environ.get("STUB_PORT", "8931")
 URL, STUB = f"http://127.0.0.1:{PORT}", f"http://127.0.0.1:{STUB_PORT}"
 
 
@@ -157,7 +157,7 @@ def main():
     wait_up(f"{STUB}/v1/models")  # before the server starts: its first health probe must find the models up
     log = open(os.path.join(tmp, "server.log"), "w")
     srv = subprocess.Popen([PY, "-I", os.path.join(ROOT, "app/server.py")], stdout=log, stderr=subprocess.STDOUT, env={
-        **os.environ, "PORT": PORT, "ROUTER_URL": STUB, "DB": db_path, "UPLOAD_ROOT": up, "PLAY_ALL": "0",
+        **os.environ, "PORT": PORT, "ROUTER_URL": STUB, "DB": db_path, "UPLOAD_ROOT": up, "PLAY_ALL": "0", "TRUST_PROXY": "1",
         "IDLE_MIN": "0.5", "CLEANUP_S": "5", "MALLOC_ARENA_MAX": "2"})  # as in the Dockerfile
     try:
         wait_up(f"{URL}/healthz")

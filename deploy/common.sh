@@ -6,7 +6,13 @@ GPU="${GPU:-0}"
 HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:-8601}"
 ROUTER_URL="${ROUTER_URL:-http://localhost:8899}"
-export HOST PORT ROUTER_URL
+# The local stack serves its own models by name (the app's defaults are the hosted API's vllm-sr/d3-flash and
+# vllm-sr/auto). Note: the D3 checks in app/check.py are tuned for d3-flash, not d3-mini.
+D3_MODEL="${D3_MODEL:-vllm-sr/d3-mini}"
+EXTRACT_MODEL="${EXTRACT_MODEL:-qwen27b}"
+MESSAGE_MODEL="${MESSAGE_MODEL:-qwen4b}"
+WARM_UP="${WARM_UP:-1}"
+export HOST PORT ROUTER_URL D3_MODEL EXTRACT_MODEL MESSAGE_MODEL WARM_UP
 STATE_FILE=deploy/.state                          # what up.sh started, so down.sh stops only that
 ROUTER_CONTAINER=vllm-sr-router-container         # fixed by vllm-sr: one Router stack per host
 # vllm-sr drives Docker itself, so where Docker needs sudo the CLI runs under sudo too.

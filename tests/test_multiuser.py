@@ -1,6 +1,7 @@
 """Many visitors at once: isolation, scoped reset, cleanup, caps, rate limits, the model-call gate and 429 retry; and
-models that are down, slow or failing: pre-flight refusal, the circuit breaker, the Qwen 4B template fallback, a Qwen
-27B failure mid-run, and no raw error text in any event or response.
+models that are down, slow or failing: pre-flight refusal, the circuit breaker, the template fallback for retake
+messages, a failed read mid-run, Retry-After, the client IP behind a proxy, the missing-key check, and no raw error text
+in any event or response.
 Runs the real server in-process against bench/stub_models.py (no GPU, no Router), on free ports, in a temp dir.
 
   .venv/bin/python tests/test_multiuser.py
@@ -32,7 +33,8 @@ def serve(handler):
 _probe = ThreadingHTTPServer(("127.0.0.1", 0), None); STUB_PORT = _probe.server_address[1]; _probe.server_close()
 os.environ.update(ROUTER_URL=f"http://127.0.0.1:{STUB_PORT}", DB=os.path.join(TMP, "t.db"),
                   UPLOAD_ROOT=os.path.join(TMP, "up"), UPLOADS_PER_MIN="1000", UPLOADS_PER_MIN_IP="1000",
-                  PLAY_ALL="0")
+                  PLAY_ALL="0", EXTRACT_MODEL="stub-extract", MESSAGE_MODEL="stub-message")
+os.environ.pop("VLLM_SR_API_KEY", None)  # never sent to the stub
 sys.path[:0] = [os.path.join(ROOT, "app"), os.path.join(ROOT, "bench")]
 import stub_models  # noqa: E402
 stub = ThreadingHTTPServer(("127.0.0.1", STUB_PORT), stub_models.Handler)
@@ -144,7 +146,7 @@ def test_limits_http():
         assert sum(s["calls"] for s in stub_models.STATS.values()) == calls, "no model call on a refused upload"
     finally:
         server.VIS.per_visitor_min = 1000
-    server.VIS.per_ip_min = 3
+    server.VIS.per_ip_min, server.TRUST_PROXY = 3, True  # behind a proxy (TRUST_PROXY=1): the client IP from the header
     try:
         ip = "203.0.113.9"
         for _ in range(3):
@@ -153,7 +155,7 @@ def test_limits_http():
         assert code == 429 and "network" in body["error"], body
         assert upload(vid(), headers={"X-Forwarded-For": "198.51.100.1"})[0] == 200, "another IP is fine"
     finally:
-        server.VIS.per_ip_min = 1000
+        server.VIS.per_ip_min, server.TRUST_PROXY = 1000, False
     # 15 MB checked before the body is read: a huge Content-Length is refused at once
     import socket
     s = socket.create_connection(("127.0.0.1", int(URL.rsplit(":", 1)[1])))
@@ -254,15 +256,31 @@ def test_gate_and_retry():
         answers = [Fake(429, "2"), Fake(200)]
         gate.requests.post = lambda *a, **k: answers.pop(0)
         r, _ms = gate.post("chat", "u", {}, 1, sleep=slept.append)
-        assert r.status_code == 200 and slept == [2.0]
-        answers = [Fake(503, "60"), Fake(429)]
+        assert r.status_code == 200 and len(slept) == 1 and 1.9 < slept[0] <= 2.0, slept
+        gate.GATES["chat"].hold_until = 0.0  # the fake sleep did not wait it out
+        answers = [Fake(429, "60"), Fake(200)]
+        n = len(slept)
         try:
             gate.post("chat", "u", {}, 1, sleep=slept.append); raise AssertionError("expected Busy")
         except gate.Busy as e:
             assert str(e) == "The service is busy, please try again."
-        assert slept[-1] == 5.0, "Retry-After capped at 5 s"
+        assert len(slept) == n and len(answers) == 1, "Retry-After over 5 s: no wait, no retry"
+        try:
+            gate.post("chat", "u", {}, 1, sleep=slept.append); raise AssertionError("expected Busy")
+        except gate.Busy:
+            pass
+        assert len(answers) == 1, "held for Retry-After: no request at all"
+        gate.GATES["chat"].hold_until = 0.0
+        answers = [Fake(503, "1"), Fake(503, "1")]
+        try:
+            gate.post("chat", "u", {}, 1, sleep=slept.append); raise AssertionError("expected Busy")
+        except gate.Busy:
+            pass
+        assert not answers, "503 retried once"
+        gate.GATES["chat"].hold_until = 0.0
     finally:
         gate.requests.post = orig
+        gate.GATES["chat"].hold_until = 0.0
     g = gate.Gate(limit=1, queue=1, wait_s=0.2)
     with g:
         t = time.perf_counter()
@@ -279,6 +297,52 @@ def test_gate_and_retry():
     finally:
         stub_models.CONF["p429"] = 0.0
     print("gate and 429 retry ok")
+
+
+def test_client_ip():
+    f = server.client_ip_from  # public example addresses (Python counts the documentation ranges as private)
+    assert f([], "10.0.0.9") == "10.0.0.9", "no header: the peer"
+    assert f(["9.9.9.9"], "10.0.0.9") == "9.9.9.9"
+    assert f(["1.2.3.4, 9.9.9.9, 10.16.0.3"], "10.0.0.9") == "9.9.9.9", "rightmost public, past proxy hops"
+    assert f(["1.2.3.4", "9.9.9.9"], "10.0.0.9") == "9.9.9.9", "a spoofed first hop is skipped"
+    assert f(["garbage, 10.1.1.1"], "10.0.0.9") == "10.1.1.1", "only private hops: the first valid one"
+    # the HTTP path: without TRUST_PROXY the header is ignored; with it, two clients behind one proxy count apart
+    assert not server.TRUST_PROXY
+    old = server.VIS.per_ip_min
+    server.TRUST_PROXY, server.VIS.per_ip_min = True, 1
+    try:
+        assert upload(vid(), headers={"X-Forwarded-For": "8.8.4.4"})[0] == 200
+        assert upload(vid(), headers={"X-Forwarded-For": "8.8.8.8"})[0] == 200, "another client IP"
+        assert upload(vid(), headers={"X-Forwarded-For": "8.8.4.4"})[0] == 429, "same client IP"
+    finally:
+        server.TRUST_PROXY, server.VIS.per_ip_min = False, old
+    print("client ip ok")
+
+
+def test_key_check():
+    assert gate.key_problem("http://127.0.0.1:8899") is None, "a local Router needs no key"
+    old = gate.API_KEY
+    try:
+        gate.API_KEY = ""
+        why = gate.key_problem("https://app.vllm-sr.ai")
+        assert why and "VLLM_SR_API_KEY" in why
+        gate.API_KEY = "x"
+        assert gate.key_problem("https://app.vllm-sr.ai") is None
+    finally:
+        gate.API_KEY = old
+    print("key check ok")
+
+
+def test_routed():
+    """The LLM events say what the Router picked (x-vsr-selected-* headers) and how many tokens went to reasoning."""
+    code, ev = upload(vid(), "08_good_cord001.jpg", reencode("08_good_cord001.jpg"))
+    x = ev["extract"]
+    assert x["model"] == "stub-extract" and x["routed"] == {"model": "stub/vision-model", "decision": "vision",
+                                                              "reasoning": "on"} and x["reasoning_tokens"] == 400, x
+    code, ev = upload(vid(), "20_bad_dog_photo.jpg", reencode("20_bad_dog_photo.jpg"))
+    m = ev["message"]
+    assert m["routed"] == {"model": "stub/text-model", "decision": "fast", "reasoning": "off"}, m
+    print("routed ok")
 
 
 def test_decode():
@@ -339,7 +403,7 @@ def plain(ev):
 
 def test_preflight():
     healthy()
-    for model in ("d3", "qwen27b"):
+    for model in ("d3", "extract"):
         stub(down=[model]); health.round_once()
         hl = get("/health").json()
         assert hl["status"] == "down" and hl["message"] == "Receipt checking unavailable" and hl[model] is False, hl
@@ -351,14 +415,14 @@ def test_preflight():
         assert calls() == n, "no model call when refused"
         plain(body)
         healthy()
-    stub(down=["qwen4b"]); health.round_once()
+    stub(down=["retake"]); health.round_once()
     hl = get("/health").json()
-    assert hl["status"] == "degraded" and hl["message"] == "Standard retake messages in use: Qwen 4B unavailable", hl
-    n4 = stub_models.STATS.get("qwen4b", {}).get("calls", 0)
+    assert hl["status"] == "degraded" and hl["message"] == "Standard retake messages in use: LLM unavailable", hl
+    n4 = stub_models.STATS.get("retake", {}).get("calls", 0)
     code, ev = upload(vid(), "02_bad_blurry_hand.jpg", reencode("02_bad_blurry_hand.jpg"))
     assert code == 200 and ev["message"]["model"] == "template", ev
-    assert ev["message"]["fallback"] == "standard message (Qwen 4B unavailable)" and "stored" in ev
-    assert stub_models.STATS.get("qwen4b", {}).get("calls", 0) == n4, "4B marked down: not called"
+    assert ev["message"]["fallback"] == "standard message (LLM unavailable)" and "stored" in ev
+    assert stub_models.STATS.get("retake", {}).get("calls", 0) == n4, "message LLM marked down: not called"
     code, ev = upload(vid())
     assert code == 200 and "stored" in ev and ev["stored"]["table"] == "receipts", "good receipts still read"
     healthy()
@@ -381,32 +445,32 @@ def test_breaker_unit():
     assert not t.available("d3"), "still failing after the 30 s: open again at once"
     t.ok("d3")
     assert t.available("d3") and t.why("d3") is None, "a success closes it"
-    t.probed("qwen4b", False, "unreachable")
-    assert not t.available("qwen4b")
-    t.probed("qwen4b", True)
-    assert t.available("qwen4b")
+    t.probed("retake", False, "unreachable")
+    assert not t.available("retake")
+    t.probed("retake", True)
+    assert t.available("retake")
     print("breaker (unit) ok")
 
 
 def test_breaker_http():
-    """3 failed 27B calls (5xx) open the breaker: the next upload is refused before any model call; a success closes it."""
+    """3 failed reads (5xx) open the breaker: the next upload is refused before any model call; a success closes it."""
     healthy()
-    stub(status={"qwen27b": 500})
+    stub(status={"extract": 500})
     for _ in range(3):
         code, ev = upload(vid())
         e = ev["error"]
-        assert e["step"] == "extract" and e["reason"] == "unavailable" and e["detail"] == "Qwen 27B is unavailable", e
+        assert e["step"] == "extract" and e["reason"] == "unavailable" and e["detail"] == "The LLM is unavailable", e
         assert e["message"] == pipeline.UNAVAILABLE["extract"] and e["skipped"] == ["sumcheck", "stored"]
         assert "stored" not in ev and "done" not in ev
         plain(ev)
-    assert not gate.TRACKER.available("qwen27b")
+    assert not gate.TRACKER.available("extract")
     n = calls()
     code, body = upload(vid())
     assert code == 503 and calls() == n, "breaker open: refused, no model call"
-    assert get("/health").json()["detail"]["qwen27b"] == "unavailable"
+    assert get("/health").json()["detail"]["extract"] == "unavailable"
     stub()
     health.round_once()  # a successful probe marks it up
-    assert gate.TRACKER.available("qwen27b") and upload(vid())[1].get("stored")
+    assert gate.TRACKER.available("extract") and upload(vid())[1].get("stored")
     # D3 answering 502 with a JSON body: the step says unavailable, nothing of the body reaches the page
     stub(status={"d3": 502})
     code, ev = upload(vid())
@@ -422,27 +486,27 @@ def test_timeouts_mid_run():
     """Models that are up at the start but fail during the run."""
     healthy()
     old = dict(gate.TIMEOUT_S)
-    gate.TIMEOUT_S.update(qwen27b=0.5, qwen4b=0.5, d3=0.5)
+    gate.TIMEOUT_S.update(extract=0.5, retake=0.5, d3=0.5)
     try:
-        stub(delay={"qwen27b": 2})
+        stub(delay={"extract": 2})
         code, ev = upload(vid())
         e = ev["error"]
         assert e["step"] == "extract" and e["reason"] == "timeout", e
-        assert e["detail"] == "Qwen 27B did not answer within 0.5 s"
+        assert e["detail"] == "The LLM did not answer within 0.5 s"
         assert e["message"] == "Your receipt passed the checks, but reading is unavailable right now. Please try again shortly."
         assert "d3" in ev and "route" in ev and "stored" not in ev
         plain(ev)
-        stub(delay={"qwen4b": 2})
+        stub(delay={"retake": 2})
         code, ev = upload(vid(), "04_bad_crumpled.jpg", reencode("04_bad_crumpled.jpg"))
         m = ev["message"]
-        assert m["model"] == "template" and m["fallback"] == "standard message (Qwen 4B timed out)", m
+        assert m["model"] == "template" and m["fallback"] == "standard message (LLM timed out)", m
         assert m["text"] == message.template(ev["route"]) and "crumpled" in m["text"], m
         assert ev["stored"]["table"] == "rejections" and "done" in ev
         assert get("/api/rejections", vid()).json() == []
-        stub(down=["qwen4b"])
+        stub(down=["retake"])
         code, ev = upload(vid(), "24_bad_sticky_note.jpg", reencode("24_bad_sticky_note.jpg"))
         m = ev["message"]
-        assert m["fallback"] == "standard message (Qwen 4B unavailable)", m
+        assert m["fallback"] == "standard message (LLM unavailable)", m
         assert "original receipt only" in m["text"], m["text"]
         stub(delay={"d3": 2})
         code, ev = upload(vid())
@@ -474,6 +538,9 @@ if __name__ == "__main__":
     test_rate_limits_unit()
     test_gate_and_retry()
     test_decode()
+    test_client_ip()
+    test_key_check()
+    test_routed()
     test_endpoints()
     test_template()
     test_breaker_unit()

@@ -33,10 +33,12 @@ for n, l in enumerate(labels):
     s = ev["done"]["steps"]
     line = f"{l['file']:28} {r:8} {'ok ' if ok else 'XX '} d3 {s['d3']:5.0f} ms  "
     if r == "reject":
-        line += f"4B {s['message']:5.0f} ms  [{ev['route']['summary']}] {ev['message']['text']}"
+        m = ev["message"]; picked = (m.get("routed") or {}).get("model") or m["model"]
+        line += f"LLM {s['message']:5.0f} ms ({picked})  [{ev['route']['summary']}] {m['text']}"
     else:
         rc = ev["extract"]["receipt"]
-        line += (f"27B {s['extract']:5.0f} ms  {rc.get('store_name')!s:.24} | {rc.get('date')} | {rc.get('currency')} "
+        picked = (ev["extract"].get("routed") or {}).get("model") or ev["extract"]["model"]
+        line += (f"LLM {s['extract']:5.0f} ms ({picked})  {rc.get('store_name')!s:.24} | {rc.get('date')} | {rc.get('currency')} "
                  f"{rc.get('total')} | {len(rc.get('items') or [])} items | sum {'ok' if ev['sumcheck']['ok'] else 'FAIL'}"
                  f"{' REVIEW' if ev['stored']['needs_review'] else ''}")
     print(line, flush=True)

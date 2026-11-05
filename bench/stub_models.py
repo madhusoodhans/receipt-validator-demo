@@ -1,5 +1,6 @@
-"""A fake Router for load tests: /v1/systemone (D3), /v1/chat/completions (qwen27b extraction JSON, qwen4b message),
-/v1/models, with realistic delays and no GPU.
+"""A fake vllm-sr API for tests and load tests: /v1/systemone (D3), /v1/chat/completions (extraction JSON when the
+request has an image, else a retake message; any model name, with x-vsr-selected-* headers as the hosted vllm-sr/auto
+sends them), GET /v1/models (no /pt/api/info, like a local Router), with realistic delays and no GPU.
 
 D3 answers come from results/d3_flash_final.json (real d3-flash answers on the demo set, matched by name); demo images not
 in it, or whose saved answers no longer give the expected route, get answers made from data/demo/labels.json. The image in a request is matched to a demo image by a 16x16 thumbnail,
@@ -8,11 +9,13 @@ so uploads of demo photos (re-encoded or shrunk) answer like the demo image; any
   python bench/stub_models.py            # 127.0.0.1:8931
 Env: STUB_PORT (8931), STUB_SPEED (1.0: delays x this), STUB_429 (0.0: share of model calls answered 429 with
 Retry-After: 1), STUB_SLOW (0.0: share of calls 10x slower). POST /stub/config changes them live, plus per-model
-failures (models d3, qwen27b, qwen4b; probes included):
+failures (d3, extract, retake):
   {"speed": 1.0, "p429": 0.0, "slow": 0.0,
-   "down": ["qwen4b"],          # the connection is dropped without an answer, as with a stopped container
-   "delay": {"qwen27b": 30},    # seconds added before answering (timeouts)
+   "down": ["retake"],          # the connection is dropped without an answer, and GET /v1/models leaves the model out
+   "delay": {"extract": 30},    # seconds added before answering (timeouts)
    "status": {"d3": 502}}       # answered with this HTTP status and a Router-style JSON error body
+GET /v1/models lists the D3, extraction and message model names the app is configured with (D3_MODEL, EXTRACT_MODEL,
+MESSAGE_MODEL); give the two chat roles different names to make one of them down on its own.
 Each of down, delay and status replaces the previous value. GET /stub/stats returns calls, 429s and the most calls in
 flight at once per endpoint.
 """
@@ -32,6 +35,8 @@ from PIL import Image
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(ROOT, "app"))
 import check  # noqa: E402
+import extract as extract_mod  # noqa: E402
+import message as message_mod  # noqa: E402
 
 DEMO = os.path.join(ROOT, "data/demo")
 LABELS = json.load(open(os.path.join(DEMO, "labels.json")))
@@ -131,7 +136,10 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/v1/models":
-            return self.send(200, {"data": [{"id": m} for m in (check.MODEL, "qwen27b", "qwen4b")]})
+            down = CONF["down"]
+            up = [m for role, m in (("d3", check.MODEL), ("extract", extract_mod.MODEL), ("retake", message_mod.MODEL))
+                  if role not in down]
+            return self.send(200, {"data": [{"id": m} for m in dict.fromkeys(up)]})
         if self.path == "/stub/stats":
             with LOCK:
                 return self.send(200, {"config": CONF, "endpoints": STATS})
@@ -148,7 +156,9 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/v1/systemone":
             name = "d3"
         elif self.path == "/v1/chat/completions":
-            name = body.get("model", "chat")
+            content = body.get("messages", [{}])[-1].get("content")
+            has_image = isinstance(content, list) and any(c.get("type") == "image_url" for c in content)
+            name = "extract" if has_image else "retake"
         else:
             return self.send(404, {"error": "not found"})
         with LOCK:
@@ -172,7 +182,7 @@ class Handler(BaseHTTPRequestHandler):
             slow = 10 if random.random() < CONF["slow"] else 1
             if name == "d3":
                 return self.d3(body, slow)
-            if name == "qwen27b":
+            if name == "extract":
                 return self.extract(body, slow)
             return self.message(body, slow)
         finally:
@@ -192,19 +202,23 @@ class Handler(BaseHTTPRequestHandler):
 
     def extract(self, body, slow):
         img = next(c["image_url"]["url"] for c in body["messages"][0]["content"] if c["type"] == "image_url")
-        if body.get("max_tokens") == 1:  # a health probe
-            return self.send(200, {"choices": [{"message": {"content": "ok"}, "finish_reason": "length"}], "usage": {}})
         hit = match(image_bytes(img))
         text = json.dumps(receipt_for(hit and hit["label"]))
         self.wait(3.4, slow)
         self.send(200, {"choices": [{"message": {"content": text}, "finish_reason": "stop"}],
-                        "usage": {"prompt_tokens": 1165, "completion_tokens": 200, "total_tokens": 1365}})
+                        "usage": {"prompt_tokens": 1165, "completion_tokens": 600, "total_tokens": 1765,
+                                  "completion_tokens_details": {"reasoning_tokens": 400}}},
+                  {"x-vsr-selected-model": "stub/vision-model", "x-vsr-selected-decision": "vision",
+                   "x-vsr-selected-reasoning": "on"})
 
     def message(self, body, slow):
         self.wait(0.41, slow)
         self.send(200, {"choices": [{"message": {"content": "The photo is hard to read. Retake it flat, in good light, "
                                                             "with the whole receipt in the frame."}, "finish_reason": "stop"}],
-                        "usage": {"total_tokens": 190}})
+                        "usage": {"total_tokens": 90, "completion_tokens": 30,
+                                  "completion_tokens_details": {"reasoning_tokens": 0}}},
+                  {"x-vsr-selected-model": "stub/text-model", "x-vsr-selected-decision": "fast",
+                   "x-vsr-selected-reasoning": "off"})
 
 
 if __name__ == "__main__":

@@ -35,11 +35,16 @@ def stats(con, visitor_id):
     return out
 
 
+def reasoning_tokens(usage):
+    """Of the completion tokens, those the model spent reasoning (None when the API does not say)."""
+    return (usage.get("completion_tokens_details") or {}).get("reasoning_tokens")
+
+
 class Cancelled(Exception):
     """The client stopped the run (Stop button or closed page); nothing is stored."""
 
 
-STEP_MODEL = {"d3": "d3", "message": "qwen4b", "extract": "qwen27b"}
+STEP_MODEL = {"d3": "d3", "message": "retake", "extract": "extract"}
 UNAVAILABLE = {"d3": "Receipt checking is unavailable right now. Please try again in a minute.",
                "extract": "Your receipt passed the checks, but reading is unavailable right now. Please try again shortly."}
 SKIPPED = {"d3": ["route", "model", "stored"], "extract": ["sumcheck", "stored"]}  # steps that did not run after a failure
@@ -62,11 +67,11 @@ def failure(step, e):
 
 
 def standard_message(route, e):
-    """The re-upload message when Qwen 4B fails: message.template() and the label the step shows."""
+    """The re-upload message when the LLM fails: message.template() and the label the step shows."""
     if not isinstance(e, gate.ModelError):
-        print(f"Qwen 4B message failed:\n{traceback.format_exc()}", flush=True)
+        print(f"LLM message failed:\n{traceback.format_exc()}", flush=True)
     why = FALLBACK_WORDS.get(getattr(e, "reason", None), "unavailable")
-    return template(route), f"standard message (Qwen 4B {why})"
+    return template(route), f"standard message (LLM {why})"
 
 
 def run(con, upload_id, file, image_bytes, mime, size, image_sha256=None, cancelled=lambda: False, visitor_id=None):
@@ -91,10 +96,11 @@ def run(con, upload_id, file, image_bytes, mime, size, image_sha256=None, cancel
         if route["route"] == "reject":
             step = go("message"); t = time.perf_counter()
             try:
-                text, steps["message"], usage = write_message(d3, route)
-                msg = {"text": text, "model": MESSAGE_MODEL, "ms": steps["message"], "tokens": usage.get("total_tokens"),
-                       "completion_tokens": usage.get("completion_tokens")}
-            except Exception as e:  # noqa: BLE001 - any 4B failure: a fixed message from D3's reasons instead
+                text, steps["message"], usage, picked = write_message(d3, route)
+                msg = {"text": text, "model": MESSAGE_MODEL, "routed": picked, "ms": steps["message"],
+                       "tokens": usage.get("total_tokens"), "completion_tokens": usage.get("completion_tokens"),
+                       "reasoning_tokens": reasoning_tokens(usage)}
+            except Exception as e:  # noqa: BLE001 - any LLM failure: a fixed message from D3's reasons instead
                 text, fallback = standard_message(route, e)
                 steps["message"] = round((time.perf_counter() - t) * 1000, 1)
                 msg = {"text": text, "model": "template", "ms": steps["message"], "tokens": None, "fallback": fallback}
@@ -106,9 +112,10 @@ def run(con, upload_id, file, image_bytes, mime, size, image_sha256=None, cancel
             yield "stored", {"table": "rejections", "id": rid, "needs_review": 0}
         else:
             step = go("extract")
-            rc, steps["extract"], usage = extract(image_bytes, mime)
-            yield "extract", {"receipt": rc, "model": EXTRACT_MODEL, "ms": steps["extract"],
-                              "prompt_tokens": usage.get("prompt_tokens"), "completion_tokens": usage.get("completion_tokens")}
+            rc, steps["extract"], usage, picked = extract(image_bytes, mime)
+            yield "extract", {"receipt": rc, "model": EXTRACT_MODEL, "routed": picked, "ms": steps["extract"],
+                              "prompt_tokens": usage.get("prompt_tokens"), "completion_tokens": usage.get("completion_tokens"),
+                              "reasoning_tokens": reasoning_tokens(usage)}
             step = "sumcheck"; t = time.perf_counter()
             sc = sumcheck(rc)
             steps["sumcheck"] = round((time.perf_counter() - t) * 1000, 2)

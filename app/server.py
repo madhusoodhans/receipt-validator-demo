@@ -1,14 +1,18 @@
 """HTTP server for the demo (docs/API.md): the pipeline as Server-Sent Events, the demo set, stats, and the built UI.
 
   python app/server.py            # 127.0.0.1:8601, serves web/ and /api/...
-Env: ROUTER_URL (http://localhost:8899, the vllm-sr Router for D3 and both Qwen models), ROUTER_API_KEY (none),
-HOST (127.0.0.1), PORT (8601), DB (data/receipts.db), UPLOAD_ROOT (upload files, one folder per visitor; default
-<temp dir>/receipt-intake-uploads), PLAY_ALL (1: show Play all; the Space sets 0), HEALTH_INTERVAL (30 s between model
-probes). Limits (docs/API.md): UPLOADS_PER_MIN (6 per visitor), UPLOADS_PER_MIN_IP (20), MAX_UPLOADS (20 per visitor),
+Env: ROUTER_URL (https://app.vllm-sr.ai, the vllm-sr API for D3 and the LLM), VLLM_SR_API_KEY (required for the
+hosted API; the server will not start without it), D3_MODEL / EXTRACT_MODEL / MESSAGE_MODEL (vllm-sr/d3-flash,
+vllm-sr/auto, vllm-sr/auto), HOST (127.0.0.1), PORT (8601), DB (data/receipts.db), UPLOAD_ROOT (upload files, one folder
+per visitor; default <temp dir>/receipt-intake-uploads), PLAY_ALL (1: show Play all; the Space sets 0), HEALTH_INTERVAL
+(60 s between availability checks), TRUST_PROXY (0; 1 behind a reverse proxy such as a Hugging Face Space: per-IP limits
+use the client address from X-Forwarded-For), WARM_UP (0; 1 sends one D3 call per demo image at start, for a local
+Router). Limits (docs/API.md): UPLOADS_PER_MIN (6 per visitor), UPLOADS_PER_MIN_IP (20), MAX_UPLOADS (20 per visitor),
 MAX_UPLOAD_GB (2), MAX_VISITORS (500), IDLE_MIN (60), CLEANUP_S (300); model calls, timeouts and the circuit breaker:
 see app/gate.py.
 """
 import io
+import ipaddress
 import itertools
 import json
 import queue
@@ -60,7 +64,9 @@ SEQ = itertools.count(int(time.time()) % 100000)
 DECODE = threading.BoundedSemaphore(4)  # images decoded at once: a 48 MP photo is ~150 MB decoded
 LABELS = json.load(open(f"{DEMO}/labels.json"))
 EXT = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
-UPLOAD_LONG_SIDE = 1600  # an iPhone receipt photo read the same at 1600 px as at full size, with the 27B 2.3x faster
+UPLOAD_LONG_SIDE = 1600  # an iPhone receipt photo read the same at 1600 px as at full size, with the LLM 2.3x faster
+TRUST_PROXY = ENV("TRUST_PROXY", "0") == "1"
+WARM_UP = ENV("WARM_UP", "0") == "1"
 
 
 def open_image(raw, upload):
@@ -78,7 +84,7 @@ def open_image(raw, upload):
 
 def prepare_upload(raw, im, size=None):
     """An upload as the models should see it, made once before D3. Phone photos are shrunk to UPLOAD_LONG_SIDE (a 24 MP
-    iPhone photo is over the Router's 16 MP limit, and the 27B's time grows with pixels); iPhone JPEGs are MPO (the photo
+    iPhone photo is over the API's image limits, and the LLM's time grows with pixels); iPhone JPEGs are MPO (the photo
     plus an HDR gain-map image) and HEIC is the iPhone default; phones often store the photo sideways with an EXIF
     rotation tag that a model may not apply. Such uploads become one upright JPEG; small plain JPEG, PNG and WebP files
     pass through unchanged."""
@@ -116,7 +122,8 @@ def multipart_image(ctype, body):
 
 def config_body():
     return {"play_all": PLAY_ALL, "max_upload_mb": MAX_BYTES // (1024 * 1024), "uploads_per_min": VIS.per_visitor_min,
-            "landing_url": LANDING_URL}
+            "landing_url": LANDING_URL,
+            "models": {"d3": check.MODEL, "extract": pipeline.EXTRACT_MODEL, "message": pipeline.MESSAGE_MODEL}}
 
 
 def metrics_body():
@@ -144,6 +151,26 @@ def read_image(ctype, body, file):
     return raw, mime, size
 
 
+def client_ip_from(forwarded, peer):
+    """The client address in X-Forwarded-For headers, read from the right: proxies append the address they got the
+    request from, so the rightmost public address is the one our proxy saw; addresses a client wrote itself are to its
+    left and are skipped. Private and loopback hops (the proxy's own network) are passed over. Falls back to the peer."""
+    hops = [h.strip() for line in forwarded for h in line.split(",") if h.strip()]
+    for hop in reversed(hops):
+        try:
+            ip = ipaddress.ip_address(hop.split("%")[0])
+        except ValueError:
+            continue
+        if not (ip.is_private or ip.is_loopback or ip.is_link_local):
+            return str(ip)
+    for hop in hops:  # only private hops (a test or an internal network): the first one
+        try:
+            return str(ipaddress.ip_address(hop))
+        except ValueError:
+            continue
+    return peer
+
+
 class Refused(Exception):
     """An upload the demo cannot use (415); the message is shown as is."""
 
@@ -167,8 +194,12 @@ class Handler(BaseHTTPRequestHandler):
         return v
 
     def client_ip(self):
-        fwd = self.headers.get("X-Forwarded-For", "")
-        return fwd.split(",")[0].strip() or self.client_address[0]
+        """The caller's IP for the per-IP limit. Without TRUST_PROXY: the peer address (X-Forwarded-For is ignored, as
+        anyone can send it). With TRUST_PROXY=1 (behind the Hugging Face proxy, where every peer address is the proxy):
+        client_ip_from()."""
+        if TRUST_PROXY:
+            return client_ip_from(self.headers.get_all("X-Forwarded-For") or [], self.client_address[0])
+        return self.client_address[0]
 
     def _json(self, code, body):
         data = json.dumps(body, ensure_ascii=False).encode()
@@ -243,7 +274,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.refuse(409, "A check is running in this tab. Stop it first.")
             VIS.reset(v)
             return self._json(200, {"ok": True})
-        why = health.preflight()  # D3 or Qwen 27B down: refuse before storing anything or calling a model
+        why = health.preflight()  # D3 or the reading LLM down: refuse before storing anything or calling a model
         if why:
             return self.refuse(503, why)
         try:
@@ -344,9 +375,10 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def warm_up():
-    """One D3 call per demo image shape, so the first live upload does not pay for kernel warm-up. It sends a
-    re-encoded copy of each image: the Router caches D3 image features by content, and caching the real demo bytes
-    here would make every live D3 time a cache hit."""
+    """WARM_UP=1 only (a local Router; on the hosted API it would spend 24 calls at every start). One D3 call per demo
+    image shape, so the first live upload does not pay for kernel warm-up. It sends a re-encoded copy of each image:
+    the Router caches D3 image features by content, and caching the real demo bytes here would make every live D3 time
+    a cache hit."""
     t = time.perf_counter()
     for l in LABELS:
         try:
@@ -359,8 +391,13 @@ def warm_up():
 
 
 if __name__ == "__main__":
+    problem = gate.key_problem(check.ROUTER_URL)
+    if problem:
+        sys.exit(f"receipt intake demo cannot start: {problem}")
     threading.Thread(target=health.loop, daemon=True).start()
     threading.Thread(target=VIS.loop, args=(float(ENV("CLEANUP_S", "300")),), daemon=True).start()
-    threading.Thread(target=warm_up, daemon=True).start()
-    print(f"receipt intake demo on http://{HOST}:{PORT} (Router: {check.ROUTER_URL})", flush=True)
+    if WARM_UP:
+        threading.Thread(target=warm_up, daemon=True).start()
+    print(f"receipt intake demo on http://{HOST}:{PORT} (vllm-sr API: {check.ROUTER_URL}, D3 {check.MODEL}, "
+          f"LLM {pipeline.EXTRACT_MODEL} / {pipeline.MESSAGE_MODEL}, proxy trusted: {TRUST_PROXY})", flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
