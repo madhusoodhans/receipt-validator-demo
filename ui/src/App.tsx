@@ -1,6 +1,6 @@
 /* Page shell: top bar; image source row; the current image beside its pipeline steps; running totals and recent results. */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, ImageIcon, KeyRound, RotateCcw } from "lucide-react";
+import { ArrowLeft, ImageIcon, RotateCcw } from "lucide-react";
 import { Button } from "./components/arc/button/button";
 import { Alert } from "./components/arc/alert/alert";
 import { Badge } from "./components/arc/badge/badge";
@@ -14,6 +14,7 @@ import {
   type Config, type DemoItem, type Health, type ReceiptRow, type Service, type RejectionRow, type Stats as StatsT,
 } from "./api";
 import { KeyPanel } from "./KeyPanel";
+import { KeyMenu, type KeyMenuStatus } from "./KeyMenu";
 import { Recent } from "./Recent";
 import { useRunner } from "./run";
 import { DemoStrip, Upload } from "./Source";
@@ -151,6 +152,10 @@ export function App() {
   const locked = keyStatus !== "ready";
   const showPanel = keyStatus === "needed" || keyStatus === "checking" || changing;
   const openKey = () => { setChanging(true); setKeyOk(false); setFocusKey((n) => n + 1); };
+  const forgetKey = async () => { await deleteKey(); setChanging(false); needKey(null); };
+  // Top bar key control (KeyMenu): hidden only when the server has its own key and this visitor gave none.
+  const keyMenu: KeyMenuStatus | null = keyStatus === "loading" || keyStatus === "checking" ? "checking"
+    : keyStatus === "needed" ? "none" : keySet ? "ready" : null;
 
   return (
     <div className={styles.shell}>
@@ -168,11 +173,9 @@ export function App() {
         </div>
         <div className={styles.actions}>
           <HealthBadge health={health} error={healthError} />
-          {keySet && !changing && (
-            <Button variant="secondary" size="sm" onClick={openKey} disabled={busy || runner.playing} aria-label="Change key">
-              <KeyRound size={16} strokeWidth={1.75} aria-hidden="true" />
-              <span className={styles.keyText}>Change key</span>
-            </Button>
+          {keyMenu && (
+            <KeyMenu status={keyMenu} busy={busy || runner.playing} onEnter={() => setFocusKey((n) => n + 1)}
+              onChange={openKey} onForget={forgetKey} />
           )}
           <ConfirmMorph
             label="Reset"
@@ -212,7 +215,7 @@ export function App() {
               focusSignal={focusKey}
               onSaved={() => { setKeySet(true); setKeyError(null); setRunKeyError(null); setKeyOk(true); setChanging(false); setKeyStatus("ready"); }}
               onCancel={keySet ? () => setChanging(false) : undefined}
-              onForget={keySet ? async () => { await deleteKey(); setChanging(false); needKey(null); } : undefined}
+              onForget={keySet ? forgetKey : undefined}
             />
           )}
           <DemoStrip
