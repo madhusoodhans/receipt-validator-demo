@@ -1,5 +1,9 @@
 /* Fixed-height page on wide screens (main and side scroll on their own); a normal scrolling page below 1100px. */
-.shell { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100dvh; min-height: 0; }
+.shell { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100dvh; min-height: 0; }
+.footer {
+  padding: 6px 16px; border-top: 1px solid var(--border); background: var(--surface);
+  font-size: var(--text-xs, 12px); color: var(--text-secondary); text-align: center;
+}
 
 /* Top bar, as in the code migration demo: a dark slate band in both themes. Arc's semantic tokens are redefined on the
  * bar, so the Arc controls inside it (health badge, Reset, theme switch) take dark-surface colours from the same tokens. */

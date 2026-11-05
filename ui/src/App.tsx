@@ -31,7 +31,7 @@ function useTheme(): [Theme, (t: Theme) => void] {
   return [theme, setTheme];
 }
 
-const SERVICES: [Service, string][] = [["d3", "D3"], ["qwen27b", "Qwen 27B"], ["qwen4b", "Qwen 4B"]];
+const SERVICES: [Service, string][] = [["d3", "D3"], ["extract", "LLM (reading)"], ["retake", "LLM (retake messages)"]];
 const TONE = { ok: "success", degraded: "warning", down: "danger" } as const;
 
 /** The server's availability state in plain words (GET /health `message`); the tooltip lists each model. */
@@ -156,7 +156,7 @@ export function App() {
               )}
             </div>
             <div className={styles.steps}>
-              {run ? <Steps run={run} onStop={runner.stop} /> : (
+              {run ? <Steps run={run} onStop={runner.stop} models={config?.models} /> : (
                 <div className={styles.emptyStage}>
                   <EmptyState
                     icon={<ImageIcon size={24} />}
@@ -174,6 +174,10 @@ export function App() {
           <Recent receipts={receipts} rejections={rejections} receiptCount={stats?.extracted} rejectionCount={stats?.rejected} />
         </aside>
       </div>
+      <footer className={styles.footer}>
+        Uploads are processed by the hosted vllm-sr API (research and evaluation use). Please do not upload receipts with
+        personal data.
+      </footer>
     </div>
   );
 }

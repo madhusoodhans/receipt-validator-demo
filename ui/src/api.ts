@@ -31,13 +31,19 @@ export interface Receipt {
 }
 export interface SumCheck { ok: boolean; checks: { name: string; label: string; ok: boolean; detail?: string }[] }
 
+/** What the vllm-sr Router picked for an LLM call (its x-vsr-selected-* headers); null each when not routed by vllm-sr. */
+export interface Routed { model: string | null; decision: string | null; reasoning: string | null }
+
 export interface Events {
   received: { id: string; file: string; width: number; height: number; image_url: string };
   d3: D3;
   route: { route: RouteName; reasons: Reason[]; summary: string };
-  /** model "template" with `fallback` set ("standard message (Qwen 4B unavailable)") when Qwen 4B could not write it. */
-  message: { text: string; model: string; ms: number; tokens?: number | null; completion_tokens?: number | null; fallback?: string };
-  extract: { receipt: Receipt; model: string; ms: number; prompt_tokens?: number; completion_tokens?: number };
+  /** model is the model asked for (vllm-sr/auto), routed what the Router picked. model "template" with `fallback` set
+   * ("standard message (LLM unavailable)") when the LLM could not write it. */
+  message: { text: string; model: string; routed?: Routed; ms: number; tokens?: number | null; completion_tokens?: number | null;
+    reasoning_tokens?: number | null; fallback?: string };
+  extract: { receipt: Receipt; model: string; routed?: Routed; ms: number; prompt_tokens?: number; completion_tokens?: number;
+    reasoning_tokens?: number | null };
   sumcheck: SumCheck;
   stored: { table: "receipts" | "rejections"; id: number; needs_review: number };
   done: { total_ms: number; steps: Record<string, number> };
@@ -53,14 +59,16 @@ export interface Stats {
   by_problem: Record<string, number>;
   money_total_by_currency?: Record<string, number>;
 }
-export interface Config { play_all: boolean; max_upload_mb: number; uploads_per_min: number; landing_url?: string }
+export interface Config { play_all: boolean; max_upload_mb: number; uploads_per_min: number; landing_url?: string;
+  /** The model names the server asks for (D3_MODEL, EXTRACT_MODEL, MESSAGE_MODEL). */
+  models?: { d3: string; extract: string; message: string } }
 
 export interface ReceiptRow { id: number; file: string; image_url: string; created_at: string; needs_review: number; receipt: Receipt; sumcheck_ok: boolean; d3?: D3 }
 export interface RejectionRow { id: number; file: string; image_url: string; created_at: string; reasons: Reason[]; message: string; d3?: D3 }
-export type Service = "d3" | "qwen27b" | "qwen4b";
-/** GET /health: each model's availability (probes every 30 s plus the circuit breaker on real calls). status "down"
- * (D3 or Qwen 27B unavailable: uploads are refused), "degraded" (Qwen 4B only: standard retake messages), or "ok";
- * `message` is the badge text; `detail` names each failure ("unreachable", "timeout", "image input off", ...). */
+export type Service = "d3" | "extract" | "retake";
+/** GET /health: each model's availability (free GET checks every 60 s plus the circuit breaker on real calls). status
+ * "down" (D3 or the reading LLM unavailable: uploads are refused), "degraded" (the LLM for retake messages only:
+ * standard messages), or "ok"; `message` is the badge text; `detail` names each failure ("unreachable", "not served", ...). */
 export type Health = {
   ok: boolean; status?: "ok" | "degraded" | "down"; message?: string;
   detail?: Partial<Record<Service, string>>; checked_at?: string | null;

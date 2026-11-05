@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Receipt intake</title>
-<meta name="description" content="Live receipt intake: D3 checks each upload, Qwen 27B reads only receipts it can read, Qwen 4B explains the rest.">
+<meta name="description" content="Live receipt intake: D3 checks each upload, an LLM picked by the vLLM Semantic Router reads only receipts it can read and explains the rest.">
 <script>
   // Theme before first paint: ?theme= from the demos landing page (saved, then dropped from the address), else the
   // stored choice, else the system preference. Arc themes key off data-theme on <html>.
@@ -23,8 +23,8 @@
     document.documentElement.dataset.theme = t;
   })();
 </script>
-  <script type="module" crossorigin src="./assets/index-86oxVknx.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-Bd3E0F2R.css">
+  <script type="module" crossorigin src="./assets/index-Cycl0AVo.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BUS0MvQK.css">
 </head>
 <body>
 <div id="root"></div>

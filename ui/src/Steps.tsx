@@ -6,7 +6,7 @@ import { Button } from "./components/arc/button/button";
 import { Badge } from "./components/arc/badge/badge";
 import { TextShimmer } from "./components/arc/text-shimmer/text-shimmer";
 import { motionTokens } from "./components/arc/lib/motion-tokens";
-import type { Check as D3Check, D3, Events, Receipt, RouteName, Status } from "./api";
+import type { Check as D3Check, Config, D3, Events, Receipt, Routed, RouteName, Status } from "./api";
 import { kindLabel, money, ms, pct, pctNear, receiptWhole } from "./format";
 import type { Run } from "./run";
 import styles from "./Steps.module.css";
@@ -100,9 +100,9 @@ function D3Body({ d3 }: { d3: D3 }) {
 }
 
 const LANES: { route: RouteName; title: string; detail: string }[] = [
-  { route: "extract", title: "Read", detail: "Qwen 27B" },
-  { route: "review", title: "Read, flag for review", detail: "Qwen 27B" },
-  { route: "reject", title: "Explain the problem", detail: "Qwen 4B" },
+  { route: "extract", title: "Read", detail: "LLM reads the image" },
+  { route: "review", title: "Read, flag for review", detail: "LLM reads the image" },
+  { route: "reject", title: "Explain the problem", detail: "LLM writes, text only" },
 ];
 
 /* Connector from the D3 node to each lane's centre, in a 300 x 56 box stretched to the lane row's width. */
@@ -142,7 +142,19 @@ function RouteBody({ route }: { route: Events["route"] }) {
 
 /** A model step that failed: one plain line on what failed, then what the user should do. */
 const REASON: Record<string, string> = { unavailable: "Unavailable", timeout: "Timed out", busy: "Busy", too_long: "Too long", error: "Failed" };
-const SKIPPED: Record<string, string> = { route: "Route", model: "Read or explain (Qwen 27B or 4B)", sumcheck: "Sum check", stored: "Store" };
+const SKIPPED: Record<string, string> = { route: "Route", model: "Read or explain (LLM)", sumcheck: "Sum check", stored: "Store" };
+
+/** What the vllm-sr Router chose for an LLM call: the model asked for, the model it picked, its decision and reasoning. */
+function RoutedLine({ asked, routed }: { asked: string; routed?: Routed }) {
+  if (!routed?.model) return null;
+  const parts = [routed.decision && `decision ${routed.decision}`, routed.reasoning && `reasoning ${routed.reasoning}`].filter(Boolean);
+  return (
+    <p className={styles.routed}>
+      <span className={styles.model}>{asked}</span> routed to <span className={styles.model}>{routed.model}</span>
+      {parts.length > 0 && <span className="muted">{` (${parts.join(", ")})`}</span>}
+    </p>
+  );
+}
 
 function Failed({ title, error }: { title: ReactNode; error: Events["error"] }) {
   return (
@@ -225,7 +237,7 @@ const errorTitle = (step: string) => ERROR_TITLE[step] ?? "Something went wrong"
 /** Failures shown on their own step, with the steps after them marked skipped. */
 const MODEL_STEP = new Set(["d3", "extract"]);
 
-export function Steps({ run, onStop }: { run: Run; onStop: () => void }) {
+export function Steps({ run, onStop, models }: { run: Run; onStop: () => void; models?: Config["models"] }) {
   const { d3, route, message, extract, sumcheck, stored, done, error, at } = run;
   const live = run.active && !error && !run.stopped;  // pending steps only while the run is going
   const steps = done?.steps || {};
@@ -269,14 +281,14 @@ export function Steps({ run, onStop }: { run: Run; onStop: () => void }) {
 
       <div className={styles.cols} ref={cols}>
       <ol className={styles.list} aria-label="Check and route">
-        {!d3 && live && <Pending run={run} text="D3 checks the image" model="vllm-sr/d3-mini" />}
+        {!d3 && live && <Pending run={run} text="D3 checks the image" model={models?.d3} />}
         {d3 && (
           <Step icon={<ScanSearch size={18} strokeWidth={1.75} />} label="D3 check"
             title={<>D3 check <span className={styles.model}>{d3.model}</span></>} time={ms(d3.ms)}>
             <D3Body d3={d3} />
           </Step>
         )}
-        {failedAt === "d3" && <Failed title={<>D3 check <span className={styles.model}>vllm-sr/d3-mini</span></>} error={error!} />}
+        {failedAt === "d3" && <Failed title={<>D3 check {models?.d3 && <span className={styles.model}>{models.d3}</span>}</>} error={error!} />}
         {route && (
           <Step icon={<ArrowRight size={18} strokeWidth={1.75} />} label="Route" title="Route">
             <RouteBody route={route} />
@@ -285,21 +297,23 @@ export function Steps({ run, onStop }: { run: Run; onStop: () => void }) {
         {skipped(["route"])}
       </ol>
       <ol className={styles.list} aria-label="Result">
-        {route?.route === "reject" && !message && live && <Pending run={run} text="Qwen 4B writes a message" from={at.route} model="qwen4b" />}
+        {route?.route === "reject" && !message && live && <Pending run={run} text="The LLM writes a message" from={at.route} model={models?.message} />}
         {message && (
           <Step icon={<MessageSquareText size={18} strokeWidth={1.75} />} label="Message to the user"
-            title={<>Message to the user <span className={styles.model}>{message.fallback ? "standard message" : message.model}</span></>}
+            title={<>Message to the user <span className={styles.model}>{message.fallback ? "standard message" : message.routed?.model ?? message.model}</span></>}
             time={message.fallback ? undefined : ms(message.ms)}>
             {message.fallback && <p><Badge tone="warning" size="sm">{`fallback: ${message.fallback}`}</Badge></p>}
+            {!message.fallback && <RoutedLine asked={message.model} routed={message.routed} />}
             <MessageBody text={message.text} />
           </Step>
         )}
-        {reading && !extract && live && <Pending run={run} text="Qwen 27B reads the receipt" from={at.route} model="qwen27b" />}
-        {failedAt === "extract" && <Failed title={<>Read the receipt <span className={styles.model}>qwen27b</span></>} error={error!} />}
+        {reading && !extract && live && <Pending run={run} text="The LLM reads the receipt" from={at.route} model={models?.extract} />}
+        {failedAt === "extract" && <Failed title={<>Read the receipt {models?.extract && <span className={styles.model}>{models.extract}</span>}</>} error={error!} />}
         {extract && (
           <Step icon={<Eye size={18} strokeWidth={1.75} />} label="Extracted receipt"
-            title={<>Extracted receipt <span className={styles.model}>{extract.model}</span></>}
+            title={<>Extracted receipt <span className={styles.model}>{extract.routed?.model ?? extract.model}</span></>}
             time={<>{ms(extract.ms)}{extract.completion_tokens ? <span className={styles.tokens}>{extract.completion_tokens} tokens</span> : null}</>}>
+            <RoutedLine asked={extract.model} routed={extract.routed} />
             <ReceiptBody r={extract.receipt} />
           </Step>
         )}

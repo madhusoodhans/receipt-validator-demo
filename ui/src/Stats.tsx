@@ -32,8 +32,8 @@ function tiles(run: Run): Tile[] {
   const { d3, message, extract, active, stopped, error } = run;
   const done = !active || !!error || stopped;
   const llm: { name: string; ms: number; out: number | null | undefined }[] = [];
-  if (extract) llm.push({ name: "Qwen 27B", ms: extract.ms, out: extract.completion_tokens });
-  if (message && !message.fallback) llm.push({ name: "Qwen 4B", ms: message.ms, out: message.completion_tokens });
+  if (extract) llm.push({ name: extract.routed?.model ?? extract.model, ms: extract.ms, out: extract.completion_tokens });
+  if (message && !message.fallback) llm.push({ name: message.routed?.model ?? message.model, ms: message.ms, out: message.completion_tokens });
   const llmMs = llm.reduce((a, r) => a + r.ms, 0);
   const outs = llm.map((r) => r.out).filter((v): v is number => v != null);
   const llmNote = llm.length ? llm.map((r) => r.name).join(" and ") : done ? "No LLM ran" : "Waiting";
@@ -43,7 +43,7 @@ function tiles(run: Run): Tile[] {
     { key: "llm", label: "LLM execution time", value: llm.length ? dur(llmMs) : done && d3 ? ["0", "ms"] : null, note: llmNote },
     { key: "total", label: "Total inference time", value: d3 ? dur(total) : null, note: "All model calls, end to end" },
     { key: "tokens", label: "LLM tokens generated", value: outs.length ? [n(outs.reduce((a, v) => a + v, 0)), "tokens"] : done && d3 && !llm.length ? ["0", "tokens"] : null,
-      note: "Written by the LLM; D3 writes none" },
+      note: "Written by the LLM, reasoning included; D3 writes none" },
   ];
 }
 

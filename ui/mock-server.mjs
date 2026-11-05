@@ -127,7 +127,7 @@ function d3For(outcome) { // outcome: {route, problem?}
   const rest = (1 - top) / (kinds.length - 1);
   const probabilities = Object.fromEntries(kinds.map((k) => [k, k === kind ? top : r2(rest)]));
   return {
-    model: "vllm-sr/d3-mini", ms: jitter(260),
+    model: "vllm-sr/d3-flash", ms: jitter(380),
     kind: { choice: kind, probabilities },
     checks: CHECKS.map((c) => ({ ...c, prob: prob[c.key], status: statusOf(c, prob[c.key]) })),
   };
@@ -188,7 +188,7 @@ async function runCheck(res, { file, bytes, outcome, imageUrl }) {
   send("route", route);
   const steps = { d3: d3.ms };
 
-  if (outcome.forceError) { await sleep(300); send("error", { step: "extract", reason: "timeout", detail: "Qwen 27B did not answer within 60 s",
+  if (outcome.forceError) { await sleep(300); send("error", { step: "extract", reason: "timeout", detail: "The LLM did not answer within 30 s",
     message: "Your receipt passed the checks, but reading is unavailable right now. Please try again shortly.", skipped: ["sumcheck", "stored"] }); return res.end(); }
 
   if (route.route === "reject") {
@@ -196,7 +196,7 @@ async function runCheck(res, { file, bytes, outcome, imageUrl }) {
     await sleep(ms);
     const key = route.reasons[0].key === "kind" ? d3.kind.choice : route.reasons[0].key;
     const text = MESSAGES[key] || "We couldn't read this photo. Please take it again with the whole receipt in view.";
-    send("message", { text, model: "qwen4b", ms });
+    send("message", { text, model: "vllm-sr/auto", routed: { model: "qwen/qwen3.8-27b", decision: "fast", reasoning: "off" }, ms });
     steps.message = ms;
     state.stats.uploads++; state.stats.rejected++;
     const bad = route.reasons.filter((r) => r.status === "bad");
@@ -210,7 +210,7 @@ async function runCheck(res, { file, bytes, outcome, imageUrl }) {
     const ms = jitter(3400, 0.12);
     await sleep(ms);
     const receipt = receiptFrom(outcome.label);
-    send("extract", { receipt, model: "qwen27b", ms, prompt_tokens: 1165, completion_tokens: 120 + receipt.items.length * 28 });
+    send("extract", { receipt, model: "vllm-sr/auto", routed: { model: "qwen/qwen3.8-27b", decision: "vision", reasoning: "on" }, ms, prompt_tokens: 1500, completion_tokens: 520 + receipt.items.length * 28, reasoning_tokens: 400 });
     steps.extract = ms;
     await sleep(4);
     const sc = sumcheck(receipt);
@@ -282,7 +282,7 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   const path = decodeURIComponent(url.pathname);
   try {
-    if (req.method === "GET" && path === "/health") return json(res, 200, { ok: true, status: "ok", message: "All systems working", d3: true, qwen27b: true, qwen4b: true, detail: {} });
+    if (req.method === "GET" && path === "/health") return json(res, 200, { ok: true, status: "ok", message: "All systems working", d3: true, extract: true, retake: true, detail: {} });
     if (req.method === "GET" && path === "/api/demo") return json(res, 200, demo);
     if (req.method === "GET" && path.startsWith("/api/demo/")) {
       const f = path.slice("/api/demo/".length);

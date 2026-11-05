@@ -27,7 +27,7 @@ export interface Run {
 }
 
 /** The server sends a keep-alive every 2 s, but a proxy in between (VS Code port forwarding, an SSH tunnel) can hold
- * those back while a slow step runs. The server times out every step itself (Qwen 27B after 60 s, plus up to 15 s
+ * those back while a slow step runs. The server times out every step itself (the LLM after 30 s, plus up to 15 s
  * waiting for a slot) and reports it, so only this much silence means the connection is really gone. */
 const SILENCE_MS = 120000;
 
