@@ -1,4 +1,4 @@
-/* Where images come from: an upload (Upload), or the demo set one at a time or with Play all (DemoStrip). */
+/* Where images come from: an upload (Upload), or the demo set one at a time or with Play all (SamplePane). */
 import { Play, Square } from "lucide-react";
 import { Button } from "./components/arc/button/button";
 import { FileDropzone } from "./components/arc/file-dropzone/file-dropzone";
@@ -30,7 +30,12 @@ export function Upload({ busy, locked, onFile }: { busy: boolean; locked?: boole
   );
 }
 
-export function DemoStrip(props: {
+const EXPECTED_TEXT: Record<RouteName, string> = { extract: "Should be extracted", review: "Should need review", reject: "Should be rejected" };
+const GROUPS: [DemoItem["group"], string][] = [["good", "Good receipts"], ["borderline", "Borderline"], ["bad", "Bad uploads"]];
+
+/** Left pane: the demo set as a vertical list of thumbnails in their groups (good, borderline, bad), each with its label
+ * and expected outcome, and a dot for the last outcome; Play all (when on) at the bottom. It scrolls on its own. */
+export function SamplePane(props: {
   demo: DemoItem[]; demoError: string | null; current: string | null; busy: boolean; playing: boolean;
   /** Off on the hosted demo (server env PLAY_ALL=0): single demo images still run. */
   playAll: boolean;
@@ -41,40 +46,53 @@ export function DemoStrip(props: {
 }) {
   const { demo, current, playing, outcomes } = props;
   const busy = props.busy || !!props.locked;
-  const groups: [string, DemoItem[]][] = [["Good receipts", demo.filter((d) => d.group === "good")], ["Borderline", demo.filter((d) => d.group === "borderline")], ["Bad uploads", demo.filter((d) => d.group === "bad")]];
+  const groups = GROUPS.map(([g, title]) => [title, demo.filter((d) => d.group === g)] as const).filter(([, items]) => items.length);
+  const showFoot = props.locked || playing || props.playAll;
   return (
-    <section className={styles.demo} aria-label="Demo images">
-      <div className={styles.demoHead}>
-        <h2 className={styles.h2}>Demo images</h2>
-        {!props.playAll && !playing ? null : playing ? (
-          <Button variant="secondary" onClick={props.onStop}><Square size={16} strokeWidth={1.75} aria-hidden="true" />Stop</Button>
-        ) : (
-          <Button variant="primary" onClick={props.onPlay} disabled={busy || demo.length === 0}><Play size={16} strokeWidth={1.75} aria-hidden="true" />Play all</Button>
-        )}
+    <nav className={styles.pane} aria-label="Sample images you can try">
+      <div className={styles.paneHead}>
+        <h2 className={styles.h2}>Sample images you can try</h2>
+        <span className={styles.count}>{demo.length || ""}</span>
       </div>
-      {props.demoError && <p className={styles.error}>Could not load the demo set: {props.demoError}</p>}
-      <div className={styles.groups}>
-        {groups.filter(([, items]) => items.length).map(([title, items]) => (
-          <div key={title} className={styles.group}>
-            <h3 className={styles.groupTitle}>{title}</h3>
-            <ul className={styles.strip}>
+      <div className={styles.paneScroll}>
+        {props.demoError && <p className={styles.error}>Could not load the demo set: {props.demoError}</p>}
+        {groups.map(([title, items]) => (
+          <section key={title} className={styles.group} aria-label={title}>
+            <h3 className={styles.groupTitle}><span>{title}</span><span className={styles.groupCount}>{items.length}</span></h3>
+            <ul className={styles.list}>
               {items.map((d) => {
                 const o = outcomes[d.file];
                 return (
                   <li key={d.file}>
-                    <button type="button" className={styles.thumb} onClick={() => props.onDemo(d)} disabled={busy}
+                    <button type="button" className={styles.item} onClick={() => props.onDemo(d)} disabled={busy}
                       aria-current={current === d.file || undefined} data-outcome={o}
                       aria-label={`${d.label}${o ? `, ${OUTCOME_TEXT[o]}` : ""}`} title={d.label}>
-                      <img src={d.image_url} alt="" loading="lazy" />
-                      {o && <span className={styles.dot} aria-hidden="true" />}
+                      <span className={styles.thumb}>
+                        <img src={d.image_url} alt="" loading="lazy" />
+                        {o && <span className={styles.dot} aria-hidden="true" />}
+                      </span>
+                      <span className={styles.itemText}>
+                        <span className={styles.itemLabel}>{d.label}</span>
+                        <span className={styles.itemSub}>{o ? `Last run: ${OUTCOME_TEXT[o]}` : EXPECTED_TEXT[d.expected_route]}</span>
+                      </span>
                     </button>
                   </li>
                 );
               })}
             </ul>
-          </div>
+          </section>
         ))}
       </div>
-    </section>
+      {showFoot && (
+        <div className={styles.paneFoot}>
+          {props.locked && <span className={styles.keyHint}>Enter your vllm-sr API key to try these.</span>}
+          {playing ? (
+            <Button variant="secondary" onClick={props.onStop}><Square size={16} strokeWidth={1.75} aria-hidden="true" />Stop</Button>
+          ) : props.playAll && (
+            <Button variant="primary" onClick={props.onPlay} disabled={busy || demo.length === 0}><Play size={16} strokeWidth={1.75} aria-hidden="true" />Play all</Button>
+          )}
+        </div>
+      )}
+    </nav>
   );
 }

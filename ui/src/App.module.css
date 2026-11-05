@@ -1,4 +1,4 @@
-/* Fixed-height page on wide screens (main and side scroll on their own); a normal scrolling page below 1100px. */
+/* Fixed-height page on wide screens (samples, main and side scroll on their own); a normal scrolling page below 1000px. */
 .shell { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100dvh; min-height: 0; }
 .footer {
   padding: 6px 16px; border-top: 1px solid var(--border); background: var(--surface);
@@ -56,8 +56,8 @@
 }
 .health { display: inline-flex; border-radius: var(--radius-pill); }
 
-.body { display: grid; grid-template-columns: minmax(0, 1fr) clamp(340px, 26vw, 460px); min-height: 0; }
-.main { display: flex; flex-direction: column; gap: var(--space-5); min-width: 0; min-height: 0; overflow-y: auto; padding: var(--space-5) clamp(16px, 2vw, 28px); }
+.body { display: grid; grid-template-columns: clamp(248px, 19vw, 300px) minmax(0, 1fr) clamp(320px, 25vw, 440px); min-height: 0; }
+.main { container-type: inline-size; display: flex; flex-direction: column; gap: var(--space-5); min-width: 0; min-height: 0; overflow-y: auto; padding: var(--space-5) clamp(16px, 2vw, 28px); }
 /* The stats panel sits on its own tinted band, so it reads as separate from the pipeline stage; its cards stay on --surface. */
 .side {
   display: flex; flex-direction: column; gap: var(--space-5); min-height: 0; overflow-y: auto; padding: var(--space-5);
@@ -74,9 +74,16 @@
 .steps { container-type: inline-size; min-width: 0; }
 .emptyStage { display: grid; place-items: center; min-height: 420px; border: 1px dashed var(--border-strong); border-radius: var(--radius-panel); }
 
-@media (max-width: 1100px) {
+/* A narrow main column (three panes on a laptop screen): upload and image above the steps. */
+@container (max-width: 680px) {
+  .stage { grid-template-columns: minmax(0, 1fr); }
+  .left { position: static; }
+  .image { max-height: 46dvh; min-height: 0; }
+}
+@media (max-width: 1000px) {
   .shell { height: auto; min-height: 100dvh; }
   .body { grid-template-columns: minmax(0, 1fr); }
+  .body > nav { max-height: 340px; border-right: 0; border-bottom: 1px solid var(--border); }
   .main { overflow: visible; }
   .side { overflow: visible; border-left: 0; border-top: 1px solid var(--border); }
 }

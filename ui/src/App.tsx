@@ -1,4 +1,4 @@
-/* Page shell: top bar; image source row; the current image beside its pipeline steps; running totals and recent results. */
+/* Page shell: top bar; sample images on the left; upload and the current image beside its pipeline steps; running totals and recent results on the right. */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ImageIcon, RotateCcw } from "lucide-react";
 import { Button } from "./components/arc/button/button";
@@ -17,7 +17,7 @@ import { KeyPanel } from "./KeyPanel";
 import { KeyMenu, type KeyMenuStatus } from "./KeyMenu";
 import { Recent } from "./Recent";
 import { useRunner } from "./run";
-import { DemoStrip, Upload } from "./Source";
+import { SamplePane, Upload } from "./Source";
 import { Stats } from "./Stats";
 import { Steps } from "./Steps";
 import { useImageSrc } from "./useImage";
@@ -192,6 +192,15 @@ export function App() {
       </header>
 
       <div className={styles.body}>
+        <SamplePane
+          demo={demo} demoError={demoError} current={run?.name ?? null} busy={busy || runner.playing} playing={runner.playing}
+          playAll={playAll}
+          locked={locked}
+          outcomes={runner.outcomes}
+          onDemo={(d) => runner.start({ demo: d })}
+          onPlay={() => runner.playAll(demo)}
+          onStop={runner.stop}
+        />
         <main className={styles.main}>
           {runKeyError && (
             <Alert tone="danger" title={runKeyError.code === "no_key" ? "API key needed" : "Your API key stopped working"}
@@ -218,15 +227,6 @@ export function App() {
               onForget={keySet ? forgetKey : undefined}
             />
           )}
-          <DemoStrip
-            demo={demo} demoError={demoError} current={run?.name ?? null} busy={busy || runner.playing} playing={runner.playing}
-            playAll={playAll}
-            locked={locked}
-            outcomes={runner.outcomes}
-            onDemo={(d) => runner.start({ demo: d })}
-            onPlay={() => runner.playAll(demo)}
-            onStop={runner.stop}
-          />
           {loadError && <Alert tone="warning" title="Could not load totals">{loadError}</Alert>}
           <div className={styles.stage}>
             <div className={styles.left}>
@@ -248,8 +248,8 @@ export function App() {
                     icon={<ImageIcon size={24} />}
                     title="Pick an image to check"
                     description={locked ? "Enter your vllm-sr API key above to run the demo."
-                      : playAll ? "Upload a receipt photo, click a demo image, or press Play all to run the whole demo set."
-                      : "Upload a receipt photo or click a demo image."}
+                      : playAll ? "Upload a receipt photo, pick a sample image on the left, or press Play all to run the whole demo set."
+                      : "Upload a receipt photo or pick a sample image on the left."}
                   />
                 </div>
               )}
