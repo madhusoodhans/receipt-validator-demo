@@ -169,7 +169,7 @@ export function App() {
           )}
         </div>
         <div className={styles.title}>
-          <h1>Receipt Intake Demo using vllm-sr &amp; Decision 3.0</h1>
+          <h1 title="D3 checks each image; MoM (vllm-sr/auto) reads the receipts that pass">Receipt intake demo · vllm-sr with D3 and MoM</h1>
         </div>
         <div className={styles.actions}>
           <HealthBadge health={health} error={healthError} />
