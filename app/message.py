@@ -59,7 +59,8 @@ def template(route):
             f"Please {join([f for _, f in known])}, then try again.")
 
 
-MAX_TOKENS = 600  # the message is ~40 tokens; room in case the Router turns reasoning on, which counts too
+MAX_TOKENS = 2048  # the message is ~40 tokens, but the Router turns reasoning on for some (several problems), and the
+# reasoning counts too: 600 ran out on two demo images
 
 
 def write_message(d3, route, timeout=None):
