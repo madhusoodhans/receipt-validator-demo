@@ -79,10 +79,11 @@ for l in picked:
     done = events.get("done", {})
     detail = f"{done.get('total_ms', 0) / 1000:.1f} s"
     if "message" in events:
-        detail += f", 4B: {events['message']['text'][:70]!r}"
+        m = events["message"]
+        detail += f", message ({(m.get('routed') or {}).get('model') or m['model']}): {m['text'][:60]!r}"
     if "extract" in events:
         rc = events["extract"]["receipt"]
-        detail += f", 27B: total {rc.get('total')} {rc.get('currency') or ''}, {len(rc.get('items') or [])} items"
+        detail += f", read by {(events['extract'].get('routed') or {}).get('model') or events['extract']['model']}: total {rc.get('total')} {rc.get('currency') or ''}, {len(rc.get('items') or [])} items"
     ok = route == l["expected_route"] and "done" in events and "stored" in events
     result(ok, f"{l['file']}: route {route} (expected {l['expected_route']}), {detail}")
 

@@ -1,0 +1,4158 @@
+{
+ "base": "http://127.0.0.1:8641",
+ "rows": [
+  {
+   "file": "01_good_berghotel.jpg",
+   "expected": "extract",
+   "route": "extract",
+   "summary": "Readable receipt",
+   "wall_ms": 9507,
+   "steps": {
+    "d3": 212.0,
+    "extract": 9257.8,
+    "sumcheck": 0.05,
+    "db": 0.3
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65443",
+     "file": "01_good_berghotel.jpg",
+     "width": 250,
+     "height": 333,
+     "image_url": "/api/demo/01_good_berghotel.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 212.0,
+     "tokens": 1456,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9011,
+       "invoice": 0.0908,
+       "other_document": 0.0061,
+       "screenshot": 0.0007,
+       "photo": 0.0013
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.9414,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.9655,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0215,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0383,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0045,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.014,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": "Berghotel Grosse Scheidegg",
+      "date": "2007-07-30",
+      "currency": "CHF",
+      "items": [
+       {
+        "name": "Latte Macchiato",
+        "quantity": 2,
+        "unit_price": 4.5,
+        "amount": 9.0
+       },
+       {
+        "name": "Gloki",
+        "quantity": 1,
+        "unit_price": 5.0,
+        "amount": 5.0
+       },
+       {
+        "name": "Schweinschnitzel",
+        "quantity": 1,
+        "unit_price": 22.0,
+        "amount": 22.0
+       },
+       {
+        "name": "ChÃ¤sspÃ¤tzli",
+        "quantity": 1,
+        "unit_price": 18.5,
+        "amount": 18.5
+       }
+      ],
+      "subtotal": 54.5,
+      "tax": 3.85,
+      "service_charge": null,
+      "discount": null,
+      "total": 54.5
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 9257.8,
+     "prompt_tokens": 1500,
+     "completion_tokens": 670,
+     "reasoning_tokens": 371
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "9.00 + 5.00 + 22.00 + 18.50 = 54.50; subtotal 54.50"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "subtotal 54.50; total 54.50 (tax included in the subtotal)"
+      },
+      {
+       "name": "date",
+       "label": "The date is a real date",
+       "ok": true,
+       "detail": "2007-07-30"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "54.50"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 2,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 9496.9,
+     "steps": {
+      "d3": 212.0,
+      "extract": 9257.8,
+      "sumcheck": 0.05,
+      "db": 0.3
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 670,
+    "reasoning_tokens": 371,
+    "fallback": null
+   },
+   "check": {
+    "total": 54.5,
+    "truth_total": 54.5,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "02_bad_blurry_hand.jpg",
+   "expected": "reject",
+   "route": "reject",
+   "summary": "Whole receipt visible, Blurry text, Torn, crumpled or stained",
+   "wall_ms": 12403,
+   "steps": {
+    "d3": 248.8,
+    "message": 12140.5,
+    "db": 0.3
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65570",
+     "file": "02_bad_blurry_hand.jpg",
+     "width": 480,
+     "height": 640,
+     "image_url": "/api/demo/02_bad_blurry_hand.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 248.8,
+     "tokens": 2996,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9234,
+       "invoice": 0.0177,
+       "other_document": 0.0223,
+       "screenshot": 0.0018,
+       "photo": 0.0348
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.1153,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.011,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "bad"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.849,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "bad"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.2239,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0136,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0272,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.1153,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.011,
+       "status": "bad"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.849,
+       "status": "bad"
+      }
+     ],
+     "summary": "Whole receipt visible, Blurry text, Torn, crumpled or stained"
+    },
+    "message": {
+     "text": "Your receipt is crumpled or stained, the text is a little blurry, and the bottom edge is cut off. Smooth it flat on a table, hold your phone steady and level above it, and make sure the entire receiptâincluding the totalâfits in the frame.",
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "standard",
+      "reasoning": "on"
+     },
+     "ms": 12140.5,
+     "tokens": 932,
+     "completion_tokens": 759,
+     "reasoning_tokens": 701
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 15,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 12390.9,
+     "steps": {
+      "d3": 248.8,
+      "message": 12140.5,
+      "db": 0.3
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "standard",
+     "reasoning": "on"
+    },
+    "completion_tokens": 759,
+    "reasoning_tokens": 701,
+    "fallback": null
+   }
+  },
+  {
+   "file": "03_good_matcha_invoice.jpg",
+   "expected": "extract",
+   "route": "extract",
+   "summary": "Readable receipt",
+   "wall_ms": 6606,
+   "steps": {
+    "d3": 189.9,
+    "extract": 6379.0,
+    "sumcheck": 0.04,
+    "db": 0.3
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65445",
+     "file": "03_good_matcha_invoice.jpg",
+     "width": 359,
+     "height": 557,
+     "image_url": "/api/demo/03_good_matcha_invoice.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 189.9,
+     "tokens": 2205,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.8538,
+       "invoice": 0.1369,
+       "other_document": 0.0065,
+       "screenshot": 0.0008,
+       "photo": 0.002
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.9204,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.9732,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0527,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0327,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.004,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0058,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": "RM",
+      "items": [
+       {
+        "name": "MATCHA GELATO SINGLE",
+        "quantity": 1,
+        "unit_price": 15.0,
+        "amount": 15.0
+       }
+      ],
+      "subtotal": 12.0,
+      "tax": 0.0,
+      "service_charge": null,
+      "discount": 3.0,
+      "total": 12.0
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 6379.0,
+     "prompt_tokens": 1686,
+     "completion_tokens": 444,
+     "reasoning_tokens": 309
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "15 - discount 3 = 12; subtotal 12"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "subtotal 12; total 12"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "12"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 1,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 6595.0,
+     "steps": {
+      "d3": 189.9,
+      "extract": 6379.0,
+      "sumcheck": 0.04,
+      "db": 0.3
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 444,
+    "reasoning_tokens": 309,
+    "fallback": null
+   },
+   "check": {
+    "total": 12.0,
+    "truth_total": 12.0,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "04_bad_crumpled.jpg",
+   "expected": "reject",
+   "route": "reject",
+   "summary": "Torn, crumpled or stained",
+   "wall_ms": 3585,
+   "steps": {
+    "d3": 303.8,
+    "message": 3267.3,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65571",
+     "file": "04_bad_crumpled.jpg",
+     "width": 506,
+     "height": 900,
+     "image_url": "/api/demo/04_bad_crumpled.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 303.8,
+     "tokens": 4032,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9909,
+       "invoice": 0.0045,
+       "other_document": 0.0016,
+       "screenshot": 0.0004,
+       "photo": 0.0027
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.8877,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.8988,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.8523,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "bad"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0816,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.007,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0093,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.8523,
+       "status": "bad"
+      }
+     ],
+     "summary": "Torn, crumpled or stained"
+    },
+    "message": {
+     "text": "Your receipt looks crumpled, torn, faded, or stained, so we can't read it. Please smooth it out on a flat surface and retake the photo in good light.",
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-flash-next",
+      "decision": "standard",
+      "reasoning": "on"
+     },
+     "ms": 3267.3,
+     "tokens": 416,
+     "completion_tokens": 286,
+     "reasoning_tokens": 245
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 11,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 3573.0,
+     "steps": {
+      "d3": 303.8,
+      "message": 3267.3,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-flash-next",
+     "decision": "standard",
+     "reasoning": "on"
+    },
+    "completion_tokens": 286,
+    "reasoning_tokens": 245,
+    "fallback": null
+   }
+  },
+  {
+   "file": "05_good_cash_template.jpg",
+   "expected": "extract",
+   "route": "extract",
+   "summary": "Readable receipt",
+   "wall_ms": 14115,
+   "steps": {
+    "d3": 299.7,
+    "extract": 13795.3,
+    "sumcheck": 0.02,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65447",
+     "file": "05_good_cash_template.jpg",
+     "width": 350,
+     "height": 350,
+     "image_url": "/api/demo/05_good_cash_template.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 299.7,
+     "tokens": 1743,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9206,
+       "invoice": 0.0551,
+       "other_document": 0.0112,
+       "screenshot": 0.0077,
+       "photo": 0.0053
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.9476,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.9605,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0132,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0312,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0049,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0106,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": "$",
+      "items": [
+       {
+        "name": "Lorem ipsum",
+        "quantity": 1,
+        "unit_price": 4.25,
+        "amount": 4.25
+       },
+       {
+        "name": "Ipsum dolor sit",
+        "quantity": 1,
+        "unit_price": 1.1,
+        "amount": 1.1
+       },
+       {
+        "name": "Dolor sit amet onsectetur",
+        "quantity": 1,
+        "unit_price": 4.0,
+        "amount": 4.0
+       },
+       {
+        "name": "Nemo enim ipsam",
+        "quantity": 1,
+        "unit_price": 21.55,
+        "amount": 21.55
+       },
+       {
+        "name": "Quis autem vel eum",
+        "quantity": 1,
+        "unit_price": 6.99,
+        "amount": 6.99
+       },
+       {
+        "name": "Ut enim ad minima",
+        "quantity": 1,
+        "unit_price": 15.5,
+        "amount": 15.5
+       },
+       {
+        "name": "But I must explain",
+        "quantity": 1,
+        "unit_price": 9.99,
+        "amount": 9.99
+       }
+      ],
+      "subtotal": null,
+      "tax": 5.55,
+      "service_charge": null,
+      "discount": null,
+      "total": 63.38
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 13795.3,
+     "prompt_tokens": 1159,
+     "completion_tokens": 970,
+     "reasoning_tokens": 629
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "4.25 + 1.10 + 4.00 + 21.55 + 6.99 + 15.50 + ... = 63.38; total 63.38"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "63.38"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 5,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 14112.3,
+     "steps": {
+      "d3": 299.7,
+      "extract": 13795.3,
+      "sumcheck": 0.02,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 970,
+    "reasoning_tokens": 629,
+    "fallback": null
+   },
+   "check": {
+    "total": 63.38,
+    "truth_total": 63.38,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "06_bad_faded_face.jpg",
+   "expected": "reject",
+   "route": "reject",
+   "summary": "Blurry text, Torn, crumpled or stained",
+   "wall_ms": 4535,
+   "steps": {
+    "d3": 194.4,
+    "message": 4330.5,
+    "db": 0.3
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65569",
+     "file": "06_bad_faded_face.jpg",
+     "width": 250,
+     "height": 293,
+     "image_url": "/api/demo/06_bad_faded_face.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 194.4,
+     "tokens": 1400,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.776,
+       "invoice": 0.0675,
+       "other_document": 0.085,
+       "screenshot": 0.0047,
+       "photo": 0.0668
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.2366,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "borderline"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0605,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "bad"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.8681,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "bad"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.1985,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0324,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.3007,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.2366,
+       "status": "borderline"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0605,
+       "status": "bad"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.8681,
+       "status": "bad"
+      }
+     ],
+     "summary": "Blurry text, Torn, crumpled or stained"
+    },
+    "message": {
+     "text": "The text is blurry and the receipt looks crumpled, torn, faded, or stained. Please smooth the paper flat on a solid surface and take a new photo with the whole receipt in focus.",
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-flash-next",
+      "decision": "standard",
+      "reasoning": "on"
+     },
+     "ms": 4330.5,
+     "tokens": 537,
+     "completion_tokens": 389,
+     "reasoning_tokens": 346
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 12,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 4526.4,
+     "steps": {
+      "d3": 194.4,
+      "message": 4330.5,
+      "db": 0.3
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-flash-next",
+     "decision": "standard",
+     "reasoning": "on"
+    },
+    "completion_tokens": 389,
+    "reasoning_tokens": 346,
+    "fallback": null
+   }
+  },
+  {
+   "file": "07_borderline_faded_creased.jpg",
+   "expected": "review",
+   "route": "review",
+   "summary": "Torn, crumpled or stained",
+   "wall_ms": 6516,
+   "steps": {
+    "d3": 539.1,
+    "extract": 5942.8,
+    "sumcheck": 0.03,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65449",
+     "file": "07_borderline_faded_creased.jpg",
+     "width": 576,
+     "height": 864,
+     "image_url": "/api/demo/07_borderline_faded_creased.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 539.1,
+     "tokens": 4298,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.8969,
+       "invoice": 0.0825,
+       "other_document": 0.0086,
+       "screenshot": 0.0019,
+       "photo": 0.0101
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.4319,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.7725,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.588,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "borderline"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.4629,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0275,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0173,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "review",
+     "reasons": [
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.588,
+       "status": "borderline"
+      }
+     ],
+     "summary": "Torn, crumpled or stained"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "AMBUSH DBL CHS",
+        "quantity": 4,
+        "amount": 60000
+       },
+       {
+        "name": "AMBUSH CHS BUR",
+        "quantity": 10,
+        "amount": 100000
+       }
+      ],
+      "subtotal": 160000,
+      "tax": 16000,
+      "service_charge": null,
+      "discount": null,
+      "total": 176000
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 5942.8,
+     "prompt_tokens": 1655,
+     "completion_tokens": 400,
+     "reasoning_tokens": 235
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "60,000 + 100,000 = 160,000; subtotal 160,000"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "160,000 + tax 16,000 = 176,000; total 176,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "176,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 3,
+     "needs_review": 1
+    },
+    "done": {
+     "total_ms": 6511.8,
+     "steps": {
+      "d3": 539.1,
+      "extract": 5942.8,
+      "sumcheck": 0.03,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 400,
+    "reasoning_tokens": 235,
+    "fallback": null
+   },
+   "check": {
+    "total": 176000,
+    "truth_total": 176000.0,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "08_good_cord001.jpg",
+   "expected": "extract",
+   "route": "extract",
+   "summary": "Readable receipt",
+   "wall_ms": 5477,
+   "steps": {
+    "d3": 650.5,
+    "extract": 4762.1,
+    "sumcheck": 0.02,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65450",
+     "file": "08_good_cord001.jpg",
+     "width": 960,
+     "height": 1280,
+     "image_url": "/api/demo/08_good_cord001.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 650.5,
+     "tokens": 6272,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9708,
+       "invoice": 0.0184,
+       "other_document": 0.0051,
+       "screenshot": 0.0011,
+       "photo": 0.0045
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.6772,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.7499,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.1161,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.3537,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0057,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0096,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "J.STB PROMO",
+        "quantity": 1,
+        "amount": 17500
+       },
+       {
+        "name": "Y.B.BAT",
+        "quantity": 1,
+        "amount": 46000
+       },
+       {
+        "name": "Y.BASO PROM",
+        "quantity": 1,
+        "amount": 27500
+       }
+      ],
+      "subtotal": null,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 91000
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 4762.1,
+     "prompt_tokens": 1500,
+     "completion_tokens": 334,
+     "reasoning_tokens": 149
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "17,500 + 46,000 + 27,500 = 91,000; total 91,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "91,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 4,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 5471.0,
+     "steps": {
+      "d3": 650.5,
+      "extract": 4762.1,
+      "sumcheck": 0.02,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 334,
+    "reasoning_tokens": 149,
+    "fallback": null
+   },
+   "check": {
+    "total": 91000,
+    "truth_total": 91000.0,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "09_bad_pile.jpg",
+   "expected": "reject",
+   "route": "reject",
+   "summary": "Torn, crumpled or stained, More than one receipt",
+   "wall_ms": 3289,
+   "steps": {
+    "d3": 232.0,
+    "message": 3053.0,
+    "db": 0.3
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65572",
+     "file": "09_bad_pile.jpg",
+     "width": 435,
+     "height": 459,
+     "image_url": "/api/demo/09_bad_pile.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 232.0,
+     "tokens": 2268,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.7751,
+       "invoice": 0.0497,
+       "other_document": 0.0414,
+       "screenshot": 0.0027,
+       "photo": 0.1311
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.1911,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "borderline"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.5871,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.7934,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "bad"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.2901,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.7957,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "bad"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.1192,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.1911,
+       "status": "borderline"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.7934,
+       "status": "bad"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.7957,
+       "status": "bad"
+      }
+     ],
+     "summary": "Torn, crumpled or stained, More than one receipt"
+    },
+    "message": {
+     "text": "The receipt looks crumpled, torn, faded, or stained, and there's more than one receipt in the photo. Please lay a single receipt flat on a plain surface and retake the photo so the text is clear and readable.",
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-flash-next",
+      "decision": "standard",
+      "reasoning": "on"
+     },
+     "ms": 3053.0,
+     "tokens": 424,
+     "completion_tokens": 275,
+     "reasoning_tokens": 224
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 13,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 3286.5,
+     "steps": {
+      "d3": 232.0,
+      "message": 3053.0,
+      "db": 0.3
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-flash-next",
+     "decision": "standard",
+     "reasoning": "on"
+    },
+    "completion_tokens": 275,
+    "reasoning_tokens": 224,
+    "fallback": null
+   }
+  },
+  {
+   "file": "10_good_cord006.jpg",
+   "expected": "extract",
+   "route": "extract",
+   "summary": "Readable receipt",
+   "wall_ms": 9045,
+   "steps": {
+    "d3": 449.9,
+    "extract": 8525.1,
+    "sumcheck": 0.02,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65452",
+     "file": "10_good_cord006.jpg",
+     "width": 864,
+     "height": 1296,
+     "image_url": "/api/demo/10_good_cord006.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 449.9,
+     "tokens": 5600,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9613,
+       "invoice": 0.0286,
+       "other_document": 0.0023,
+       "screenshot": 0.001,
+       "photo": 0.0068
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.6551,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.7314,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.1316,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.2572,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0136,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0194,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "EGG TART",
+        "quantity": 1,
+        "amount": 13000
+       },
+       {
+        "name": "CHOCO CUSTARD PASTRY",
+        "quantity": 2,
+        "amount": 24000
+       },
+       {
+        "name": "REDBEAN BREAD",
+        "quantity": 1,
+        "amount": 9000
+       }
+      ],
+      "subtotal": null,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 46000
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 8525.1,
+     "prompt_tokens": 1655,
+     "completion_tokens": 485,
+     "reasoning_tokens": 297
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "13,000 + 24,000 + 9,000 = 46,000; total 46,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "46,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 7,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 9036.0,
+     "steps": {
+      "d3": 449.9,
+      "extract": 8525.1,
+      "sumcheck": 0.02,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 485,
+    "reasoning_tokens": 297,
+    "fallback": null
+   },
+   "check": {
+    "total": 46000,
+    "truth_total": 46000.0,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "11_bad_stock_register.jpg",
+   "expected": "reject",
+   "route": "reject",
+   "summary": "Another document, not a receipt",
+   "wall_ms": 757,
+   "steps": {
+    "d3": 219.8,
+    "message": 533.6,
+    "db": 0.3
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65453",
+     "file": "11_bad_stock_register.jpg",
+     "width": 379,
+     "height": 527,
+     "image_url": "/api/demo/11_bad_stock_register.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 219.8,
+     "tokens": 2240,
+     "kind": {
+      "choice": "other_document",
+      "probabilities": {
+       "receipt": 0.024,
+       "invoice": 0.0482,
+       "other_document": 0.9223,
+       "screenshot": 0.002,
+       "photo": 0.0036
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.1754,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "borderline"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.7209,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0289,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.1055,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.014,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0195,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "kind",
+       "label": "Another document, not a receipt",
+       "prob": 0.9223,
+       "status": "bad"
+      }
+     ],
+     "summary": "Another document, not a receipt"
+    },
+    "message": {
+     "text": "This image shows a different document rather than a receipt. Please take a new photo of your paper receipt.",
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "fast",
+      "reasoning": "off"
+     },
+     "ms": 533.6,
+     "tokens": 153,
+     "completion_tokens": 22,
+     "reasoning_tokens": 0
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 5,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 754.7,
+     "steps": {
+      "d3": 219.8,
+      "message": 533.6,
+      "db": 0.3
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "fast",
+     "reasoning": "off"
+    },
+    "completion_tokens": 22,
+    "reasoning_tokens": 0,
+    "fallback": null
+   }
+  },
+  {
+   "file": "12_good_cord010.jpg",
+   "expected": "extract",
+   "route": "extract",
+   "summary": "Readable receipt",
+   "wall_ms": 5987,
+   "steps": {
+    "d3": 310.5,
+    "extract": 5642.4,
+    "sumcheck": 0.02,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65454",
+     "file": "12_good_cord010.jpg",
+     "width": 576,
+     "height": 864,
+     "image_url": "/api/demo/12_good_cord010.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 310.5,
+     "tokens": 4298,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9803,
+       "invoice": 0.0126,
+       "other_document": 0.0022,
+       "screenshot": 0.0007,
+       "photo": 0.0043
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.86,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.8482,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0698,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.2255,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0047,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0078,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": "IDR",
+      "items": [
+       {
+        "name": "CINNAMON SUGAR",
+        "quantity": 1,
+        "unit_price": 17000,
+        "amount": 17000
+       }
+      ],
+      "subtotal": 17000,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 17000
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 5642.4,
+     "prompt_tokens": 1655,
+     "completion_tokens": 412,
+     "reasoning_tokens": 277
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "17,000 = 17,000; subtotal 17,000"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "subtotal 17,000; total 17,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "17,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 6,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 5982.9,
+     "steps": {
+      "d3": 310.5,
+      "extract": 5642.4,
+      "sumcheck": 0.02,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 412,
+    "reasoning_tokens": 277,
+    "fallback": null
+   },
+   "check": {
+    "total": 17000,
+    "truth_total": 17000.0,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "13_bad_cut_off.jpg",
+   "expected": "reject",
+   "route": "reject",
+   "summary": "Whole receipt visible, Blurry text",
+   "wall_ms": 1026,
+   "steps": {
+    "d3": 227.0,
+    "message": 795.0,
+    "db": 0.3
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65455",
+     "file": "13_bad_cut_off.jpg",
+     "width": 576,
+     "height": 475,
+     "image_url": "/api/demo/13_bad_cut_off.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 227.0,
+     "tokens": 2786,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.39,
+       "invoice": 0.2256,
+       "other_document": 0.2676,
+       "screenshot": 0.0076,
+       "photo": 0.1092
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.0895,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0307,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "bad"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0713,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.1557,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0209,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0748,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.0895,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0307,
+       "status": "bad"
+      }
+     ],
+     "summary": "Whole receipt visible, Blurry text"
+    },
+    "message": {
+     "text": "The receipt is cut off and the text is blurry. Please take a new photo that shows the entire receipt, including the bottom, and make sure the text is sharp and in focus.",
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "fast",
+      "reasoning": "off"
+     },
+     "ms": 795.0,
+     "tokens": 191,
+     "completion_tokens": 38,
+     "reasoning_tokens": 0
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 6,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 1023.3,
+     "steps": {
+      "d3": 227.0,
+      "message": 795.0,
+      "db": 0.3
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "fast",
+     "reasoning": "off"
+    },
+    "completion_tokens": 38,
+    "reasoning_tokens": 0,
+    "fallback": null
+   }
+  },
+  {
+   "file": "14_good_cord015.jpg",
+   "expected": "extract",
+   "route": "extract",
+   "summary": "Readable receipt",
+   "wall_ms": 8308,
+   "steps": {
+    "d3": 937.3,
+    "extract": 7335.9,
+    "sumcheck": 0.02,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65456",
+     "file": "14_good_cord015.jpg",
+     "width": 576,
+     "height": 864,
+     "image_url": "/api/demo/14_good_cord015.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 937.3,
+     "tokens": 4298,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9813,
+       "invoice": 0.0126,
+       "other_document": 0.0015,
+       "screenshot": 0.0006,
+       "photo": 0.004
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.8419,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.7275,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0611,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.2651,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0054,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0103,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "Lemon Tea (L)",
+        "quantity": 1,
+        "amount": 25000
+       },
+       {
+        "name": "Caramel Small",
+        "quantity": 1,
+        "amount": 38000
+       }
+      ],
+      "subtotal": null,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 63000
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 7335.9,
+     "prompt_tokens": 1655,
+     "completion_tokens": 403,
+     "reasoning_tokens": 255
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "25,000 + 38,000 = 63,000; total 63,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "63,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 8,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 8303.6,
+     "steps": {
+      "d3": 937.3,
+      "extract": 7335.9,
+      "sumcheck": 0.02,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 403,
+    "reasoning_tokens": 255,
+    "fallback": null
+   },
+   "check": {
+    "total": 63000,
+    "truth_total": 63000.0,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "15_bad_shadow.jpg",
+   "expected": "reject",
+   "route": "reject",
+   "summary": "Glare or heavy shadow",
+   "wall_ms": 7481,
+   "steps": {
+    "d3": 348.2,
+    "message": 7100.6,
+    "db": 0.1
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65573",
+     "file": "15_bad_shadow.jpg",
+     "width": 864,
+     "height": 1296,
+     "image_url": "/api/demo/15_bad_shadow.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 348.2,
+     "tokens": 5600,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9489,
+       "invoice": 0.037,
+       "other_document": 0.0035,
+       "screenshot": 0.001,
+       "photo": 0.0095
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.4367,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.7269,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.397,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.8478,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "bad"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0075,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0298,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.8478,
+       "status": "bad"
+      }
+     ],
+     "summary": "Glare or heavy shadow"
+    },
+    "message": {
+     "text": "A glare or shadow is covering part of the text on your receipt. Move it to a bright, even-lit spot with no overhead shadows, then hold your phone flat above the receipt and snap a new photo.",
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "standard",
+      "reasoning": "on"
+     },
+     "ms": 7100.6,
+     "tokens": 561,
+     "completion_tokens": 434,
+     "reasoning_tokens": 388
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 14,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 7473.3,
+     "steps": {
+      "d3": 348.2,
+      "message": 7100.6,
+      "db": 0.1
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "standard",
+     "reasoning": "on"
+    },
+    "completion_tokens": 434,
+    "reasoning_tokens": 388,
+    "fallback": null
+   }
+  },
+  {
+   "file": "16_borderline_soft_focus.jpg",
+   "expected": "review",
+   "route": "review",
+   "summary": "Glare or heavy shadow",
+   "wall_ms": 20856,
+   "steps": {
+    "d3": 168.1,
+    "extract": 20666.4,
+    "sumcheck": 0.04,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65458",
+     "file": "16_borderline_soft_focus.jpg",
+     "width": 228,
+     "height": 336,
+     "image_url": "/api/demo/16_borderline_soft_focus.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 168.1,
+     "tokens": 1386,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.976,
+       "invoice": 0.01,
+       "other_document": 0.003,
+       "screenshot": 0.0019,
+       "photo": 0.0092
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.7688,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.7179,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.4285,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.5697,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "borderline"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0086,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0532,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "review",
+     "reasons": [
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.5697,
+       "status": "borderline"
+      }
+     ],
+     "summary": "Glare or heavy shadow"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": "2018-04-05",
+      "currency": null,
+      "items": [
+       {
+        "name": "BAKSO BNGKS",
+        "quantity": 1,
+        "amount": 15000
+       },
+       {
+        "name": "GORENGAN",
+        "quantity": 6,
+        "amount": 6000
+       }
+      ],
+      "subtotal": 21000,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 21000
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 20666.4,
+     "prompt_tokens": 1624,
+     "completion_tokens": 1416,
+     "reasoning_tokens": 1250
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "15,000 + 6,000 = 21,000; subtotal 21,000"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "subtotal 21,000; total 21,000"
+      },
+      {
+       "name": "date",
+       "label": "The date is a real date",
+       "ok": true,
+       "detail": "2018-04-05"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "21,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 13,
+     "needs_review": 1
+    },
+    "done": {
+     "total_ms": 20854.2,
+     "steps": {
+      "d3": 168.1,
+      "extract": 20666.4,
+      "sumcheck": 0.04,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 1416,
+    "reasoning_tokens": 1250,
+    "fallback": null
+   },
+   "check": {
+    "total": 21000,
+    "truth_total": 21000.0,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "17_good_cord022.jpg",
+   "expected": "extract",
+   "route": "extract",
+   "summary": "Readable receipt",
+   "wall_ms": 5930,
+   "steps": {
+    "d3": 377.2,
+    "extract": 5492.8,
+    "sumcheck": 0.02,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65459",
+     "file": "17_good_cord022.jpg",
+     "width": 864,
+     "height": 1296,
+     "image_url": "/api/demo/17_good_cord022.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 377.2,
+     "tokens": 5600,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9684,
+       "invoice": 0.0185,
+       "other_document": 0.002,
+       "screenshot": 0.0008,
+       "photo": 0.0103
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.7009,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.811,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0488,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.1233,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0102,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0167,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "[MD] SOFT STEAMED CHEESEC",
+        "quantity": 2,
+        "amount": 20000
+       },
+       {
+        "name": "[MD] SOFT STEAMED CHOCOCA",
+        "quantity": 2,
+        "amount": 20000
+       }
+      ],
+      "subtotal": null,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 40000
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 5492.8,
+     "prompt_tokens": 1655,
+     "completion_tokens": 350,
+     "reasoning_tokens": 192
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "20,000 + 20,000 = 40,000; total 40,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "40,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 9,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 5923.4,
+     "steps": {
+      "d3": 377.2,
+      "extract": 5492.8,
+      "sumcheck": 0.02,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 350,
+    "reasoning_tokens": 192,
+    "fallback": null
+   },
+   "check": {
+    "total": 40000,
+    "truth_total": 40000.0,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "18_bad_screenshot.jpg",
+   "expected": "reject",
+   "route": "reject",
+   "summary": "A screenshot, not a receipt",
+   "wall_ms": 1066,
+   "steps": {
+    "d3": 472.5,
+    "message": 553.5,
+    "db": 0.1
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65460",
+     "file": "18_bad_screenshot.jpg",
+     "width": 1280,
+     "height": 1221,
+     "image_url": "/api/demo/18_bad_screenshot.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 472.5,
+     "tokens": 7840,
+     "kind": {
+      "choice": "screenshot",
+      "probabilities": {
+       "receipt": 0.0008,
+       "invoice": 0.0006,
+       "other_document": 0.0084,
+       "screenshot": 0.9642,
+       "photo": 0.0259
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.0456,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.4294,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0328,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0359,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.045,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0701,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "kind",
+       "label": "A screenshot, not a receipt",
+       "prob": 0.9642,
+       "status": "bad"
+      }
+     ],
+     "summary": "A screenshot, not a receipt"
+    },
+    "message": {
+     "text": "This image is a screenshot, not a receipt. Please take a photo of the paper receipt instead.",
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "fast",
+      "reasoning": "off"
+     },
+     "ms": 553.5,
+     "tokens": 151,
+     "completion_tokens": 21,
+     "reasoning_tokens": 0
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 8,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 1058.4,
+     "steps": {
+      "d3": 472.5,
+      "message": 553.5,
+      "db": 0.1
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "fast",
+     "reasoning": "off"
+    },
+    "completion_tokens": 21,
+    "reasoning_tokens": 0,
+    "fallback": null
+   }
+  },
+  {
+   "file": "19_good_cord025.jpg",
+   "expected": "extract",
+   "route": "extract",
+   "summary": "Readable receipt",
+   "wall_ms": 7225,
+   "steps": {
+    "d3": 322.2,
+    "extract": 6836.6,
+    "sumcheck": 0.02,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65461",
+     "file": "19_good_cord025.jpg",
+     "width": 864,
+     "height": 1296,
+     "image_url": "/api/demo/19_good_cord025.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 322.2,
+     "tokens": 5600,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9732,
+       "invoice": 0.0202,
+       "other_document": 0.002,
+       "screenshot": 0.001,
+       "photo": 0.0036
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.7364,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.81,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0387,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.4287,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0083,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0116,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "TWIST STRAWBERRY DONUT",
+        "quantity": 1,
+        "amount": 10000
+       },
+       {
+        "name": "TLJ CROQUETTE",
+        "quantity": 1,
+        "amount": 17000
+       },
+       {
+        "name": "POTATO PEPPER BAGEL",
+        "quantity": 1,
+        "amount": 16000
+       }
+      ],
+      "subtotal": null,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 43000
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 6836.6,
+     "prompt_tokens": 1655,
+     "completion_tokens": 435,
+     "reasoning_tokens": 242
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "10,000 + 17,000 + 16,000 = 43,000; total 43,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "43,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 10,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 7217.9,
+     "steps": {
+      "d3": 322.2,
+      "extract": 6836.6,
+      "sumcheck": 0.02,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 435,
+    "reasoning_tokens": 242,
+    "fallback": null
+   },
+   "check": {
+    "total": 43000,
+    "truth_total": 43000.0,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "20_bad_dog_photo.jpg",
+   "expected": "reject",
+   "route": "reject",
+   "summary": "A photo, not a receipt",
+   "wall_ms": 830,
+   "steps": {
+    "d3": 282.0,
+    "message": 542.3,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65462",
+     "file": "20_bad_dog_photo.jpg",
+     "width": 652,
+     "height": 515,
+     "image_url": "/api/demo/20_bad_dog_photo.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 282.0,
+     "tokens": 3136,
+     "kind": {
+      "choice": "photo",
+      "probabilities": {
+       "receipt": 0.0002,
+       "invoice": 0.0001,
+       "other_document": 0.0005,
+       "screenshot": 0.0001,
+       "photo": 0.9992
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.0018,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "bad"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.0087,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "bad"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0767,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.0131,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0014,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0102,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "kind",
+       "label": "A photo, not a receipt",
+       "prob": 0.9992,
+       "status": "bad"
+      }
+     ],
+     "summary": "A photo, not a receipt"
+    },
+    "message": {
+     "text": "This image is not a receipt. Please take a photo of your paper receipt instead.",
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "fast",
+      "reasoning": "off"
+     },
+     "ms": 542.3,
+     "tokens": 148,
+     "completion_tokens": 18,
+     "reasoning_tokens": 0
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 9,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 825.8,
+     "steps": {
+      "d3": 282.0,
+      "message": 542.3,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "fast",
+     "reasoning": "off"
+    },
+    "completion_tokens": 18,
+    "reasoning_tokens": 0,
+    "fallback": null
+   }
+  },
+  {
+   "file": "21_good_cord027.jpg",
+   "expected": "extract",
+   "route": "extract",
+   "summary": "Readable receipt",
+   "wall_ms": 6880,
+   "steps": {
+    "d3": 364.0,
+    "extract": 6453.9,
+    "sumcheck": 0.03,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65463",
+     "file": "21_good_cord027.jpg",
+     "width": 864,
+     "height": 1296,
+     "image_url": "/api/demo/21_good_cord027.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 364.0,
+     "tokens": 5600,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9898,
+       "invoice": 0.0046,
+       "other_document": 0.0011,
+       "screenshot": 0.0006,
+       "photo": 0.004
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.8199,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.9181,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0686,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.2778,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0053,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0113,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "PKT AYAM",
+        "quantity": 1,
+        "amount": 33000
+       },
+       {
+        "name": "GULAI OTAK",
+        "quantity": 1,
+        "amount": 23000
+       }
+      ],
+      "subtotal": 56000,
+      "tax": 5600,
+      "service_charge": null,
+      "discount": null,
+      "total": 61600
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 6453.9,
+     "prompt_tokens": 1655,
+     "completion_tokens": 394,
+     "reasoning_tokens": 236
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "33,000 + 23,000 = 56,000; subtotal 56,000"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "56,000 + tax 5,600 = 61,600; total 61,600"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "61,600"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 11,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 6874.4,
+     "steps": {
+      "d3": 364.0,
+      "extract": 6453.9,
+      "sumcheck": 0.03,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 394,
+    "reasoning_tokens": 236,
+    "fallback": null
+   },
+   "check": {
+    "total": 61600,
+    "truth_total": 61600.0,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "22_good_cord029.jpg",
+   "expected": "extract",
+   "route": "extract",
+   "summary": "Readable receipt",
+   "wall_ms": 10423,
+   "steps": {
+    "d3": 350.9,
+    "extract": 10010.7,
+    "sumcheck": 0.03,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65464",
+     "file": "22_good_cord029.jpg",
+     "width": 864,
+     "height": 1296,
+     "image_url": "/api/demo/22_good_cord029.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 350.9,
+     "tokens": 5600,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9585,
+       "invoice": 0.0353,
+       "other_document": 0.0023,
+       "screenshot": 0.001,
+       "photo": 0.0029
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.6077,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.8606,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.3105,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.4018,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.018,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0142,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": null,
+      "items": [
+       {
+        "name": "COLD OCHA",
+        "quantity": 1,
+        "amount": 10909
+       },
+       {
+        "name": "BCA PROMO",
+        "quantity": 1,
+        "amount": 54455
+       },
+       {
+        "name": "SKEWERED SHUMAI",
+        "quantity": 1,
+        "amount": 12727
+       },
+       {
+        "name": "SKEWERED TOFU ROLL",
+        "quantity": 1,
+        "amount": 12727
+       },
+       {
+        "name": "EBI TEMPURA",
+        "quantity": 1,
+        "amount": 13636
+       },
+       {
+        "name": "KITSUNE UDON (KIDS)",
+        "quantity": 1,
+        "amount": 28182
+       }
+      ],
+      "subtotal": 132636,
+      "tax": 13264,
+      "service_charge": null,
+      "discount": null,
+      "total": 145900
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 10010.7,
+     "prompt_tokens": 1655,
+     "completion_tokens": 708,
+     "reasoning_tokens": 394
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the subtotal",
+       "ok": true,
+       "detail": "10,909 + 54,455 + 12,727 + 12,727 + 13,636 + 28,182 = 132,636; subtotal 132,636"
+      },
+      {
+       "name": "total",
+       "label": "Subtotal plus tax and service gives the total",
+       "ok": true,
+       "detail": "132,636 + tax 13,264 = 145,900; total 145,900"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "145,900"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 12,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 10417.4,
+     "steps": {
+      "d3": 350.9,
+      "extract": 10010.7,
+      "sumcheck": 0.03,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 708,
+    "reasoning_tokens": 394,
+    "fallback": null
+   },
+   "check": {
+    "total": 145900,
+    "truth_total": 145900.0,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "23_good_cord021.jpg",
+   "expected": "extract",
+   "route": "extract",
+   "summary": "Readable receipt",
+   "wall_ms": 7263,
+   "steps": {
+    "d3": 376.5,
+    "extract": 6818.1,
+    "sumcheck": 0.02,
+    "db": 0.2
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65465",
+     "file": "23_good_cord021.jpg",
+     "width": 960,
+     "height": 1280,
+     "image_url": "/api/demo/23_good_cord021.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 376.5,
+     "tokens": 6272,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9849,
+       "invoice": 0.0097,
+       "other_document": 0.0017,
+       "screenshot": 0.0006,
+       "photo": 0.0032
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.5835,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.8913,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0308,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.1001,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0043,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.0124,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "ok"
+      }
+     ]
+    },
+    "route": {
+     "route": "extract",
+     "reasons": [],
+     "summary": "Readable receipt"
+    },
+    "extract": {
+     "receipt": {
+      "store_name": null,
+      "date": null,
+      "currency": "Rp",
+      "items": [
+       {
+        "name": "NASI GOR SFD TLR",
+        "quantity": 1,
+        "unit_price": 35000,
+        "amount": 35000
+       },
+       {
+        "name": "ES TEH TAWAR",
+        "quantity": 1,
+        "unit_price": 3000,
+        "amount": 3000
+       }
+      ],
+      "subtotal": null,
+      "tax": null,
+      "service_charge": null,
+      "discount": null,
+      "total": 38000
+     },
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "vision",
+      "reasoning": "on"
+     },
+     "ms": 6818.1,
+     "prompt_tokens": 1500,
+     "completion_tokens": 421,
+     "reasoning_tokens": 242
+    },
+    "sumcheck": {
+     "ok": true,
+     "checks": [
+      {
+       "name": "items_sum",
+       "label": "Items add up to the total",
+       "ok": true,
+       "detail": "35,000 + 3,000 = 38,000; total 38,000"
+      },
+      {
+       "name": "total_positive",
+       "label": "The total is above zero",
+       "ok": true,
+       "detail": "38,000"
+      }
+     ]
+    },
+    "stored": {
+     "table": "receipts",
+     "id": 14,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 7256.3,
+     "steps": {
+      "d3": 376.5,
+      "extract": 6818.1,
+      "sumcheck": 0.02,
+      "db": 0.2
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "vision",
+     "reasoning": "on"
+    },
+    "completion_tokens": 421,
+    "reasoning_tokens": 242,
+    "fallback": null
+   },
+   "check": {
+    "total": 38000,
+    "truth_total": 38000.0,
+    "total_ok": true,
+    "items_ok": true,
+    "sumcheck_ok": true
+   }
+  },
+  {
+   "file": "24_bad_sticky_note.jpg",
+   "expected": "reject",
+   "route": "reject",
+   "summary": "Added note or text",
+   "wall_ms": 986,
+   "steps": {
+    "d3": 350.3,
+    "message": 630.0,
+    "db": 0.1
+   },
+   "error": null,
+   "events": {
+    "received": {
+     "id": "demo-65466",
+     "file": "24_bad_sticky_note.jpg",
+     "width": 576,
+     "height": 864,
+     "image_url": "/api/demo/24_bad_sticky_note.jpg"
+    },
+    "d3": {
+     "model": "vllm-sr/d3-flash",
+     "ms": 350.3,
+     "tokens": 4298,
+     "kind": {
+      "choice": "receipt",
+      "probabilities": {
+       "receipt": 0.9736,
+       "invoice": 0.0138,
+       "other_document": 0.0017,
+       "screenshot": 0.0052,
+       "photo": 0.0057
+      }
+     },
+     "checks": [
+      {
+       "key": "complete",
+       "label": "Whole receipt visible",
+       "prob": 0.8025,
+       "bad_when": "low",
+       "threshold": 0.17,
+       "borderline_from": 0.25,
+       "status": "ok"
+      },
+      {
+       "key": "blurry",
+       "label": "Blurry text",
+       "prob": 0.8195,
+       "bad_when": "low",
+       "threshold": 0.19,
+       "borderline_from": 0.37,
+       "status": "ok"
+      },
+      {
+       "key": "damaged",
+       "label": "Torn, crumpled or stained",
+       "prob": 0.0426,
+       "bad_when": "high",
+       "threshold": 0.74,
+       "borderline_from": 0.56,
+       "status": "ok"
+      },
+      {
+       "key": "glare",
+       "label": "Glare or heavy shadow",
+       "prob": 0.3335,
+       "bad_when": "high",
+       "threshold": 0.83,
+       "borderline_from": 0.54,
+       "status": "ok"
+      },
+      {
+       "key": "multiple",
+       "label": "More than one receipt",
+       "prob": 0.0129,
+       "bad_when": "high",
+       "threshold": 0.68,
+       "borderline_from": 0.57,
+       "status": "ok"
+      },
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.9036,
+       "bad_when": "high",
+       "threshold": 0.73,
+       "borderline_from": 0.55,
+       "status": "bad"
+      }
+     ]
+    },
+    "route": {
+     "route": "reject",
+     "reasons": [
+      {
+       "key": "added_text",
+       "label": "Added note or text",
+       "prob": 0.9036,
+       "status": "bad"
+      }
+     ],
+     "summary": "Added note or text"
+    },
+    "message": {
+     "text": "It looks like there are extra notes or text on the receipt. Please take a new photo of the original receipt only, without any added writing.",
+     "model": "vllm-sr/auto",
+     "routed": {
+      "model": "qwen/qwen3.8-27b",
+      "decision": "fast",
+      "reasoning": "off"
+     },
+     "ms": 630.0,
+     "tokens": 170,
+     "completion_tokens": 30,
+     "reasoning_tokens": 0
+    },
+    "stored": {
+     "table": "rejections",
+     "id": 10,
+     "needs_review": 0
+    },
+    "done": {
+     "total_ms": 981.8,
+     "steps": {
+      "d3": 350.3,
+      "message": 630.0,
+      "db": 0.1
+     }
+    }
+   },
+   "llm": {
+    "model": "vllm-sr/auto",
+    "routed": {
+     "model": "qwen/qwen3.8-27b",
+     "decision": "fast",
+     "reasoning": "off"
+    },
+    "completion_tokens": 30,
+    "reasoning_tokens": 0,
+    "fallback": null
+   }
+  }
+ ]
+}
