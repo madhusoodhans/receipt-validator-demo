@@ -1,9 +1,10 @@
 #!/bin/bash
 # Starts the receipt intake demo server (UI + API) on $HOST:$PORT (default 127.0.0.1:8601), replacing one already
-# running on that port. It needs the vllm-sr Router (with d3-mini) and the qwen27b / qwen4b vLLM servers, image input
-# on: deploy/up.sh starts all of them and then this script. --bg runs it detached, logging to logs/server.log.
-# Environment: HOST, PORT, ROUTER_URL, ROUTER_API_KEY, DB, UPLOAD_ROOT, PLAY_ALL, LANDING_URL, HEALTH_INTERVAL, the timeouts and the
-# limits (see README.md, Configuration).
+# running on that port. By default it calls the hosted vllm-sr API (https://app.vllm-sr.ai) and needs VLLM_SR_API_KEY
+# in the environment; for the local stack deploy/up.sh sets ROUTER_URL and the model names and then runs this script.
+# --bg runs it detached, logging to logs/server.log.
+# Environment: HOST, PORT, VLLM_SR_API_KEY, ROUTER_URL, D3_MODEL, EXTRACT_MODEL, MESSAGE_MODEL, DB, UPLOAD_ROOT,
+# PLAY_ALL, LANDING_URL, TRUST_PROXY, HEALTH_INTERVAL, the timeouts and the limits (see README.md, Configuration).
 cd "$(dirname "$0")"
 HOST="${HOST:-127.0.0.1}" PORT="${PORT:-8601}"
 MALLOC_ARENA_MAX="${MALLOC_ARENA_MAX:-2}"  # glibc keeps one heap per thread otherwise: ~4x the memory under load

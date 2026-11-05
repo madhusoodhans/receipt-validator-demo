@@ -26,11 +26,11 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
 
 - Demo set: `data/phase0/` with `labels.json` (`MOCK_DEMO_DIR` overrides). Good images route `extract` and their line items
   come from the CORD ground truth; `11_good_cord036.jpg` routes `review` (borderline glare); every bad image routes `reject`
-  with the matching D3 check or wrong kind, and a canned 4B message.
+  with the matching D3 check or wrong kind, and a canned message (with a `routed` model, decision and reasoning).
 - Uploads: a file name containing a problem word (`blurry`, `glare`, `damaged`, `multiple`, `two`, `cut`, `screenshot`, ...)
   is rejected for that problem; `error` in the name ends the stream with an `error` event; anything else cycles
   extract, reject (blurry), review, reject (glare).
-- Delays: d3 about 260 ms, 4B message about 410 ms, 27B extraction about 3.4 s. Stats and lists are in memory; `POST /api/reset` clears them.
+- Delays: d3 about 380 ms, message about 410 ms, extraction about 3.4 s. Stats and lists are in memory; `POST /api/reset` clears them.
 
 ## Page
 
@@ -39,8 +39,8 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
   fetched with that header and shown as object URLs (`src/useImage.ts`); demo images load directly.
 
 - Top bar: health (GET /health every 10 s): the server's `message` in plain words, green "All systems working", amber
-  "Standard retake messages in use: Qwen 4B unavailable", red "Receipt checking unavailable" (or "Demo server offline"
-  when /health itself fails); the tooltip lists each model with why it is down. Reset (POST /api/reset, inline confirm; clears this tab's
+  "Standard retake messages in use: LLM unavailable", red "Receipt checking unavailable" (or "Demo server offline"
+  when /health itself fails); the tooltip lists each role (D3, LLM (reading), LLM (retake messages)) with why it is down. Reset (POST /api/reset, inline confirm; clears this tab's
   results only), theme switch.
 - Demo strip (GET /api/demo, grouped good / bad). Click one image, or Play all (shown only when GET /api/config says
   `play_all`; the hosted Space turns it off): runs them in order with a 1.8 s pause; Stop
@@ -51,19 +51,24 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
   is up to 15 MB, refused with a plain error above that.
 - The current image, and the steps as SSE events arrive (POST /api/check read with fetch and a stream reader):
   time to answer (from `done.total_ms`), D3 (kind with probability, one bar per check with a threshold marker, the bad zone
-  tinted, ok / borderline / bad), route (three lanes, the taken one filled, with reasons), then the 4B message styled as an
-  in-app notice, or the extracted receipt, sum checks and stored row id. Pending steps show a live timer. A message
-  from the fallback (Qwen 4B down) shows "standard message" as its model and an amber "fallback: standard message
-  (Qwen 4B unavailable)" badge. A failed model step shows the step with a red reason badge (Unavailable, Timed out,
+  tinted, ok / borderline / bad), route (three lanes, the taken one filled, with reasons), then the retake message
+  styled as an in-app notice, or the extracted receipt, sum checks and stored row id. Each LLM step's title shows the
+  model the vllm-sr Router picked (`routed.model`), and a line under it says what was asked for and what the Router
+  chose: "vllm-sr/auto routed to qwen/qwen3.8-27b (decision vision, reasoning on)". Pending steps show a live timer and
+  the model name asked for (GET /api/config `models`). A message from the fallback (LLM down) shows "standard message"
+  as its model and an amber "fallback: standard message (LLM unavailable)" badge. A failed model step shows the step with a red reason badge (Unavailable, Timed out,
   Busy), the one-line `detail` and the `message`, then each step in `error.skipped` as a dashed "Skipped" step. An
-  upload refused with 503 (D3 or Qwen 27B down) shows as "Receipt checking unavailable" with the server's message.
+  upload refused with 503 (D3 or the reading LLM down) shows as "Receipt checking unavailable" with the server's message.
   On wide screens check and result sit in two columns; the newest step scrolls into view.
 - Side panel: "This request", four boxes from the current run's events, each a number with its unit and one line:
-  Decision latency (D3's call), LLM execution time (Qwen 27B and/or Qwen 4B; 0 ms when the 4B template stood in),
-  Total inference time (all model calls), and LLM tokens generated (completion tokens of the LLM calls; D3 writes
-  none). A dash until the value arrives. No bars, no comparison with an all-Qwen-27B flow and no cost figures.
+  Decision latency (D3's call), LLM execution time (the reading or message call, named by the model the Router
+  picked; 0 ms when the template stood in), Total inference time (all model calls), and LLM tokens generated
+  (completion tokens of the LLM calls, reasoning included; D3 writes none). A dash until the value arrives. No bars,
+  no comparison flow and no cost figures.
   Then "Your uploads this session": uploads / extracted / needs review / rejected, rejections by problem, and Receipts /
   Rejections tabs (latest 50; the tab counts are this visitor's totals). All refresh after each run ends.
+- Footer: one line, "Uploads are processed by the hosted vllm-sr API (research and evaluation use). Please do not
+  upload receipts with personal data."
 - Light and dark themes (stored in localStorage, else the system preference). Layout checked at 1920x1080, 1280x720 and 390 px.
 
 ## Arc components used
