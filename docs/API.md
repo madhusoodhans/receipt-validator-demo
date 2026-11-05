@@ -4,9 +4,8 @@ Served by `app/server.py` on `127.0.0.1:8601` (env `HOST`, `PORT`), same origin 
 D3 and the LLM are called on the vllm-sr API at `ROUTER_URL` (default the hosted API, `https://app.vllm-sr.ai`): D3
 (`D3_MODEL`, default `vllm-sr/d3-flash`) on `/v1/systemone`, the LLM on `/v1/chat/completions` with `EXTRACT_MODEL` and
 `MESSAGE_MODEL` (default `vllm-sr/auto` for both: the vllm-sr Router picks the model and its reasoning per request).
-Every call and availability check carries `Authorization: Bearer <VLLM_SR_API_KEY>`; the key is read from the
-environment only, and the server will not start without it unless `ROUTER_URL` is on this machine (a local Router or
-the stub). LLM calls also send `X-Vsr-Debug: true`, so the Router reports what it picked in response headers
+Every model call carries `Authorization: Bearer <key>` with the key of the visitor whose run it is (see "API key"
+below), else the optional server key `VLLM_SR_API_KEY`; availability checks are public GETs and send no key. LLM calls also send `X-Vsr-Debug: true`, so the Router reports what it picked in response headers
 (`x-vsr-selected-model`, `x-vsr-selected-decision`, `x-vsr-selected-reasoning`); the `message` and `extract` events
 carry them as `routed`.
 
@@ -43,6 +42,46 @@ HTTP 5xx, or 503 twice) mark it down for `BREAKER_S` (30) s, during which its ca
 successful call or check marks it up. Read timeouts, all under the hosted API's 35 s limit: `D3_TIMEOUT_S` (15),
 `MESSAGE_TIMEOUT_S` (20), `EXTRACT_TIMEOUT_S` (30); connect 5 s.
 
+## API key
+
+Each visitor brings their own vllm-sr API key (from <https://app.vllm-sr.ai/#key>). The server checks it, keeps it in
+memory for that visitor only (dropped on `DELETE /api/key`, when a run fails because of it, when the visitor is idle
+for `IDLE_MIN` or removed), and sends it on every model call that visitor's runs make. It is never written to disk, the
+database, an event or the log: the log output passes through a filter that replaces anything matching
+`sk-(vsr|pt)-[A-Za-z0-9_-]+` with `sk-***`. `KEY_REQUIRED` (auto: required unless `VLLM_SR_API_KEY` is set or
+`ROUTER_URL` is on localhost).
+
+Check: the key is trimmed and must look like `sk-vsr-...` (8 to 200 letters, digits, `_` or `-` after the prefix; a
+`sk-pt-` key works for chat only and is refused). Then one tiny System One call (`vllm-sr/d3-flash`, state "ok", one
+noul question) and one tiny System Two call (`vllm-sr/auto`, "Say OK", `max_tokens` 1) run in parallel; both must
+succeed. At most `KEY_CHECKS_PER_MIN` (10) checks a minute per visitor and per IP.
+
+Failure body: `{"ok": false, "code": "...", "message": "..."}` (`message` is plain words, shown as is):
+
+| code | HTTP | when |
+|---|---|---|
+| `format` | 400 | not a `sk-vsr-` key |
+| `wrong_kind` | 400 | a `sk-pt-` key ("This demo needs a key from app.vllm-sr.ai: sk-pt keys only work for chat.") |
+| `invalid` | 401 | the API answered 401 |
+| `disabled` | 403 | the API answered 403 (`key_disabled`, `access_denied`, `model_not_allowed`) |
+| `quota` | 429 | 429 `quota_exceeded` (the message says it resets at 00:00 UTC) |
+| `rate_limited` | 429 | another 429; `retry_after` (seconds) added |
+| `too_many` | 429 | over `KEY_CHECKS_PER_MIN` |
+| `unreachable` | 502 | no connection, timeout (20 s), HTTP 5xx |
+| `error` | 502 | anything else |
+
+- `POST /api/key/check` `{"key": "..."}`: checks only, stores nothing, needs no visitor id. 200 `{"ok": true}`. CORS
+  for this endpoint only (OPTIONS preflight included): the origin of `LANDING_URL`, `http://localhost:8630` and
+  `http://127.0.0.1:8630` get `Access-Control-Allow-Origin`.
+- `POST /api/key` `{"key": "..."}` with `X-Visitor-Id`: checks, then keeps it for this visitor. 200 `{"ok": true,
+  "set": true}`.
+- `GET /api/key`: `{"set": false, "required": true, "failed": null}`; never the key or any part of it. `failed` is
+  `{"code", "message"}` when the key was dropped because a run failed with it.
+- `DELETE /api/key`: forgets it, `{"ok": true, "set": false}`.
+
+Without a key (when one is required) `POST /api/check` is refused before anything runs: 401 `{"ok": false, "code":
+"no_key", "error": "Enter your vllm-sr API key to run the demo.", "message": "..."}`.
+
 ## POST /api/check
 
 Runs one image through the pipeline and streams each step as Server-Sent Events.
@@ -70,8 +109,15 @@ Response: `text/event-stream`. Events arrive in this order; `message` and `extra
 | `done` | end | `{"total_ms": 3900, "steps": {"d3": 260, "extract": 3400}}` (`steps` keys: `d3`, `message` or `extract`, `sumcheck`, `db`) |
 | `error` | any failure, then the stream ends; nothing is stored | `{"step": "extract", "reason": "timeout", "detail": "The LLM did not answer within 30 s", "message": "Your receipt passed the checks, but reading is unavailable right now. Please try again shortly.", "skipped": ["sumcheck", "stored"]}` |
 
+A model call refused because of the key (HTTP 401, 403, or 429 with `quota_exceeded`) is not retried and does not
+feed the breaker; the run ends with `{"step": "d3" | "extract" | "message", "reason": "key", "code": "invalid" |
+"disabled" | "quota", "detail": "The LLM call was refused: the key's daily quota is used up", "message": "Your API key
+has used its daily quota, so the run stopped. The quota resets at 00:00 UTC; or enter another key.", "skipped":
+["stored"]}`. This includes the retake message: a key error there is never replaced by the standard message. The
+server then forgets the key (`GET /api/key` shows `failed`), so the next upload gets 401 `no_key`.
+
 `error`: every field is plain words, shown as is; model responses and exception text are only written to the server
-log. `reason` is `unavailable` (no connection, HTTP 5xx, or marked down), `timeout`, `busy` (no slot, or refused twice
+log. `reason` is `key` (above), `unavailable` (no connection, HTTP 5xx, or marked down), `timeout`, `busy` (no slot, or refused twice
 with 429/503), `too_long` or `error`; `detail` says in one line which model failed and how; `skipped` lists the steps
 that did not run (`route`, `model` (the LLM read or message), `sumcheck`, `stored`). `message` per step: D3
 "Receipt checking is unavailable right now. Please try again in a minute."; reading "Your receipt passed the checks,
@@ -120,7 +166,7 @@ the standard message. If the client closes the connection
 
 **Request errors (JSON `{"error": "..."}`, before the stream starts).** 400 no or malformed `X-Visitor-Id`; 409 a run
 of this visitor is in progress; 411 no `Content-Length`; 413 over 15 MB (checked from `Content-Length` before the body
-is read); 415 not an image the demo can read; 429 per-minute limit; 503 D3 or the reading LLM unavailable. At most 4 images are decoded at once; large JPEGs
+is read); 401 `no_key`; 415 not an image the demo can read; 429 per-minute limit; 503 D3 or the reading LLM unavailable. At most 4 images are decoded at once; large JPEGs
 are decoded at a reduced scale (PIL draft mode) before the 1600 px resize.
 
 ## GET /api/demo
@@ -165,10 +211,12 @@ Clears the caller's receipts, rejections and upload files (and so their totals);
 
 ## GET /api/config
 
-`{"play_all": true, "max_upload_mb": 15, "uploads_per_min": 6, "landing_url": "", "models": {"d3": "vllm-sr/d3-flash",
+`{"play_all": true, "max_upload_mb": 15, "uploads_per_min": 6, "landing_url": "", "key_required": true,
+"key_url": "https://app.vllm-sr.ai/#key", "models": {"d3": "vllm-sr/d3-flash",
 "extract": "vllm-sr/auto", "message": "vllm-sr/auto"}}` (`models`: the model names the server asks for). `play_all` is env `PLAY_ALL`
 (default 1; the Space sets 0 and the page hides Play all; single demo images still run). `landing_url` is env
 `LANDING_URL` (default empty): when set, the top bar links back to it ("All demos", with `?theme=light|dark`).
+`key_required`: whether the page must ask for a key (see "API key").
 
 ## GET /api/metrics
 
@@ -188,8 +236,12 @@ Each model role's availability, returned at once (the first request after startu
 
 ```json
 {"ok": false, "status": "degraded", "message": "Standard retake messages in use: LLM unavailable",
- "d3": true, "extract": true, "retake": false, "detail": {"retake": "unavailable"}, "checked_at": "2026-11-05T05:00:00Z"}
+ "d3": true, "extract": true, "retake": false, "detail": {"retake": "unavailable"}, "checked_at": "2026-11-05T05:00:00Z",
+ "key": "missing"}
 ```
+
+`key` is the caller's key state, separate from model availability (the checks need no key): `set` (their own key),
+`server` (the server key serves them) or `missing`.
 
 `status`: `ok` (all up), `degraded` (only the retake-message LLM down: uploads run, rejected images get the standard
 message) or `down` (D3 or the reading LLM down: uploads are refused); `message` is the badge text for it ("All systems

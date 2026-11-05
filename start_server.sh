@@ -1,7 +1,7 @@
 #!/bin/bash
 # Starts the receipt intake demo server (UI + API) on $HOST:$PORT (default 127.0.0.1:8601), replacing one already
-# running on that port. By default it calls the hosted vllm-sr API (https://app.vllm-sr.ai) and needs VLLM_SR_API_KEY
-# in the environment; for the local stack deploy/up.sh sets ROUTER_URL and the model names and then runs this script.
+# running on that port. By default it calls the hosted vllm-sr API (https://app.vllm-sr.ai) with each visitor's own key
+# (entered in the page); VLLM_SR_API_KEY is optional. For the local stack deploy/up.sh sets ROUTER_URL and the model names and then runs this script.
 # --bg runs it detached, logging to logs/server.log.
 # Environment: HOST, PORT, VLLM_SR_API_KEY, ROUTER_URL, D3_MODEL, EXTRACT_MODEL, MESSAGE_MODEL, DB, UPLOAD_ROOT,
 # PLAY_ALL, LANDING_URL, TRUST_PROXY, HEALTH_INTERVAL, the timeouts and the limits (see README.md, Configuration).

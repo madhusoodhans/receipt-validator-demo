@@ -83,8 +83,8 @@ limit is 4096 tokens, reasoning included).
 
 ## Run it
 
-You need Python 3.10 or newer (tested with 3.14; 3.12+ recommended) and a vllm-sr API key (see
-<https://app.vllm-sr.ai/docs>). Node 18+ only if you change the UI (`ui/`); the built page is committed in `web/`.
+You need Python 3.10 or newer (tested with 3.14; 3.12+ recommended). Each visitor enters their own vllm-sr API key in
+the browser (get one at <https://app.vllm-sr.ai/#key>); the server needs none. Node 18+ only if you change the UI (`ui/`); the built page is committed in `web/`.
 
 ```bash
 git clone https://github.com/madhusoodhans/receipt-validator-demo.git
@@ -92,15 +92,19 @@ cd receipt-validator-demo
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 
-export VLLM_SR_API_KEY=...        # from the environment only; never put it in a file in this repo
 ./start_server.sh                 # --bg runs it detached, logging to logs/server.log
-deploy/smoke_test.sh --reset      # health, then a good, a borderline and a bad demo image (--all: all 24)
+deploy/smoke_test.sh --reset      # health and three demo images: needs a server started with VLLM_SR_API_KEY (below)
 ```
 
 Then open <http://localhost:8601>. The server listens on 127.0.0.1 only; from a laptop use an SSH tunnel
-(`ssh -L 8601:localhost:8601 user@host`). Without `VLLM_SR_API_KEY` the server stops at once with a message saying so.
+(`ssh -L 8601:localhost:8601 user@host`). The page asks for an API key first: it is checked with one tiny call to each
+system (D3 and chat), then kept in that tab's sessionStorage and in the server's memory for that visitor only, and every
+model call the visitor causes carries it. It is never written to disk, the database or the log (anything key-shaped
+in the log is replaced with `sk-***`). The demos landing page can hand a key over in the address fragment
+(`#key=...`), which the page removes at once. Optional: `VLLM_SR_API_KEY` in the server's environment (off by
+default) serves visitors who have not entered a key; never put it in a file in this repo.
 
-The hosted API's limits apply to your key (live values at <https://app.vllm-sr.ai/api/info> and
+The hosted API's limits apply to each key (live values at <https://app.vllm-sr.ai/api/info> and
 <https://app.vllm-sr.ai/pt/api/info>): chat 16 requests in flight and 180 a minute, d3-flash 1,260 a minute, 35 s per
 request. The demo stays inside them: at most `MODEL_CONCURRENCY` (12) calls in flight per API, a 429's `Retry-After`
 is respected, the availability checks are free GETs, and no model call is made at startup.
@@ -112,8 +116,8 @@ port 7860, with a fresh database and upload folder in `/tmp` on every start. To 
 
 1. Create a Docker Space and push the `Dockerfile`, `requirements.txt`, `app/`, `web/` and `data/demo/` with
    `deploy/space/README.md` as the Space's `README.md`.
-2. In the Space settings, add **`VLLM_SR_API_KEY` as a Space secret** (not a variable: variables are public). The
-   server refuses to start without it.
+2. Nothing else is required: visitors enter their own key. Optionally add **`VLLM_SR_API_KEY` as a Space secret**
+   (not a variable: variables are public) to let visitors run the demo without a key, on your quota.
 3. Optional Space variables: `LANDING_URL` (the demos landing page; the top bar then links back to it). The image
    already sets `PLAY_ALL=0` (no Play all button), `TRUST_PROXY=1` (per-IP limits read the client address that the
    HF proxy adds to `X-Forwarded-For`; without it every visitor would share the proxy's address), and the hosted API
@@ -151,7 +155,9 @@ Environment variables of the demo server (`app/server.py`, `app/gate.py`, `app/h
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `VLLM_SR_API_KEY` | none (required) | The vllm-sr API key, sent as `Authorization: Bearer ...` on every call and check. Environment only (a Space secret on HF). Not needed when `ROUTER_URL` is on localhost. |
+| `VLLM_SR_API_KEY` | none (off) | Optional server key, used for visitors who have not entered their own (a visitor's key always wins). Environment only (a Space secret on HF). |
+| `KEY_REQUIRED` | auto | 1: every visitor must enter a key; 0: never. Auto: required unless `VLLM_SR_API_KEY` is set or `ROUTER_URL` is on localhost. |
+| `KEY_CHECKS_PER_MIN` | 10 | Key checks (`POST /api/key`, `/api/key/check`) a minute per visitor and per IP. |
 | `ROUTER_URL` | `https://app.vllm-sr.ai` | The vllm-sr API: `/v1/systemone` (D3), `/v1/chat/completions` (LLM), `/v1/models` and `/pt/api/info` (availability). |
 | `D3_MODEL` | `vllm-sr/d3-flash` | D3 model name. |
 | `EXTRACT_MODEL` | `vllm-sr/auto` | Model that reads receipts (the Router picks the real model). |
@@ -211,13 +217,16 @@ LLM reading, LLM retake messages).
   messages in use: LLM unavailable".
 - **A model fails during a run**: its step says why in one line (unavailable, timed out, busy), later steps are marked
   skipped, and nothing is stored. Raw errors go only to the server log.
-- **A bad or missing key**: the server does not start without one; a refused key (HTTP 401/403) fails the step as an
-  error without opening the breaker, and the detail is in the server log.
+- **A bad or missing key**: nothing runs without a key (401 `no_key`). A key refused during a run (HTTP 401, 403, or
+  429 with `quota_exceeded`) stops the run with a key error naming the problem (no standard message stands in for
+  it), does not open the breaker, and the server forgets the key, so the page asks for one again. Other 429s keep the
+  busy handling.
 
 ## Tests
 
 ```bash
 .venv/bin/python tests/test_multiuser.py      # no API key, no model calls
+.venv/bin/python tests/test_keys.py           # visitor keys against a mock API, fake keys only
 .venv/bin/python bench/load_test.py           # stub on :8931, server on :8641; --visitors 30 --uploads 6 [--p429 0.0]
 .venv/bin/python bench/e2e_demo.py            # all 24 demo images through a running server (default :8641), real API
 ```
@@ -226,7 +235,9 @@ LLM reading, LLM retake messages).
 make each model role down, slow or answer with HTTP errors. It covers isolation, reset, cleanup, caps, rate limits, the
 model-call gate and Retry-After, the client IP behind a proxy, the missing-key check, the Router's choice in the
 events, the pre-flight refusal, the circuit breaker, the template fallback, a failed read mid-run, and that no raw
-error text reaches the page. `bench/load_test.py` runs parallel visitors against the stub with the Space's settings and checks
+error text reaches the page. `tests/test_keys.py` covers key format checks, the hosted API's error codes mapped to plain messages (401, 403, 429
+quota and rate, timeout, unreachable, sk-pt keys), key errors mid-run, `no_key` gating, CORS on `POST /api/key/check`,
+and greps the server log, the database and every response for the keys afterwards. `bench/load_test.py` runs parallel visitors against the stub with the Space's settings and checks
 routes, isolation, database consistency, memory and disk after cleanup. `deploy/smoke_test.sh` and
 `bench/e2e_demo.py` check the real models.
 

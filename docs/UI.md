@@ -24,6 +24,10 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
 
 ### Mock behaviour
 
+- Keys: any `sk-vsr-` key works, except one containing `bad` (invalid) or `quota` (quota); `sk-pt-` keys are refused as
+  wrong_kind. A stored key containing `expire` fails the next run at D3 with a key error. `MOCK_KEY_REQUIRED=0` acts
+  as a server with its own key.
+
 - Demo set: `data/phase0/` with `labels.json` (`MOCK_DEMO_DIR` overrides). Good images route `extract` and their line items
   come from the CORD ground truth; `11_good_cord036.jpg` routes `review` (borderline glare); every bad image routes `reject`
   with the matching D3 check or wrong kind, and a canned message (with a `routed` model, decision and reasoning).
@@ -37,6 +41,21 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
 - Each tab is one visitor: `src/api.ts` makes a random id (kept in `sessionStorage`) and sends it as `X-Visitor-Id` on
   every request, so a tab sees only its own results and a new tab starts empty. Upload images (`/api/uploads/...`) are
   fetched with that header and shown as object URLs (`src/useImage.ts`); demo images load directly.
+
+- API key: the page needs the visitor's vllm-sr API key (unless GET /api/config says `key_required: false`, when the
+  server has its own). Until a key works, a key panel sits at the top of the page and the demo images, Play all and the
+  upload area are disabled with the hint "Enter your vllm-sr API key to run the demo". The panel (`src/KeyPanel.tsx`)
+  has a password field with show/hide, "Check key" with a spinner (POST /api/key: one tiny call per system on the
+  hosted API, then the server keeps the key for this tab's visitor), the server's plain error per code (format,
+  wrong_kind for sk-pt keys, invalid, disabled, quota, rate_limited, unreachable), and "Get an API key"
+  (https://app.vllm-sr.ai/#key). On success it shows "Key works for decisions and chat", and "Change key" appears in the
+  top bar (with Cancel and Forget key, DELETE /api/key). The key is kept only in this tab's sessionStorage (`vsr-key`),
+  never in localStorage, cookies or a URL. Hand-off from the demos landing page: `#key=<key>` in the address is read by
+  an inline script in `index.html`, removed at once with `history.replaceState` (`?theme=` is kept), saved to
+  sessionStorage and checked on load. After a server restart the stored key is sent again quietly. If a model call
+  fails because of the key during a run (error event `reason: "key"` with `code`), or the server refuses an upload
+  with 401 `no_key`, the run stops, a red banner names the problem with a "Change key" action, the failed step shows a
+  "Key" badge, Play all stops, and the page asks for a key again (the server has dropped it).
 
 - Top bar: health (GET /health every 10 s): the server's `message` in plain words, green "All systems working", amber
   "Standard retake messages in use: LLM unavailable", red "Receipt checking unavailable" (or "Demo server offline"

@@ -9,8 +9,8 @@ short_description: Check receipt photos with D3 before an LLM reads them
 ---
 
 <!-- The Space's README.md. Copy it to the root of the Space repository, with the Dockerfile, app/, web/, data/demo/
-     and requirements.txt from this repo. Set VLLM_SR_API_KEY as a Space SECRET (the server will not start without it),
-     and optionally LANDING_URL (the demos landing page; the top bar then links back to it) as a variable. The image
+     and requirements.txt from this repo. Visitors enter their own API key in the page. Optionally set
+     VLLM_SR_API_KEY as a Space SECRET (it serves visitors who have not entered one), and LANDING_URL (the demos landing page; the top bar then links back to it) as a variable. The image
      already points at the hosted vllm-sr API and sets PLAY_ALL=0 and TRUST_PROXY=1. -->
 
 # Receipt intake demo

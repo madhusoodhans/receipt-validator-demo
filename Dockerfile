@@ -1,6 +1,6 @@
 # Hugging Face Space (Docker SDK): the demo server only, no models. D3 (vllm-sr/d3-flash) and the LLM (vllm-sr/auto)
-# are called on the hosted vllm-sr API at https://app.vllm-sr.ai. Set VLLM_SR_API_KEY as a Space secret (the server
-# refuses to start without it). Serves the committed web/; a fresh database and upload folder in /tmp on every start.
+# are called on the hosted vllm-sr API at https://app.vllm-sr.ai. Visitors enter their own API key in the page;
+# VLLM_SR_API_KEY as a Space secret is optional (it serves visitors who have not). Serves the committed web/; a fresh database and upload folder in /tmp on every start.
 # Space settings: PLAY_ALL=0 (no Play all button), TRUST_PROXY=1 (per-IP limits read the client address the HF proxy
 # adds to X-Forwarded-For), LANDING_URL (optional: the demos landing page the top bar links back to).
 FROM python:3.12-slim
