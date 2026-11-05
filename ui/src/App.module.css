@@ -46,7 +46,13 @@
 .title h1 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-display); font-size: var(--text-lg); letter-spacing: var(--tracking-display); }
 .actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); }
 .actions > * { flex: none; }
+/* Narrower screens: the title stays on the one row, centred between the back link and the controls, a size smaller
+ * (cut with an ellipsis if it still does not fit; the full text is in its tooltip). Only phones get a second row. */
 @media (max-width: 1240px) {
+  .bar { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .title h1 { font-size: var(--text-base); }
+}
+@media (max-width: 760px) {
   .bar { grid-template-columns: minmax(0, 1fr) auto; }
   .title { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; }
   .title h1 { white-space: normal; font-size: var(--text-base); }
