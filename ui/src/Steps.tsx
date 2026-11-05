@@ -141,7 +141,7 @@ function RouteBody({ route }: { route: Events["route"] }) {
 }
 
 /** A model step that failed: one plain line on what failed, then what the user should do. */
-const REASON: Record<string, string> = { unavailable: "Unavailable", timeout: "Timed out", busy: "Busy", too_long: "Too long", error: "Failed" };
+const REASON: Record<string, string> = { unavailable: "Unavailable", timeout: "Timed out", busy: "Busy", too_long: "Too long", key: "Key", error: "Failed" };
 const SKIPPED: Record<string, string> = { route: "Route", model: "Read or explain (LLM)", sumcheck: "Sum check", stored: "Store" };
 
 /** What the vllm-sr Router chose for an LLM call: the model asked for, the model it picked, its decision and reasoning. */
@@ -231,11 +231,12 @@ function SumBody({ s }: { s: Events["sumcheck"] }) {
 /** The error's headline: plain words for a refused upload, checking unavailable, a lost connection or a failed step. */
 const ERROR_TITLE: Record<string, string> = {
   upload: "Upload not accepted", unavailable: "Receipt checking unavailable", connection: "Connection lost",
-  d3: "Could not check the image", extract: "Checked, but could not read it", server: "Something went wrong",
+  d3: "Could not check the image", extract: "Checked, but could not read it", message: "Checked, but could not write the message",
+  key: "API key needed", server: "Something went wrong",
 };
-const errorTitle = (step: string) => ERROR_TITLE[step] ?? "Something went wrong";
+const errorTitle = (e: Events["error"]) => (e.reason === "key" ? "API key problem" : ERROR_TITLE[e.step] ?? "Something went wrong");
 /** Failures shown on their own step, with the steps after them marked skipped. */
-const MODEL_STEP = new Set(["d3", "extract"]);
+const MODEL_STEP = new Set(["d3", "extract", "message"]);
 
 export function Steps({ run, onStop, models }: { run: Run; onStop: () => void; models?: Config["models"] }) {
   const { d3, route, message, extract, sumcheck, stored, done, error, at } = run;
@@ -265,7 +266,7 @@ export function Steps({ run, onStop, models }: { run: Run; onStop: () => void; m
             </span>
           </>
         ) : error ? (
-          <span className={styles.answerText}>{errorTitle(error.step)}</span>
+          <span className={styles.answerText}>{errorTitle(error)}</span>
         ) : run.stopped ? (
           <span className={styles.answerText}>Stopped. Nothing was stored.</span>
         ) : (
@@ -307,6 +308,7 @@ export function Steps({ run, onStop, models }: { run: Run; onStop: () => void; m
             <MessageBody text={message.text} />
           </Step>
         )}
+        {failedAt === "message" && <Failed title={<>Message to the user {models?.message && <span className={styles.model}>{models.message}</span>}</>} error={error!} />}
         {reading && !extract && live && <Pending run={run} text="The LLM reads the receipt" from={at.route} model={models?.extract} />}
         {failedAt === "extract" && <Failed title={<>Read the receipt {models?.extract && <span className={styles.model}>{models.extract}</span>}</>} error={error!} />}
         {extract && (
@@ -339,7 +341,7 @@ export function Steps({ run, onStop, models }: { run: Run; onStop: () => void; m
         )}
         {skipped(["model", "sumcheck", "stored"])}
         {error && !failedAt && (
-          <Step icon={<CircleAlert size={18} strokeWidth={1.75} />} label="Error" title={errorTitle(error.step)}>
+          <Step icon={<CircleAlert size={18} strokeWidth={1.75} />} label="Error" title={errorTitle(error)}>
             <p className={styles.error}>{error.message}</p>
           </Step>
         )}

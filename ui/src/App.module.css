@@ -86,3 +86,7 @@
   .image { max-height: 50vh; min-height: 0; }
   .sub { font-size: var(--text-sm); }
 }
+
+/* Key failure banner: the server's message, then the action to enter a new key. */
+.keyAlert { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+@media (max-width: 560px) { .keyText { display: none; } }

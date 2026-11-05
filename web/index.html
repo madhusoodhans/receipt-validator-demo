@@ -22,9 +22,20 @@
     if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     document.documentElement.dataset.theme = t;
   })();
+  // API key hand-off from the demos landing page: #key=<key> (fragments never reach a server). Moved to this tab's
+  // sessionStorage and dropped from the address before anything else runs; the app then sends it to POST /api/key.
+  (function () {
+    var m = /^#key=([^&]*)/.exec(location.hash);
+    if (!m) return;
+    try { history.replaceState(history.state, "", location.pathname + location.search); } catch (e) {}
+    var k = "";
+    try { k = decodeURIComponent(m[1]).trim(); } catch (e) {}
+    if (!k) return;
+    try { sessionStorage.setItem("vsr-key", k); sessionStorage.setItem("vsr-key-handoff", "1"); } catch (e) {}
+  })();
 </script>
-  <script type="module" crossorigin src="./assets/index-Cycl0AVo.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BUS0MvQK.css">
+  <script type="module" crossorigin src="./assets/index-BcDZfqKV.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BeJsqd5l.css">
 </head>
 <body>
 <div id="root"></div>

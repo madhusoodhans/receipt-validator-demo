@@ -47,9 +47,10 @@ export interface Events {
   sumcheck: SumCheck;
   stored: { table: "receipts" | "rejections"; id: number; needs_review: number };
   done: { total_ms: number; steps: Record<string, number> };
-  /** Plain words only. reason: unavailable, timeout, busy, too_long or error; detail: one line on what failed;
-   * skipped: the steps that did not run because of it (route, model, sumcheck, stored). */
-  error: { step: string; message: string; reason?: string; detail?: string; skipped?: string[] };
+  /** Plain words only. reason: unavailable, timeout, busy, too_long, key or error; detail: one line on what failed;
+   * skipped: the steps that did not run because of it (route, model, sumcheck, stored). reason "key": the visitor's API
+   * key failed (code invalid, disabled or quota); the server has dropped it. */
+  error: { step: string; message: string; reason?: string; code?: KeyCode; detail?: string; skipped?: string[] };
 }
 export type EventName = keyof Events;
 
@@ -60,6 +61,8 @@ export interface Stats {
   money_total_by_currency?: Record<string, number>;
 }
 export interface Config { play_all: boolean; max_upload_mb: number; uploads_per_min: number; landing_url?: string;
+  /** False when the server has its own key (VLLM_SR_API_KEY): the page then runs without one. */
+  key_required?: boolean; key_url?: string;
   /** The model names the server asks for (D3_MODEL, EXTRACT_MODEL, MESSAGE_MODEL). */
   models?: { d3: string; extract: string; message: string } }
 
@@ -72,6 +75,8 @@ export type Service = "d3" | "extract" | "retake";
 export type Health = {
   ok: boolean; status?: "ok" | "degraded" | "down"; message?: string;
   detail?: Partial<Record<Service, string>>; checked_at?: string | null;
+  /** This visitor's key: set, missing, or server (the server's own key is in use). */
+  key?: "set" | "missing" | "server";
 } & Partial<Record<Service, boolean>>;
 
 /** Plain JSON calls give up after this long, so a dead server shows as an error instead of hanging. */
@@ -128,11 +133,52 @@ export function forgetImages() {
 }
 export const postReset = () => getJson<{ ok: boolean }>("api/reset", { method: "POST" });
 
-/** The server answered but refused the upload (wrong file type, too large, unreadable; 503: checking unavailable). */
+/** The server answered but refused the upload (wrong file type, too large, unreadable; 503: checking unavailable;
+ * 401 code no_key: this visitor has no API key). */
 export class Refused extends Error {
   status: number;
-  constructor(message: string, status = 0) { super(message); this.status = status; }
+  code?: string;
+  constructor(message: string, status = 0, code?: string) { super(message); this.status = status; this.code = code; }
 }
+
+// ---------- API key (docs/API.md, "API key") ----------
+export type KeyCode = "format" | "wrong_kind" | "invalid" | "disabled" | "quota" | "rate_limited" | "unreachable" | "error" | "no_key";
+export interface KeyResult { ok: boolean; code?: KeyCode; message?: string; retry_after?: number }
+export interface KeyState { set: boolean; required: boolean; failed: null | { code: KeyCode; message: string } }
+export const KEY_URL = "https://app.vllm-sr.ai/#key";
+
+/** The key lives only in this tab's sessionStorage (cleared when the tab closes), never in localStorage or a URL. */
+const KEY_STORE = "vsr-key";
+export const storedKey = (): string | null => { try { return sessionStorage.getItem(KEY_STORE); } catch { return null; } };
+export const storeKey = (k: string) => { try { sessionStorage.setItem(KEY_STORE, k); } catch { /* storage blocked */ } };
+export const dropStoredKey = () => { try { sessionStorage.removeItem(KEY_STORE); sessionStorage.removeItem("vsr-key-handoff"); } catch { /* blocked */ } };
+/** True once, right after the landing page handed a key over in the URL fragment (index.html moved it to storage). */
+export const takeHandoff = (): boolean => {
+  try { const h = sessionStorage.getItem("vsr-key-handoff") === "1"; sessionStorage.removeItem("vsr-key-handoff"); return h; } catch { return false; }
+};
+
+async function keyCall(method: string, key?: string): Promise<KeyResult> {
+  let r: Response;
+  try {
+    r = await fetch("api/key", {
+      method, cache: "no-store", signal: AbortSignal.timeout(30000),
+      headers: { ...VISITOR_HEADER, ...(key !== undefined ? { "Content-Type": "application/json" } : {}) },
+      body: key !== undefined ? JSON.stringify({ key }) : undefined,
+    });
+  } catch (e) {
+    if ((e as Error)?.name === "TimeoutError") return { ok: false, code: "unreachable", message: "The key check took too long. Try again." };
+    return { ok: false, code: "unreachable", message: "Cannot reach the demo server." };
+  }
+  try {
+    const j = await r.json();
+    if (r.ok) return { ok: true, ...j };
+    return { ok: false, code: j.code ?? "error", message: j.message ?? j.error ?? `${r.status} ${r.statusText}`, retry_after: j.retry_after };
+  } catch { return r.ok ? { ok: true } : { ok: false, code: "error", message: `${r.status} ${r.statusText}` }; }
+}
+/** POST /api/key: validates the key on the hosted API (one tiny call per system) and keeps it for this tab's visitor. */
+export const postKey = (key: string) => keyCall("POST", key);
+export const deleteKey = () => keyCall("DELETE");
+export const getKey = () => getJson<KeyState>("api/key");
 
 /** POST /api/check and feed each SSE event to onEvent. Resolves when the stream ends. */
 export async function streamCheck(
@@ -149,8 +195,9 @@ export async function streamCheck(
   if (!r.ok || !r.body) {
     const text = await r.text().catch(() => "");
     let detail = text;
-    try { const j = JSON.parse(text); detail = j.error || j.detail || text; } catch { /* plain text */ }
-    throw new Refused(detail || `${r.status} ${r.statusText}`, r.status);
+    let code: string | undefined;
+    try { const j = JSON.parse(text); detail = j.message || j.error || j.detail || text; code = j.code; } catch { /* plain text */ }
+    throw new Refused(detail || `${r.status} ${r.statusText}`, r.status, code);
   }
   const reader = r.body.getReader();
   const decoder = new TextDecoder();

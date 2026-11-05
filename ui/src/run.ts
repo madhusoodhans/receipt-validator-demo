@@ -36,7 +36,9 @@ const sleep = (ms: number, signal: AbortSignal) => new Promise<void>((ok) => {
   signal.addEventListener("abort", () => { clearTimeout(t); ok(); }, { once: true });
 });
 
-export function useRunner(onFinished: () => void) {
+/** onKeyError: the visitor's API key failed during a run (an error event with reason "key", or a 401 no_key refusal);
+ * the server has dropped it, so the page asks for a key again. */
+export function useRunner(onFinished: () => void, onKeyError?: (e: { code?: string; message: string }) => void) {
   const [run, setRun] = useState<Run | null>(null);
   const [outcomes, setOutcomes] = useState<Record<string, RouteName | "error">>({});
   const [playing, setPlaying] = useState(false);
@@ -47,6 +49,8 @@ export function useRunner(onFinished: () => void) {
   const keyRef = useRef(0);
   const finished = useRef(onFinished);
   finished.current = onFinished;
+  const keyError = useRef(onKeyError);
+  keyError.current = onKeyError;
 
   const start = useCallback(async (input: { demo: DemoItem } | { file: File }) => {
     busy.current = true;
@@ -61,7 +65,11 @@ export function useRunner(onFinished: () => void) {
     let route: RouteName | "error" | undefined;
     const onEvent = <E extends EventName>(event: E, data: Events[E]) => {
       if (event === "route") route = (data as Events["route"]).route;
-      if (event === "error") route = "error";
+      if (event === "error") {
+        route = "error";
+        const err = data as Events["error"];
+        if (err.reason === "key") keyError.current?.({ code: err.code, message: err.message });
+      }
       setRun((r) => (r && r.key === key ? { ...r, [event]: data, at: { ...r.at, [event]: performance.now() - t0 } } : r));
     };
     const ctl = new AbortController();
@@ -90,8 +98,10 @@ export function useRunner(onFinished: () => void) {
         const message = why === "silent"
           ? `No reply from the demo server for ${SILENCE_MS / 1000} s. The connection was lost or the server stopped.`
           : unreachable(e) ? "Cannot reach the demo server. Is it running (start_server.sh)?" : errText(e);
-        const step = e instanceof Refused ? (e.status === 503 ? "unavailable" : "upload") : "connection";
-        setRun((r) => (r && r.key === key ? { ...r, error: { step, message } } : r));
+        const noKey = e instanceof Refused && e.code === "no_key";
+        const step = noKey ? "key" : e instanceof Refused ? (e.status === 503 ? "unavailable" : "upload") : "connection";
+        setRun((r) => (r && r.key === key ? { ...r, error: { step, message, ...(noKey ? { reason: "key", code: "no_key" as const } : {}) } } : r));
+        if (noKey) keyError.current?.({ code: "no_key", message });
       }
     } finally {
       clearInterval(watchdog);

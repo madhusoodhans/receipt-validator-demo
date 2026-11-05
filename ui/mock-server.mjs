@@ -154,6 +154,22 @@ const MESSAGES = {
   other_document: "This looks like a menu, not a receipt. Please upload the receipt you got after paying.",
 };
 
+// ---------- API key (docs/API.md, "API key"): fake rules, no hosted calls ----------
+// sk-pt-... wrong_kind; not sk-vsr-... format; containing "bad" invalid, "quota" quota; any other sk-vsr- key works.
+// A stored key containing "expire" fails mid-run (error event, reason key, code invalid, step d3) and is dropped.
+const keys = new Map(); // visitor id -> key
+const keyFailed = new Map(); // visitor id -> {code, message}
+const KEY_REQUIRED = process.env.MOCK_KEY_REQUIRED !== "0";
+function keyCheck(key) {
+  const k = String(key ?? "").trim();
+  if (k.startsWith("sk-pt-")) return [400, "wrong_kind", "This demo needs a key from app.vllm-sr.ai: sk-pt keys only work for chat"];
+  if (!/^sk-vsr-[A-Za-z0-9_-]{4,200}$/.test(k)) return [400, "format", "That does not look like a vllm-sr API key. Keys start with sk-vsr-."];
+  if (k.includes("bad")) return [401, "invalid", "This API key is not valid. Check it, or get a new one at app.vllm-sr.ai."];
+  if (k.includes("quota")) return [429, "quota", "This API key has used its daily quota. It resets at 00:00 UTC."];
+  return null;
+}
+const visitorOf = (req) => String(req.headers["x-visitor-id"] || "");
+
 // ---------- state ----------
 let state;
 function reset() {
@@ -179,6 +195,9 @@ async function runCheck(res, { file, bytes, outcome, imageUrl }) {
   state.uploads.set(id, bytes);
   const { width, height } = sizeOf(bytes);
   send("received", { id, file, width, height, image_url: imageUrl || `/api/uploads/${id}` });
+
+  if (outcome.keyError) { await sleep(300); send("error", { step: "d3", reason: "key", code: "invalid", detail: "The vllm-sr API refused the API key",
+    message: "Your API key was refused (not valid or revoked). Enter a new key to go on.", skipped: ["route", "model", "stored"] }); return res.end(); }
 
   const d3 = d3For(outcome);
   await sleep(d3.ms);
@@ -282,7 +301,24 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   const path = decodeURIComponent(url.pathname);
   try {
-    if (req.method === "GET" && path === "/health") return json(res, 200, { ok: true, status: "ok", message: "All systems working", d3: true, extract: true, retake: true, detail: {} });
+    if (req.method === "GET" && path === "/health") return json(res, 200, { ok: true, status: "ok", message: "All systems working", d3: true, extract: true, retake: true, detail: {},
+      key: !KEY_REQUIRED && !keys.has(visitorOf(req)) ? "server" : keys.has(visitorOf(req)) ? "set" : "missing" });
+    if (req.method === "GET" && path === "/api/config") return json(res, 200, { play_all: true, max_upload_mb: 15, uploads_per_min: 6, landing_url: "http://localhost:8630",
+      key_required: KEY_REQUIRED, key_url: "https://app.vllm-sr.ai/#key",
+      models: { d3: "vllm-sr/d3-flash", extract: "vllm-sr/auto", message: "vllm-sr/auto" } });
+    if (path === "/api/key" || path === "/api/key/check") {
+      const v = visitorOf(req);
+      if (req.method === "GET" && path === "/api/key") return json(res, 200, { set: keys.has(v), required: KEY_REQUIRED, failed: keyFailed.get(v) ?? null });
+      if (req.method === "DELETE" && path === "/api/key") { keys.delete(v); keyFailed.delete(v); return json(res, 200, { ok: true, set: false }); }
+      if (req.method === "POST") {
+        const { key } = JSON.parse((await readBody(req, 4096)).toString() || "{}");
+        await sleep(900);
+        const bad = keyCheck(key);
+        if (bad) return json(res, bad[0], { ok: false, code: bad[1], message: bad[2] });
+        if (path === "/api/key") { keys.set(v, String(key).trim()); keyFailed.delete(v); return json(res, 200, { ok: true, set: true }); }
+        return json(res, 200, { ok: true });
+      }
+    }
     if (req.method === "GET" && path === "/api/demo") return json(res, 200, demo);
     if (req.method === "GET" && path.startsWith("/api/demo/")) {
       const f = path.slice("/api/demo/".length);
@@ -301,16 +337,23 @@ const server = createServer(async (req, res) => {
     if (req.method === "GET" && path === "/api/rejections") return json(res, 200, state.rejections.slice(0, 50));
     if (req.method === "POST" && path === "/api/reset") { reset(); await sleep(150); return json(res, 200, { ok: true }); }
     if (req.method === "POST" && path === "/api/check") {
+      const v = visitorOf(req);
+      if (KEY_REQUIRED && !keys.has(v)) {
+        const message = "Enter your vllm-sr API key to run the demo.";
+        return json(res, 401, { ok: false, code: "no_key", error: message, message });
+      }
+      const expire = keys.get(v)?.includes("expire");
+      if (expire) { keys.delete(v); keyFailed.set(v, { code: "invalid", message: "Your API key was refused (not valid or revoked). Enter a new key to go on." }); }
       const ct = req.headers["content-type"] || "";
       const body = await readBody(req);
       if (ct.startsWith("application/json")) {
         const { demo: f } = JSON.parse(body.toString() || "{}");
         if (!labelOf[f]) return json(res, 404, { detail: `unknown demo image ${f}` });
-        return runCheck(res, { file: f, bytes: readFileSync(join(DEMO_DIR, f)), outcome: outcomeForDemo(f), imageUrl: `/api/demo/${f}` });
+        return runCheck(res, { file: f, bytes: readFileSync(join(DEMO_DIR, f)), outcome: expire ? { keyError: true } : outcomeForDemo(f), imageUrl: `/api/demo/${f}` });
       }
       const up = multipartFile(body, ct);
       if (!up || !up.bytes.length) return json(res, 400, { detail: "expected multipart field 'image'" });
-      return runCheck(res, { file: up.name, bytes: up.bytes, outcome: outcomeForUpload(up.name) });
+      return runCheck(res, { file: up.name, bytes: up.bytes, outcome: expire ? { keyError: true } : outcomeForUpload(up.name) });
     }
     // Built UI (web/), so the mock can also stand in for the backend's static serving.
     if (req.method === "GET" && existsSync(WEB_DIR)) {

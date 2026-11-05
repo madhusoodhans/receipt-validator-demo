@@ -17,3 +17,6 @@
 .thumb[data-outcome="review"] .dot { background: var(--warning); }
 .thumb[data-outcome="reject"] .dot, .thumb[data-outcome="error"] .dot { background: var(--danger); }
 @media (prefers-reduced-motion: reduce) { .thumb { transition: none; } }
+
+/* No API key yet: the drop zone is inert; dimmed so it reads as unavailable. */
+.drop[data-locked] { opacity: .5; }

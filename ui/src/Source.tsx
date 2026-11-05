@@ -9,9 +9,11 @@ import styles from "./Source.module.css";
 const MAX = 60 * 1024 * 1024;
 const OUTCOME_TEXT: Record<RouteName | "error", string> = { extract: "extracted", review: "needs review", reject: "rejected", error: "error" };
 
-export function Upload({ busy, onFile }: { busy: boolean; onFile: (f: File) => void }) {
+/** locked: no API key yet, so nothing can run (the drop zone is inert and dimmed). */
+export function Upload({ busy, locked, onFile }: { busy: boolean; locked?: boolean; onFile: (f: File) => void }) {
   return (
-    <div className={styles.drop}>
+    <div className={styles.drop} inert={locked || undefined} data-locked={locked || undefined}
+      title={locked ? "Enter your vllm-sr API key to run the demo" : undefined}>
       <FileDropzone
         label="Upload a photo"
         description="Drop a receipt photo here or choose one"
@@ -22,7 +24,7 @@ export function Upload({ busy, onFile }: { busy: boolean; onFile: (f: File) => v
         maxSize={MAX}
         listPlacement="inside"
         compactAt={1}
-        onFilesChange={(files) => { const f = files[0]; if (f && f.size <= MAX && !busy) onFile(f); }}
+        onFilesChange={(files) => { const f = files[0]; if (f && f.size <= MAX && !busy && !locked) onFile(f); }}
       />
     </div>
   );
@@ -32,10 +34,13 @@ export function DemoStrip(props: {
   demo: DemoItem[]; demoError: string | null; current: string | null; busy: boolean; playing: boolean;
   /** Off on the hosted demo (server env PLAY_ALL=0): single demo images still run. */
   playAll: boolean;
+  /** No API key yet: demo images and Play all are disabled. */
+  locked?: boolean;
   outcomes: Record<string, RouteName | "error">;
   onDemo: (d: DemoItem) => void; onPlay: () => void; onStop: () => void;
 }) {
-  const { demo, current, busy, playing, outcomes } = props;
+  const { demo, current, playing, outcomes } = props;
+  const busy = props.busy || !!props.locked;
   const groups: [string, DemoItem[]][] = [["Good receipts", demo.filter((d) => d.group === "good")], ["Borderline", demo.filter((d) => d.group === "borderline")], ["Bad uploads", demo.filter((d) => d.group === "bad")]];
   return (
     <section className={styles.demo} aria-label="Demo images">
