@@ -48,8 +48,8 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
   has a password field with show/hide, "Check key" with a spinner (POST /api/key: one tiny call per system on the
   hosted API, then the server keeps the key for this tab's visitor), the server's plain error per code (format,
   wrong_kind for sk-pt keys, invalid, disabled, quota, rate_limited, unreachable), and "Get an API key"
-  (https://app.vllm-sr.ai/#key). On success it shows "Key works for decisions and chat", and "Change key" appears in the
-  top bar (with Cancel and Forget key, DELETE /api/key). The key is kept only in this tab's sessionStorage (`vsr-key`),
+  (https://app.vllm-sr.ai/#key). On success it shows "Key works for decisions and chat". While the panel changes a working key
+  it also has Cancel and Forget key (DELETE /api/key). The key is kept only in this tab's sessionStorage (`vsr-key`),
   never in localStorage, cookies or a URL. Hand-off from the demos landing page: `#key=<key>` in the address is read by
   an inline script in `index.html`, removed at once with `history.replaceState` (`?theme=` is kept), saved to
   sessionStorage and checked on load. After a server restart the stored key is sent again quietly. If a model call
@@ -57,6 +57,16 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
   with 401 `no_key`, the run stops, a red banner names the problem with a "Change key" action, the failed step shows a
   "Key" badge, Play all stops, and the page asks for a key again (the server has dropped it).
 
+- Top bar API key control (`src/KeyMenu.tsx`, the same component and behaviour as in the returns demo): no key yet, an
+  accent "Enter API key" button that moves focus to the key field; while a key is checked (on load or a hand-off), a
+  quiet 38 px icon button (as big as the theme switch), disabled (`aria-disabled`), with a spinner and the tooltip
+  "Checking key"; once a key works, the same icon button with a small `--success` dot, name and tooltip "API key set".
+  It opens a small menu (Arc `dropdown-menu`) with "Change key" (opens the key panel and focuses its field) and
+  "Forget key" (DELETE /api/key, sessionStorage cleared, back to the no-key state with the demo disabled; focus moves to
+  "Enter API key"). Both items are disabled while an image runs or Play all plays. Keyboard: Enter, Space or ArrowDown
+  opens the menu, arrows move, Escape closes it and focus returns to the icon; only keyboard focus draws the ring.
+  Reduced motion: no spinner turn, no menu scale. Hidden only when the server has its own key and the visitor gave none.
+  A key that fails during a run keeps the prominent "Change key" button in the red banner.
 - Top bar: health (GET /health every 10 s): the server's `message` in plain words, green "All systems working", amber
   "Standard retake messages in use: LLM unavailable", red "Receipt checking unavailable" (or "Demo server offline"
   when /health itself fails); the tooltip lists each role (D3, LLM (reading), LLM (retake messages)) with why it is down. Reset (POST /api/reset, inline confirm; clears this tab's
@@ -94,7 +104,9 @@ The mock also serves `web/`, so after a build `http://127.0.0.1:8603/` runs the 
 
 Installed with `node scripts/arc-add.mjs <ids>` into `ui/src/components/arc/`:
 `arc-foundation` (tokens), `button`, `badge`, `alert`, `file-dropzone`, `theme-switch`, `animated-counter`, `tabs`,
-`empty-state`, `text-shimmer`, `confirm-morph`, `tooltip`.
+`empty-state`, `text-shimmer`, `confirm-morph`, `tooltip`, `dropdown-menu`. `dropdown-menu` was copied from the registry
+by hand (arc-add would also rewrite `lib/motion-tokens.ts`) and extended locally with an icon-only trigger: optional
+`trigger`, `triggerClassName`, `tooltip` (wraps the trigger in Arc `tooltip`) and `onCloseAutoFocus`.
 Probability bars, route lanes, the notice and the receipt table are page CSS on Arc's semantic tokens; motion uses
 `components/arc/lib/motion-tokens.ts` presets, each with a reduced-motion branch.
 
