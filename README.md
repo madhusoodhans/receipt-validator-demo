@@ -3,7 +3,7 @@
 A demo of what the [vLLM Semantic Router](https://github.com/vllm-project/semantic-router) (vllm-sr) and its
 Decision 3.0 (D3) models add to an LLM application, on the hosted vllm-sr API (`https://app.vllm-sr.ai`). A user
 uploads a photo of a receipt. D3 ([vllm-sr/d3-flash](https://huggingface.co/vllm-sr/d3-flash)) looks at it once and
-answers seven questions as probabilities. A good receipt goes to an LLM that reads it into JSON; a bad upload is never
+answers six questions as probabilities. A good receipt goes to an LLM that reads it into JSON; a bad upload is never
 read, and an LLM writes a short message saying what is wrong and how to retake the photo. Both LLM calls ask for
 `vllm-sr/auto`: the vllm-sr Router picks the model and its reasoning mode per request, and the page shows what it
 picked. The page shows each step as it happens and, for each request, the decision latency, the LLM time and the
@@ -18,7 +18,7 @@ tokens the LLM wrote.
 ```mermaid
 flowchart LR
     B["Browser"] -->|upload| S["Demo server<br/>app/server.py"]
-    S -->|"one request, seven questions<br/>(1024 px copy)"| D3["D3: vllm-sr/d3-flash<br/>/v1/systemone"]
+    S -->|"one request, six questions<br/>(1024 px copy)"| D3["D3: vllm-sr/d3-flash<br/>/v1/systemone"]
     D3 -->|probabilities| R{"Route<br/>app/check.py"}
     R -->|"extract or review"| X["vllm-sr/auto reads<br/>the image into JSON"]
     R -->|reject| M["vllm-sr/auto writes<br/>the retake message"]
@@ -28,18 +28,21 @@ flowchart LR
 ```
 
 1. **D3, one call.** The server turns the upload into one upright JPEG of at most 1600 px and sends D3 a 1024 px copy.
-   One `/v1/systemone` request carries all seven questions: a choice (receipt, invoice, other document, screenshot,
-   photo) and six yes/no statements. D3 returns a probability for each and generates no text.
+   One `/v1/systemone` request carries all six questions: the kind (receipt, invoice, other document, several
+   receipts, screenshot, photo) and five yes/no statements (total visible, sharp, torn, glare, added text). D3 reads
+   the image once per question, so its tokens grow with the number of questions. D3 returns a probability for each and generates no text. Before D3
+   a size gate without a model (`app/readable.py`) checks the upload has enough pixels to be read.
 2. **Route.** Each check has a borderline and a reject threshold (`CHECKS` in `app/check.py`):
    - **extract**: every check clearly fine. The LLM reads the receipt.
    - **review**: a check in its borderline band. The LLM still reads it and the row is stored with `needs_review = 1`.
    - **reject**: not a receipt or invoice, or a check past its reject threshold.
 3. **Reading** (`vllm-sr/auto` on `/v1/chat/completions`): the 1600 px image goes in, JSON comes out (store, date,
-   currency, line items, subtotal, tax, service charge, discount, total) under a fixed JSON schema
+   currency, line items, subtotal, tax, service charge, discount, the total line's label, total) under a fixed JSON schema
    (`response_format`), so the output always parses. On the demo set the Router sent every read to its `vision`
-   decision (`qwen/qwen3.8-27b`, reasoning on). A sum check without a model follows (items to subtotal, subtotal plus
-   tax and service to total, a real date, total above zero); a receipt that fails it is also stored with
-   `needs_review = 1`.
+   decision (`qwen/qwen3.8-27b`, reasoning on). The total is null when no total line is visible (the LLM is told never
+   to copy the subtotal into it). A sum check without a model follows (items to subtotal, or to the total when item
+   lines include tax; subtotal plus tax and service to total; a total was read, from a total line rather than a
+   subtotal line; a real date; total above zero); a receipt that fails it is also stored with `needs_review = 1`.
 4. **Retake message** (`vllm-sr/auto`): gets only D3's answers as text, never the image, and writes one short message
    covering every problem found. One problem usually routes to the Router's `fast` decision (reasoning off, ~0.5 s);
    several problems went to `standard` (reasoning on, 3-12 s). If the LLM fails, a fixed template message is used.
@@ -53,12 +56,12 @@ The checks:
 
 | Check | Statement given to D3 | Borderline from | Reject from |
 |---|---|---:|---:|
-| Kind | choice: receipt, invoice, other document, screenshot, photo | | anything but receipt or invoice |
-| Whole receipt visible | The whole receipt is visible, from the store name to the total. | 0.25 or lower | 0.17 or lower |
+| Image size (no model) | sqrt(width x height) of the upload in pixels | under 240 | under 180 |
+| Kind | choice: receipt, invoice, other document (budget, statement, quote, menu, letter, form), several receipts or documents, screenshot, photo | an invoice with p(other document) 0.30 or more, or another document with p(invoice) 0.20 or more ("May not be an invoice") | anything but receipt or invoice; "several" is reported as "More than one receipt" |
+| Total cut off or hidden | The line with the final total to pay, and its amount, is fully visible in the image. | 0.70 or lower | 0.35 or lower (invoices: review only) |
 | Blurry text | The printed text is sharp and in focus. | 0.37 or lower | 0.19 or lower |
-| Torn, crumpled or stained | The receipt is torn, crumpled, stained or dirty. | 0.56 | 0.74 |
+| Torn or missing piece | A piece of the receipt is torn off or missing. | 0.55 | 0.70 |
 | Glare or heavy shadow | Glare or a heavy shadow covers part of the text. | 0.54 | 0.83 |
-| More than one receipt | More than one receipt is in the photo. | 0.57 | 0.68 |
 | Added note or text | Someone wrote or stuck a message on the receipt that gives instructions, such as telling the reader to change or ignore something. | 0.55 | 0.73 |
 
 "Added note or text" is a guardrail: text in a photo can carry instructions for the model that reads it ("ignore your
@@ -227,6 +230,7 @@ LLM reading, LLM retake messages).
 ```bash
 .venv/bin/python tests/test_multiuser.py      # no API key, no model calls
 .venv/bin/python tests/test_keys.py           # visitor keys against a mock API, fake keys only
+.venv/bin/python tests/test_fixes.py          # routing rule, size gate and sum check, no model calls
 .venv/bin/python bench/load_test.py           # stub on :8931, server on :8641; --visitors 30 --uploads 6 [--p429 0.0]
 .venv/bin/python bench/e2e_demo.py            # all 24 demo images through a running server (default :8641), real API
 ```
@@ -355,7 +359,9 @@ soft focus) and 10 bad images (blurry, crumpled, faded print, a pile, a blank fo
 screenshot, a dog photo, and the sticky note). A batch run (`app/run_batch.py`, `bench/score_batch.py`, before the
 sticky-note image) routed 23/23, read totals and line items right on 12/12 good receipts, with D3 at 52-224 ms, the
 Qwen 4B message at 142-238 ms and Qwen 27B at 2.2-6.9 s. With the added-text check, `deploy/smoke_test.sh --all`
-routes all 24 as labelled and the 27B reads the right total on all 14 receipts it reads.
+routes all 24 as labelled and the 27B reads the right total on all 14 receipts it reads. With the six-question check
+the crumpled photo (04) and the faded and creased CORD receipt (07) are readable and labelled `extract`: 14 extract,
+1 review (soft focus) and 9 reject.
 
 **Hosted end to end** (`bench/e2e_demo.py`, `results/e2e_hosted.json`, through the server on the hosted API): 24/24
 routes as labelled; the 14 receipts that were read (12 good, 2 borderline) had the right total, line items and sum

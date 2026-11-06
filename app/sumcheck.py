@@ -1,5 +1,8 @@
 """Arithmetic checks on an extracted receipt (no model). A failed check sends the receipt to review."""
+import re
 from datetime import date
+
+SUBTOTAL_LABEL = re.compile(r"sub|before\s*tax|excl", re.I)  # a "total" read from a subtotal line
 
 
 def _close(a, b, total):
@@ -28,6 +31,10 @@ def sumcheck(rc):
         detail = f"{terms} = {fmt(s)}; {name} {fmt(target)}"
         if not ok and disc and _close(s - abs(disc), target, total):
             ok, detail = True, f"{terms} - discount {fmt(abs(disc))} = {fmt(s - abs(disc))}; {name} {fmt(target)}"
+        if not ok and sub is not None and (tax or svc) and _close(s - abs(disc or 0), total, total):
+            # item lines printed with tax included, subtotal printed without it (Malaysian GST receipts)
+            less = f" - discount {fmt(abs(disc))}" if disc else ""
+            ok, detail = True, f"{terms}{less} = {fmt(s - abs(disc or 0))}; total {fmt(total)} (item prices include tax)"
         checks.append({"name": "items_sum", "label": f"Items add up to the {name}", "ok": ok, "detail": detail})
     if sub is not None and total is not None:
         plus = [(f"{name} {fmt(v)}", v) for name, v in (("tax", tax), ("service", svc)) if v]
@@ -54,6 +61,15 @@ def sumcheck(rc):
         except ValueError:
             ok, detail = False, f"cannot read '{rc['date']}'"
         checks.append({"name": "date", "label": "The date is a real date", "ok": ok, "detail": detail})
+    if total is None:
+        checks.append({"name": "total_read", "label": "A total was read", "ok": False,
+                       "detail": "no total line is visible"})
+    else:
+        label = (rc.get("total_label") or "").strip()
+        if "total_label" in rc and (not label or SUBTOTAL_LABEL.search(label)):
+            # no total line of its own was read: the amount may be a subtotal copied into the total
+            checks.append({"name": "total_line", "label": "The total comes from a total line", "ok": False,
+                           "detail": f"read from '{label}'" if label else "no total line was read"})
     if total is not None:
         checks.append({"name": "total_positive", "label": "The total is above zero", "ok": total > 0, "detail": fmt(total)})
     return {"ok": all(c["ok"] for c in checks), "checks": checks}

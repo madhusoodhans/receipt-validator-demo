@@ -32,15 +32,29 @@ export function badReasons<R extends { key: string; status: string }>(reasons: R
 }
 
 const KIND: Record<string, string> = {
-  receipt: "Receipt", invoice: "Invoice", other_document: "Other document", screenshot: "Screenshot", photo: "Photo",
+  receipt: "Receipt", invoice: "Invoice", other_document: "Other document", several: "Several receipts or documents",
+  screenshot: "Screenshot", photo: "Photo",
 };
 export const kindLabel = (k: string) => KIND[k] || (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, " ");
 
 const PROBLEM: Record<string, string> = {
-  blurry: "Blurry", complete: "Cut off", damaged: "Damaged", glare: "Glare or shadow", multiple: "Several receipts", kind: "Not a receipt",
-  added_text: "Added note or text",
+  blurry: "Blurry", complete: "Total cut off", damaged: "Torn or missing piece", glare: "Glare or shadow", multiple: "Several receipts",
+  kind: "Not a receipt", added_text: "Added note or text", size: "Too small to read", kind_doubt: "May not be an invoice",
 };
 export const problemLabel = (k: string) => PROBLEM[k] || (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, " ");
+
+/** A route reason's badge: short words per key (the server's label otherwise) and the value that reads right with them.
+ * size shows its pixel size; kind_doubt has no percentage (its probability is of the other kind, so it would mislead). */
+const REASON: Record<string, string> = {
+  size: "Image too small to read", multiple: "More than one receipt", kind_doubt: "May not be an invoice",
+  complete: "Total cut off or hidden", damaged: "Torn or missing piece",
+};
+export function reasonBadge(r: { key: string; label: string; prob: number; px?: number }) {
+  const label = REASON[r.key] || r.label;
+  if (r.key === "size") return r.px != null ? `${label}, ${r.px} px` : label;
+  if (r.key === "kind_doubt") return label;
+  return `${label} ${pct(r.prob)}`;
+}
 
 export function timeAgo(iso: string, now = Date.now()) {
   const t = Date.parse(iso);

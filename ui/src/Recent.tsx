@@ -37,7 +37,8 @@ export function Recent({ receipts, rejections, receiptCount, rejectionCount }: {
                   </span>
                 </div>
                 <div className={styles.side}>
-                  <span className={styles.amount}>{money(r.receipt.total, r.receipt.currency, receiptWhole(r.receipt))} <span className="muted">{r.receipt.currency}</span></span>
+                  <span className={styles.amount}>{r.receipt.total == null ? <span className="muted">No total</span>
+                    : <>{money(r.receipt.total, r.receipt.currency, receiptWhole(r.receipt))} <span className="muted">{r.receipt.currency}</span></>}</span>
                   <span className={styles.flags}>
                     {r.needs_review ? <Badge tone="warning" size="sm">Review</Badge> : null}
                     {!r.sumcheck_ok ? <Badge tone="danger" size="sm">Sum off</Badge> : null}

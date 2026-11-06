@@ -47,13 +47,11 @@
  },
  {
   "file": "04_bad_crumpled.jpg",
-  "group": "bad",
-  "label": "Crumpled receipt",
+  "group": "good",
+  "label": "Crumpled but readable",
   "source": "user",
-  "expected_route": "reject",
-  "problems": [
-   "damaged"
-  ]
+  "expected_route": "extract",
+  "problems": []
  },
  {
   "file": "05_good_cash_template.jpg",
@@ -83,16 +81,15 @@
   "source": "user",
   "expected_route": "reject",
   "problems": [
-   "damaged",
    "blurry"
   ]
  },
  {
   "file": "07_borderline_faded_creased.jpg",
-  "group": "borderline",
-  "label": "Faded and creased (CORD)",
+  "group": "good",
+  "label": "Faded and creased, readable (CORD)",
   "source": "cord",
-  "expected_route": "review",
+  "expected_route": "extract",
   "cord_index": 19,
   "gt": {
    "menu": [

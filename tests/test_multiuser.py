@@ -113,10 +113,10 @@ def test_isolation():
 
 def test_demo_runs_share_images():
     a = vid()
-    r = requests.post(f"{URL}/api/check", json={"demo": "04_bad_crumpled.jpg"}, headers=h(a))
+    r = requests.post(f"{URL}/api/check", json={"demo": "02_bad_blurry_hand.jpg"}, headers=h(a))
     assert r.status_code == 200 and "event: stored" in r.text
     row = get("/api/rejections", a).json()[0]
-    assert row["image_url"] == "/api/demo/04_bad_crumpled.jpg", row
+    assert row["image_url"] == "/api/demo/02_bad_blurry_hand.jpg", row
     assert not os.path.isdir(server.VIS.folder(a)), "demo runs store no file"
     assert "event: done" in r.text
     print("demo runs ok")
@@ -491,10 +491,10 @@ def test_timeouts_mid_run():
         assert "d3" in ev and "route" in ev and "stored" not in ev
         plain(ev)
         stub(delay={"retake": 2})
-        code, ev = upload(vid(), "04_bad_crumpled.jpg", reencode("04_bad_crumpled.jpg"))
+        code, ev = upload(vid(), "02_bad_blurry_hand.jpg", reencode("02_bad_blurry_hand.jpg"))
         m = ev["message"]
         assert m["model"] == "template" and m["fallback"] == "standard message (LLM timed out)", m
-        assert m["text"] == message.template(ev["route"]) and "crumpled" in m["text"], m
+        assert m["text"] == message.template(ev["route"]) and "blurry" in m["text"], m
         assert ev["stored"]["table"] == "rejections" and "done" in ev
         assert get("/api/rejections", vid()).json() == []
         stub(down=["retake"])

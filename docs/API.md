@@ -127,17 +127,23 @@ again."
 `d3` data:
 
 ```json
-{"model": "vllm-sr/d3-flash", "ms": 380, "tokens": 2564,
- "kind": {"choice": "receipt", "probabilities": {"receipt": 0.98, "invoice": 0.01, "other_document": 0.0, "screenshot": 0.0, "photo": 0.01}},
+{"model": "vllm-sr/d3-flash", "ms": 380, "tokens": 4032,
+ "kind": {"choice": "receipt", "probabilities": {"receipt": 0.98, "invoice": 0.01, "other_document": 0.0, "several": 0.0, "screenshot": 0.0, "photo": 0.01}},
  "checks": [
-   {"key": "complete", "label": "Whole receipt visible", "prob": 0.91, "bad_when": "low",  "threshold": 0.17, "borderline_from": 0.25, "status": "ok"},
+   {"key": "complete", "label": "Total cut off or hidden", "prob": 0.95, "bad_when": "low", "threshold": 0.35, "borderline_from": 0.70, "status": "ok"},
    {"key": "blurry",   "label": "Blurry text",           "prob": 0.72, "bad_when": "low",  "threshold": 0.19, "borderline_from": 0.37, "status": "ok"},
-   {"key": "damaged",  "label": "Torn, crumpled or stained", "prob": 0.12, "bad_when": "high", "threshold": 0.74, "borderline_from": 0.56, "status": "ok"},
+   {"key": "damaged",  "label": "Torn or missing piece",  "prob": 0.12, "bad_when": "high", "threshold": 0.70, "borderline_from": 0.55, "status": "ok"},
    {"key": "glare",    "label": "Glare or heavy shadow",  "prob": 0.20, "bad_when": "high", "threshold": 0.83, "borderline_from": 0.54, "status": "ok"},
-   {"key": "multiple", "label": "More than one receipt",  "prob": 0.02, "bad_when": "high", "threshold": 0.68, "borderline_from": 0.57, "status": "ok"},
    {"key": "added_text", "label": "Added note or text",   "prob": 0.05, "bad_when": "high", "threshold": 0.73, "borderline_from": 0.55, "status": "ok"}
- ]}
+ ],
+ "size": {"key": "size", "label": "Image too small to read", "px": 1058, "status": "ok", "threshold": 180, "borderline_from": 240}}
 ```
+
+`size` is the size gate run before D3 (`app/readable.py`, no model); a `bad` or `borderline` size is also a route
+reason (`{"key": "size", ..., "px": 150}`; its `prob` is px / borderline_from). A `kind_doubt` reason (borderline)
+means the kind is an invoice that may be a budget, statement or quote (p(other_document) >= 0.30), or another document
+that may still be an invoice (p(invoice) >= 0.20); the image is read and stored for review. When the kind is
+`several` (more than one receipt in the photo) the reject reason has the key `multiple`.
 
 `status` is `ok`, `borderline` or `bad`. The list of checks and thresholds may change during tuning; the UI renders
 whatever comes back (one probability bar per check, a marker at `threshold`).
@@ -150,8 +156,12 @@ whatever comes back (one probability bar per check, a marker at `threshold`).
 ```json
 {"store_name": "Berghotel Grosse Scheidegg", "date": "2007-07-30", "currency": "CHF",
  "items": [{"name": "Latte Macchiato", "quantity": 2, "unit_price": 4.5, "amount": 9.0}],
- "subtotal": null, "tax": 3.85, "service_charge": null, "discount": null, "total": 54.5}
+ "subtotal": null, "tax": 3.85, "service_charge": null, "discount": null, "total_label": "Total", "total": 54.5}
 ```
+
+`total` and `total_label` are null when no total line is visible (for example a photo cut off above it); the sum check
+then fails `total_read` and the receipt is stored with `needs_review`. A total read from a subtotal line, or with no
+total line label, fails `total_line`.
 
 A receipt too long for the LLM's 4,096 output tokens (the reply was cut off, or its JSON does not parse) ends with
 `{"step": "extract", "message": "This receipt is too long for the demo: the LLM hit its 4,096-token output limit after

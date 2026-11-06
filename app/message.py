@@ -15,21 +15,23 @@ SYSTEM = ("You write the message a receipt scanning app shows when an upload can
           "No greeting, no apology, no technical terms, no probabilities.")
 ADVICE = {
     "kind": "the image is not a receipt",
-    "complete": "part of the receipt is cut off (often the total at the bottom)",
+    "complete": "part of the receipt is cut off or hidden, so the total at the bottom cannot be read",
     "blurry": "the text is blurry or out of focus",
-    "damaged": "the receipt is crumpled, torn, faded or stained",
+    "damaged": "a piece of the receipt is torn off or missing",
     "glare": "glare or a shadow covers part of the text",
     "multiple": "there is more than one receipt in the photo",
     "added_text": "the receipt seems to have added notes or text, so ask for a photo of the original receipt only",
+    "size": "the image is too small (too few pixels) to read the text, so ask for the full-size photo taken close up",
 }
 # template(): what is wrong and how to fix it, per problem, in the words the LLM is asked to use
 PROBLEM = {
-    "complete": ("part of the receipt is cut off", "fit the whole receipt in the frame, from the store name to the total"),
+    "complete": ("part of the receipt is cut off or the total is hidden", "fit the whole receipt in the frame, from the store name down to the total"),
     "blurry": ("the text is blurry", "hold the phone steady and let it focus"),
-    "damaged": ("the receipt is crumpled, torn or stained", "flatten it on a table"),
+    "damaged": ("a piece of the receipt is torn off or missing", "photograph the complete receipt"),
     "glare": ("glare or a shadow covers part of the text", "move out of direct light"),
     "multiple": ("there is more than one receipt in the photo", "photograph one receipt at a time"),
     "added_text": ("the receipt seems to have added notes or text", "upload a photo of the original receipt only"),
+    "size": ("the image is too small to read", "take the photo close up so the receipt fills the frame, and upload the full-size photo"),
 }
 
 

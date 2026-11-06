@@ -7,6 +7,7 @@ import check
 import db
 import gate
 import keys
+import readable
 from extract import MODEL as EXTRACT_MODEL, TooLong, extract
 from message import MODEL as MESSAGE_MODEL, template, write_message
 from sumcheck import sumcheck
@@ -92,8 +93,9 @@ def run(con, upload_id, file, image_bytes, mime, size, image_sha256=None, cancel
     step = "d3"
     try:
         step = go("d3")
+        size_gate = readable.judge(size)  # before D3, no model: too few pixels to read is a reason of its own
         answers, steps["d3"], d3_tokens = check.ask_d3(image_bytes, mime, with_tokens=True)
-        d3, route = check.decide(answers)
+        d3, route = check.decide(answers, size_gate)
         d3 = {"model": check.MODEL, "ms": steps["d3"], "tokens": d3_tokens, **d3}
         yield "d3", d3
         yield "route", route

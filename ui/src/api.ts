@@ -22,12 +22,18 @@ export type Status = "ok" | "borderline" | "bad";
 export type RouteName = "extract" | "review" | "reject";
 
 export interface Check { key: string; label: string; prob: number; bad_when: "low" | "high"; threshold: number; status: Status }
-export interface D3 { model: string; ms: number; tokens?: number; kind: { choice: string; probabilities: Record<string, number> }; checks: Check[] }
-export interface Reason { key: string; label: string; prob: number; status: Status }
+/** The size gate run before D3 (no model): px is sqrt(width x height) of the upload; bad below threshold, borderline
+ * below borderline_from. */
+export interface SizeGate { key: "size"; label: string; px: number; status: Status; threshold: number; borderline_from: number }
+export interface D3 { model: string; ms: number; tokens?: number; kind: { choice: string; probabilities: Record<string, number> }; checks: Check[]; size?: SizeGate }
+/** px only on a "size" reason. */
+export interface Reason { key: string; label: string; prob: number; status: Status; px?: number }
 export interface LineItem { name: string; quantity: number | null; unit_price: number | null; amount: number | null }
 export interface Receipt {
   store_name: string | null; date: string | null; currency: string | null; items: LineItem[];
-  subtotal: number | null; tax: number | null; service_charge: number | null; discount: number | null; total: number | null;
+  subtotal: number | null; tax: number | null; service_charge: number | null; discount: number | null;
+  /** The printed label of the final total line; null (with total null) when no total line is visible. */
+  total_label?: string | null; total: number | null;
 }
 export interface SumCheck { ok: boolean; checks: { name: string; label: string; ok: boolean; detail?: string }[] }
 

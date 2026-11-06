@@ -21,8 +21,8 @@ const now = () => new Date().toISOString().replace(/\.\d+Z$/, "Z");
 const labels = existsSync(join(DEMO_DIR, "labels.json")) ? JSON.parse(readFileSync(join(DEMO_DIR, "labels.json"), "utf8")) : [];
 const PROBLEM = { // labels.json problem -> what the mock D3 reports
   blurry: { key: "blurry", label: "Blurry text" },
-  incomplete: { key: "complete", label: "Whole receipt visible" },
-  damaged: { key: "damaged", label: "Torn, crumpled or stained" },
+  incomplete: { key: "complete", label: "Total cut off or hidden" },
+  damaged: { key: "damaged", label: "Torn or missing piece" },
   glare: { key: "glare", label: "Glare or heavy shadow" },
   multiple: { key: "multiple", label: "More than one receipt" },
   not_document: { kind: "photo", label: "Photo, not a receipt" },
@@ -100,9 +100,9 @@ function sumcheck(r) {
 }
 
 const CHECKS = [
-  { key: "complete", label: "Whole receipt visible", bad_when: "low", threshold: 0.15 },
+  { key: "complete", label: "Total cut off or hidden", bad_when: "low", threshold: 0.15 },
   { key: "blurry", label: "Blurry text", bad_when: "high", threshold: 0.6 },
-  { key: "damaged", label: "Torn, crumpled or stained", bad_when: "high", threshold: 0.6 },
+  { key: "damaged", label: "Torn or missing piece", bad_when: "high", threshold: 0.6 },
   { key: "glare", label: "Glare or heavy shadow", bad_when: "high", threshold: 0.45 },
   { key: "multiple", label: "More than one receipt", bad_when: "high", threshold: 0.5 },
 ];

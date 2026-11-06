@@ -6,8 +6,8 @@ import { Button } from "./components/arc/button/button";
 import { Badge } from "./components/arc/badge/badge";
 import { TextShimmer } from "./components/arc/text-shimmer/text-shimmer";
 import { motionTokens } from "./components/arc/lib/motion-tokens";
-import type { Check as D3Check, Config, D3, Events, Receipt, Routed, RouteName, Status } from "./api";
-import { kindLabel, money, ms, pct, pctNear, receiptWhole } from "./format";
+import type { Check as D3Check, Config, D3, Events, Receipt, Routed, RouteName, SizeGate, Status } from "./api";
+import { kindLabel, money, ms, pct, pctNear, reasonBadge, receiptWhole } from "./format";
 import type { Run } from "./run";
 import styles from "./Steps.module.css";
 
@@ -58,11 +58,18 @@ function Pending({ run, text, from, model }: { run: Run; text: string; from?: nu
   );
 }
 
+/** Every check label names the problem ("Total cut off or hidden", "Blurry text"). D3 is asked some of them the other way
+ * round ("the total line is fully visible", bad when low); those show 1 - p, so every bar reads as the chance of the
+ * problem with its reject zone on the right. */
+const problemProb = (c: { prob: number; bad_when: "low" | "high" }) => (c.bad_when === "low" ? 1 - c.prob : c.prob);
+
 function CheckBar({ c }: { c: D3Check }) {
   const reduce = useReducedMotion();
-  const thr = Math.min(1, Math.max(0, c.threshold));
-  const zone = c.bad_when === "high" ? { left: `${thr * 100}%`, right: 0 } : { left: 0, width: `${thr * 100}%` };
-  const rule = `${c.bad_when === "high" ? "bad above" : "bad below"} ${pct(c.threshold)}`;
+  const prob = problemProb(c);
+  const threshold = c.bad_when === "low" ? 1 - c.threshold : c.threshold;
+  const thr = Math.min(1, Math.max(0, threshold));
+  const zone = { left: `${thr * 100}%`, right: 0 };
+  const rule = `bad above ${pct(threshold)}`;
   return (
     <li className={styles.check} data-status={c.status}>
       <div className={styles.checkLabel}>
@@ -70,15 +77,42 @@ function CheckBar({ c }: { c: D3Check }) {
         <span className={styles.rule}>{rule}</span>
       </div>
       <div className={styles.track} role="meter" aria-label={c.label} aria-valuemin={0} aria-valuemax={100}
-        aria-valuenow={Math.round(c.prob * 100)} aria-valuetext={`${pctNear(c.prob, c.threshold)}, ${rule}, ${STATUS_TEXT[c.status]}`}>
+        aria-valuenow={Math.round(prob * 100)} aria-valuetext={`${pctNear(prob, threshold)}, ${rule}, ${STATUS_TEXT[c.status]}`}>
         <span className={styles.zone} style={zone} />
         <motion.span className={styles.fill}
-          initial={{ scaleX: 0 }} animate={{ scaleX: Math.min(1, Math.max(0, c.prob)) }}
+          initial={{ scaleX: 0 }} animate={{ scaleX: Math.min(1, Math.max(0, prob)) }}
           transition={reduce ? { duration: 0 } : motionTokens.spring.smooth} />
         <span className={styles.marker} style={{ left: `${thr * 100}%` }} />
       </div>
-      <span className={styles.prob}>{pctNear(c.prob, c.threshold)}</span>
+      <span className={styles.prob}>{pctNear(prob, threshold)}</span>
       <Badge tone={TONE[c.status]} size="sm">{STATUS_TEXT[c.status]}</Badge>
+    </li>
+  );
+}
+
+/** The size gate (no model, before D3) in the same row layout as a check: the bar runs from 0 to twice the review size,
+ * with the reject size as its marker; the value is the pixel size. */
+function SizeRow({ s }: { s: SizeGate }) {
+  const reduce = useReducedMotion();
+  const scale = s.borderline_from * 2;
+  const thr = Math.min(1, s.threshold / scale);
+  const rule = `bad below ${s.threshold} px`;
+  return (
+    <li className={styles.check} data-status={s.status} data-size>
+      <div className={styles.checkLabel}>
+        <span>Image size</span>
+        <span className={styles.rule}>{rule}</span>
+      </div>
+      <div className={styles.track} role="meter" aria-label="Image size" aria-valuemin={0} aria-valuemax={scale}
+        aria-valuenow={Math.min(scale, s.px)} aria-valuetext={`${s.px} px, ${rule}, ${STATUS_TEXT[s.status]}`}>
+        <span className={styles.zone} style={{ left: 0, width: `${thr * 100}%` }} />
+        <motion.span className={styles.fill}
+          initial={{ scaleX: 0 }} animate={{ scaleX: Math.min(1, Math.max(0, s.px / scale)) }}
+          transition={reduce ? { duration: 0 } : motionTokens.spring.smooth} />
+        <span className={styles.marker} style={{ left: `${thr * 100}%` }} />
+      </div>
+      <span className={styles.prob}>{`${s.px} px`}</span>
+      <Badge tone={TONE[s.status]} size="sm">{STATUS_TEXT[s.status]}</Badge>
     </li>
   );
 }
@@ -94,7 +128,10 @@ function D3Body({ d3 }: { d3: D3 }) {
         <span className={styles.kindProb}>{pct(d3.kind.probabilities[d3.kind.choice] ?? 0)}</span>
         {others.length > 0 && <span className="muted">{others.map(([k, p]) => `${kindLabel(k).toLowerCase()} ${pct(p)}`).join(", ")}</span>}
       </div>
-      <ul className={styles.checks} aria-label="Image checks">{d3.checks.map((c) => <CheckBar key={c.key} c={c} />)}</ul>
+      <ul className={styles.checks} aria-label="Image checks">
+        {d3.size && <SizeRow s={d3.size} />}
+        {d3.checks.map((c) => <CheckBar key={c.key} c={c} />)}
+      </ul>
     </>
   );
 }
@@ -109,7 +146,8 @@ const LANES: { route: RouteName; title: string; detail: string }[] = [
 const FORK_X = [50, 150, 250];
 const forkPath = (x: number) => `M150 0 C150 30 ${x} 26 ${x} 56`;
 
-function RouteBody({ route }: { route: Events["route"] }) {
+function RouteBody({ route, d3 }: { route: Events["route"]; d3?: D3 }) {
+  const lowBad = new Set((d3?.checks ?? []).filter((c) => c.bad_when === "low").map((c) => c.key));
   return (
     <>
       <div className={styles.fork} aria-hidden="true">
@@ -133,7 +171,7 @@ function RouteBody({ route }: { route: Events["route"] }) {
       <div className={styles.reasons}>
         <span className={styles.summary}>{route.summary}</span>
         {route.reasons.map((r) => (
-          <Badge key={r.key} tone={TONE[r.status] ?? "neutral"}>{`${r.label} ${pct(r.prob)}`}</Badge>
+          <Badge key={r.key} tone={TONE[r.status] ?? "neutral"}>{reasonBadge(lowBad.has(r.key) ? { ...r, prob: 1 - r.prob } : r)}</Badge>
         ))}
       </div>
     </>
@@ -186,8 +224,9 @@ function ReceiptBody({ r }: { r: Receipt }) {
   const whole = receiptWhole(r);
   const m = (v: number | null) => money(v, cur, whole);
   const totals: [string, number | null, boolean?][] = [
-    ["Subtotal", r.subtotal], ["Tax", r.tax], ["Service charge", r.service_charge], ["Discount", r.discount != null ? -Math.abs(r.discount) : null], ["Total", r.total, true],
+    ["Subtotal", r.subtotal], ["Tax", r.tax], ["Service charge", r.service_charge], ["Discount", r.discount != null ? -Math.abs(r.discount) : null],
   ];
+  const printed = r.total_label?.trim();
   return (
     <div className={styles.receipt}>
       <div className={styles.store}>
@@ -206,6 +245,13 @@ function ReceiptBody({ r }: { r: Receipt }) {
             {totals.filter(([, v]) => v != null).map(([label, v, strong]) => (
               <tr key={label} data-total={strong || undefined}><th scope="row" colSpan={3}>{label}</th><td>{m(v)}{strong && cur ? ` ${cur}` : ""}</td></tr>
             ))}
+            <tr data-total>
+              <th scope="row" colSpan={3}>
+                Total
+                {printed && printed.toLowerCase() !== "total" && <span className={styles.totalLabel}>{`printed as "${printed}"`}</span>}
+              </th>
+              <td>{r.total == null ? <span className={styles.noTotal}>Not visible</span> : `${m(r.total)}${cur ? ` ${cur}` : ""}`}</td>
+            </tr>
           </tfoot>
         </table>
       </div>
@@ -292,7 +338,7 @@ export function Steps({ run, onStop, models }: { run: Run; onStop: () => void; m
         {failedAt === "d3" && <Failed title={<>D3 check {models?.d3 && <span className={styles.model}>{models.d3}</span>}</>} error={error!} />}
         {route && (
           <Step icon={<ArrowRight size={18} strokeWidth={1.75} />} label="Route" title="Route">
-            <RouteBody route={route} />
+            <RouteBody route={route} d3={d3} />
           </Step>
         )}
         {skipped(["route"])}

@@ -60,11 +60,13 @@ def made_answers(label):
     for prob in label.get("problems") or []:
         if prob == "kind":
             kind = "screenshot" if "screenshot" in label["file"] else "photo" if "photo" in label["file"] else "other_document"
+        elif prob == "multiple":  # fixes-2: asked in the kind question ("several")
+            kind = "several"
         else:
             *_s, when, _border, bad = check.CHECKS[prob]
             p[prob] = bad / 2 if when == "low" else (1 + bad) / 2
     if label["expected_route"] == "review":
-        k = "blurry" if "focus" in label["file"] else "damaged"
+        k = "blurry" if "focus" in label["file"] else "glare"
         *_s, _when, border, bad = check.CHECKS[k]
         p[k] = (border + bad) / 2
     probs = {k: 0.01 for k in check.KIND["criteria"]}; probs[kind] = 0.95

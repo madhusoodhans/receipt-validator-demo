@@ -41,7 +41,9 @@
 .check[data-status="borderline"] .fill { background: var(--warning); }
 .check[data-status="bad"] .fill { background: var(--danger); }
 .marker { position: absolute; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: var(--foreground); }
-.prob { font-variant-numeric: tabular-nums; text-align: right; font-weight: 500; }
+.prob { font-variant-numeric: tabular-nums; text-align: right; font-weight: 500; white-space: nowrap; }
+/* The size row's value is a pixel size, wider than a percentage; right-aligned, so it still lines up. */
+.check[data-size] { grid-template-columns: minmax(0, 1fr) auto 6rem; }
 
 /* Route: three lanes, the taken one filled. */
 .lanes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
@@ -95,6 +97,8 @@
 .items tfoot th { text-align: right; font-weight: 400; color: var(--text-secondary); }
 .items tfoot tr:first-child > * { border-top: 1px solid var(--border); }
 .items tfoot tr[data-total] > * { font-size: var(--text-xl); font-weight: 500; color: var(--foreground); border-bottom: 0; }
+.totalLabel { display: block; font-size: var(--text-sm); font-weight: 400; color: var(--text-secondary); }
+.noTotal { font-size: var(--text-lg); font-weight: 400; color: var(--warning); }
 
 .sums { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
 .sums li { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: var(--space-2); align-items: baseline; }
@@ -105,6 +109,7 @@
 
 @container (max-width: 560px) {
   .check { grid-template-columns: minmax(0, 1fr) 3rem 5.5rem; }
+  .check[data-size] { grid-template-columns: minmax(0, 1fr) auto 5.5rem; }
   .items { font-size: var(--text-sm); }
   .items th, .items td { padding: 4px 6px; }
   .items tfoot tr[data-total] > * { font-size: var(--text-lg); }
