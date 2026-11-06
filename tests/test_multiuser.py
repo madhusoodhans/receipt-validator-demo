@@ -82,7 +82,7 @@ def reencode(file):
 
 
 def get(path, v=None):
-    return requests.get(f"{URL}{path}", headers=h(v) if v else {})
+    return requests.get(f"{URL}/{path.lstrip('/')}", headers=h(v) if v else {})
 
 
 def test_isolation():
@@ -118,7 +118,7 @@ def test_demo_runs_share_images():
     r = requests.post(f"{URL}/api/check", json={"demo": "02_bad_blurry_hand.jpg"}, headers=h(a))
     assert r.status_code == 200 and "event: stored" in r.text
     row = get("/api/rejections", a).json()[0]
-    assert row["image_url"] == "/api/demo/02_bad_blurry_hand.jpg", row
+    assert row["image_url"] == "api/demo/02_bad_blurry_hand.jpg", row
     assert not os.path.isdir(server.VIS.folder(a)), "demo runs store no file"
     assert "event: done" in r.text
     print("demo runs ok")

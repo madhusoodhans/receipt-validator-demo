@@ -109,8 +109,8 @@ DEMO_PREFIX = "demo-"  # upload_id of a run on a demo image: no file is stored, 
 
 def image_url(r):
     if r["upload_id"].startswith(DEMO_PREFIX):
-        return f"/api/demo/{r['file']}"
-    return f"/api/uploads/{r['upload_id']}"
+        return f"api/demo/{r['file']}"
+    return f"api/uploads/{r['upload_id']}"
 
 
 def recent_receipts(con, visitor_id, limit=50):

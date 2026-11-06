@@ -99,7 +99,7 @@ Response: `text/event-stream`. Events arrive in this order; `message` and `extra
 
 | Event | When | Data |
 |---|---|---|
-| `received` | at once | `{"id": "3f9c0a1b2c3d4e5f6a7b", "file": "IMG_2041.jpg", "width": 1200, "height": 1600, "image_url": "/api/uploads/3f9c0a1b2c3d4e5f6a7b", "size": {"key": "size", "label": "Image too small to read", "px": 1386, "status": "ok", "threshold": 180, "borderline_from": 240, "ms": 0.01}}` (a demo image: `"id": "demo-…"`, `"image_url": "/api/demo/<file>"`; `size` is the size check run before D3, no model, the same object as `d3.size`) |
+| `received` | at once | `{"id": "3f9c0a1b2c3d4e5f6a7b", "file": "IMG_2041.jpg", "width": 1200, "height": 1600, "image_url": "api/uploads/3f9c0a1b2c3d4e5f6a7b", "size": {"key": "size", "label": "Image too small to read", "px": 1386, "status": "ok", "threshold": 180, "borderline_from": 240, "ms": 0.01}}` (a demo image: `"id": "demo-…"`, `"image_url": "api/demo/<file>"`; `size` is the size check run before D3, no model, the same object as `d3.size`) |
 | `retry` | a model call was refused with 429/503 and is tried once more (0 or more times, any point) | `{"model": "extract", "status": 429, "wait_s": 1.0}` (`model`: d3, extract or retake; the run goes on) |
 | `d3` | D3 answered | see below |
 | `route` | routing rule applied | `{"route": "extract" \| "review" \| "reject", "reasons": [Reason], "summary": "Blurry text"}` |
@@ -183,7 +183,7 @@ are decoded at a reduced scale (PIL draft mode) before the 1600 px resize.
 ## GET /api/demo
 
 The demo set, in play order: `[{"file": "01_good_berghotel.jpg", "group": "good" | "bad", "label": "Swiss hotel bar receipt",
-"expected_route": "extract" | "review" | "reject", "image_url": "/api/demo/01_good_berghotel.jpg"}]`.
+"expected_route": "extract" | "review" | "reject", "image_url": "api/demo/01_good_berghotel.jpg"}]`.
 
 ## GET /api/demo/<file>, GET /api/uploads/<id>
 

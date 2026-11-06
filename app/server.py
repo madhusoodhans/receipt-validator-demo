@@ -117,7 +117,7 @@ def prepare_upload(raw, im, size=None):
 
 def demo_list():
     return [{"file": l["file"], "group": l["group"], "label": l["label"], "expected_route": l["expected_route"],
-             "image_url": f"/api/demo/{l['file']}"} for l in LABELS]
+             "image_url": f"api/demo/{l['file']}"} for l in LABELS]
 
 
 def multipart_image(ctype, body):

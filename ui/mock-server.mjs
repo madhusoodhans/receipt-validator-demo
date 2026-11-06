@@ -41,7 +41,7 @@ const demo = labels.map((l) => {
     file: l.file, group: good ? "good" : "bad",
     label: good ? `Indonesian cafe receipt ${l.cord_index ?? ""}`.trim() : NICE[l.problems[0]] || "Bad upload",
     expected_route: l.file === REVIEW_FILE ? "review" : l.route,
-    image_url: `/api/demo/${l.file}`,
+    image_url: `api/demo/${l.file}`,
   };
 });
 const labelOf = Object.fromEntries(labels.map((l) => [l.file, l]));
@@ -194,7 +194,7 @@ async function runCheck(res, { file, bytes, outcome, imageUrl }) {
   const id = `u${state.nextUpload++}`;
   state.uploads.set(id, bytes);
   const { width, height } = sizeOf(bytes);
-  send("received", { id, file, width, height, image_url: imageUrl || `/api/uploads/${id}` });
+  send("received", { id, file, width, height, image_url: imageUrl || `api/uploads/${id}` });
 
   if (outcome.keyError) { await sleep(300); send("error", { step: "d3", reason: "key", code: "invalid", detail: "The vllm-sr API refused the API key",
     message: "Your API key was refused (not valid or revoked). Enter a new key to go on.", skipped: ["route", "model", "stored"] }); return res.end(); }
@@ -222,7 +222,7 @@ async function runCheck(res, { file, bytes, outcome, imageUrl }) {
     for (const r of bad[0]?.key === "kind" ? bad.slice(0, 1) : bad) state.stats.by_problem[r.key] = (state.stats.by_problem[r.key] || 0) + 1;
     await sleep(8);
     const rid = ++state.seq.rejections;
-    state.rejections.unshift({ id: rid, file, image_url: imageUrl || `/api/uploads/${id}`, created_at: now(), reasons: route.reasons, message: text, d3 });
+    state.rejections.unshift({ id: rid, file, image_url: imageUrl || `api/uploads/${id}`, created_at: now(), reasons: route.reasons, message: text, d3 });
     send("stored", { table: "rejections", id: rid, needs_review: 0 });
     steps.db = 8;
   } else {
@@ -241,7 +241,7 @@ async function runCheck(res, { file, bytes, outcome, imageUrl }) {
     state.stats.money[receipt.currency] = (state.stats.money[receipt.currency] || 0) + (receipt.total || 0);
     await sleep(8);
     const rid = ++state.seq.receipts;
-    state.receipts.unshift({ id: rid, file, image_url: imageUrl || `/api/uploads/${id}`, created_at: now(), needs_review: review, receipt, sumcheck_ok: sc.ok, d3 });
+    state.receipts.unshift({ id: rid, file, image_url: imageUrl || `api/uploads/${id}`, created_at: now(), needs_review: review, receipt, sumcheck_ok: sc.ok, d3 });
     send("stored", { table: "receipts", id: rid, needs_review: review });
     steps.sumcheck = 4; steps.db = 8;
   }

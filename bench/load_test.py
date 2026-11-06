@@ -122,9 +122,9 @@ def check_isolation(results):
             problems += 1; print("  mismatch for visitor", i, rec ^ mine_rec, rej ^ mine_rej, stats["uploads"], len(res["runs"]))
         for r in res["runs"]:
             if "/api/uploads/" in r["image_url"]:
-                if requests.get(URL + r["image_url"], headers=hdr).status_code != 200:
+                if requests.get(URL + "/" + r["image_url"], headers=hdr).status_code != 200:
                     problems += 1; print("  own upload missing", r["image_url"])
-                if requests.get(URL + r["image_url"], headers=other).status_code != 404:
+                if requests.get(URL + "/" + r["image_url"], headers=other).status_code != 404:
                     problems += 1; print("  LEAK: another visitor fetched", r["image_url"])
     return problems
 

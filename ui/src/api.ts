@@ -126,7 +126,7 @@ export const getConfig = () => getJson<Config>("api/config").catch((): Config =>
  * URL. Kept per URL (at most the 20 uploads the server keeps per visitor, plus the current one). */
 const imageCache = new Map<string, Promise<string>>();
 export function imageSrc(url: string): Promise<string> {
-  if (!url.includes("/api/uploads/")) return Promise.resolve(url);
+  if (!url.includes("api/uploads/")) return Promise.resolve(url);
   let p = imageCache.get(url);
   if (!p) {
     p = fetch(url, { headers: VISITOR_HEADER }).then(async (r) => {
