@@ -279,6 +279,9 @@ def post(kind, url, json, timeout, sleep=time.sleep, model=None, headers=None):
         wait = retry_after(r)
         gate.hold(wait)
         if attempt == 0 and wait <= RETRY_CAP_S:
+            notify = getattr(local, "on_retry", None)  # the run's stream tells the page it is retrying
+            if notify:
+                notify(model, r.status_code, wait)
             continue  # the hold above makes the retry wait out Retry-After
         break
     if r.status_code in (429, 503):

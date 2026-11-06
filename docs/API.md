@@ -99,7 +99,8 @@ Response: `text/event-stream`. Events arrive in this order; `message` and `extra
 
 | Event | When | Data |
 |---|---|---|
-| `received` | at once | `{"id": "3f9c0a1b2c3d4e5f6a7b", "file": "IMG_2041.jpg", "width": 1200, "height": 1600, "image_url": "/api/uploads/3f9c0a1b2c3d4e5f6a7b"}` (a demo image: `"id": "demo-…"`, `"image_url": "/api/demo/<file>"`) |
+| `received` | at once | `{"id": "3f9c0a1b2c3d4e5f6a7b", "file": "IMG_2041.jpg", "width": 1200, "height": 1600, "image_url": "/api/uploads/3f9c0a1b2c3d4e5f6a7b", "size": {"key": "size", "label": "Image too small to read", "px": 1386, "status": "ok", "threshold": 180, "borderline_from": 240, "ms": 0.01}}` (a demo image: `"id": "demo-…"`, `"image_url": "/api/demo/<file>"`; `size` is the size check run before D3, no model, the same object as `d3.size`) |
+| `retry` | a model call was refused with 429/503 and is tried once more (0 or more times, any point) | `{"model": "extract", "status": 429, "wait_s": 1.0}` (`model`: d3, extract or retake; the run goes on) |
 | `d3` | D3 answered | see below |
 | `route` | routing rule applied | `{"route": "extract" \| "review" \| "reject", "reasons": [Reason], "summary": "Blurry text"}` |
 | `message` | route `reject`: the LLM wrote the message | `{"text": "...", "model": "vllm-sr/auto", "routed": {"model": "qwen/qwen3.8-27b", "decision": "fast", "reasoning": "off"}, "ms": 610, "tokens": 190, "completion_tokens": 38, "reasoning_tokens": 0}` (`model` is the model asked for, `routed` what the Router picked (each `null` when the API does not say), `tokens` the total, `completion_tokens` what the LLM wrote, reasoning included); when the LLM is down or fails: `{"text": "This photo cannot be used: the text is blurry. Please hold the phone steady and let it focus, then try again.", "model": "template", "ms": 2.1, "tokens": null, "fallback": "standard message (LLM unavailable)"}` (`timed out` or `busy` in place of `unavailable` when that is why); the run goes on and is stored |
@@ -223,7 +224,7 @@ Clears the caller's receipts, rejections and upload files (and so their totals);
 
 `{"play_all": true, "max_upload_mb": 15, "uploads_per_min": 6, "landing_url": "", "key_required": true,
 "key_url": "https://app.vllm-sr.ai/#key", "models": {"d3": "vllm-sr/d3-flash",
-"extract": "vllm-sr/auto", "message": "vllm-sr/auto"}}` (`models`: the model names the server asks for). `play_all` is env `PLAY_ALL`
+"extract": "vllm-sr/auto", "message": "vllm-sr/auto"}, "timeouts_s": {"d3": 15, "extract": 30, "message": 20}}` (`models`: the model names the server asks for; `timeouts_s`: how long the server waits for each model's answer). `play_all` is env `PLAY_ALL`
 (default 1; the Space sets 0 and the page hides Play all; single demo images still run). `landing_url` is env
 `LANDING_URL` (default empty): when set, the top bar links back to it ("All demos", with `?theme=light|dark`).
 `key_required`: whether the page must ask for a key (see "API key").

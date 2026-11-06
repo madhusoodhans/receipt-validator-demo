@@ -41,7 +41,10 @@ export interface SumCheck { ok: boolean; checks: { name: string; label: string; 
 export interface Routed { model: string | null; decision: string | null; reasoning: string | null }
 
 export interface Events {
-  received: { id: string; file: string; width: number; height: number; image_url: string };
+  /** size: the size check run before D3 (code, no model), with its time; older servers send it only as d3.size. */
+  received: { id: string; file: string; width: number; height: number; image_url: string; size?: SizeGate & { ms?: number } };
+  /** A model call was refused (429/503) and is tried once more; the run goes on. model: d3, extract or retake. */
+  retry: { model: string; status: number; wait_s: number };
   d3: D3;
   route: { route: RouteName; reasons: Reason[]; summary: string };
   /** model is the model asked for (vllm-sr/auto), routed what the Router picked. model "template" with `fallback` set
@@ -70,7 +73,9 @@ export interface Config { play_all: boolean; max_upload_mb: number; uploads_per_
   /** False when the server has its own key (VLLM_SR_API_KEY): the page then runs without one. */
   key_required?: boolean; key_url?: string;
   /** The model names the server asks for (D3_MODEL, EXTRACT_MODEL, MESSAGE_MODEL). */
-  models?: { d3: string; extract: string; message: string } }
+  models?: { d3: string; extract: string; message: string };
+  /** How long the server waits for each model's answer, in seconds. */
+  timeouts_s?: { d3: number; extract: number; message: number } }
 
 export interface ReceiptRow { id: number; file: string; image_url: string; created_at: string; needs_review: number; receipt: Receipt; sumcheck_ok: boolean; d3?: D3 }
 export interface RejectionRow { id: number; file: string; image_url: string; created_at: string; reasons: Reason[]; message: string; d3?: D3 }

@@ -242,7 +242,7 @@ export function App() {
               )}
             </div>
             <div className={styles.steps}>
-              {run ? <Steps run={run} onStop={runner.stop} models={config?.models} /> : (
+              {run ? <Steps run={run} onStop={runner.stop} models={config?.models} timeouts={config?.timeouts_s} /> : (
                 <div className={styles.emptyStage}>
                   <EmptyState
                     icon={<ImageIcon size={24} />}

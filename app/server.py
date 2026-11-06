@@ -139,7 +139,8 @@ def multipart_image(ctype, body):
 def config_body():
     return {"play_all": PLAY_ALL, "max_upload_mb": MAX_BYTES // (1024 * 1024), "uploads_per_min": VIS.per_visitor_min,
             "landing_url": LANDING_URL, "key_required": keys.REQUIRED, "key_url": keys.KEY_URL,
-            "models": {"d3": check.MODEL, "extract": pipeline.EXTRACT_MODEL, "message": pipeline.MESSAGE_MODEL}}
+            "models": {"d3": check.MODEL, "extract": pipeline.EXTRACT_MODEL, "message": pipeline.MESSAGE_MODEL},
+            "timeouts_s": {"d3": gate.TIMEOUT_S["d3"], "extract": gate.TIMEOUT_S["extract"], "message": gate.TIMEOUT_S["retake"]}}
 
 
 def metrics_body():
@@ -424,6 +425,8 @@ class Handler(BaseHTTPRequestHandler):
         def work():
             gate.local.refused = 0
             gate.local.key = key  # every model call of this run carries the visitor's key (None: the server key)
+            gate.local.on_retry = lambda model, status, wait: events.put(
+                ("retry", {"model": model, "status": status, "wait_s": round(wait, 1)}))
             t = time.perf_counter()
             try:
                 for item in pipeline.run(CON, uid, file, raw, mime, size, sha, cancelled=gone.is_set, visitor_id=v):
@@ -438,6 +441,7 @@ class Handler(BaseHTTPRequestHandler):
                                       "message": "Something went wrong on the server. Please try again.", "skipped": []}))
             finally:
                 out.update(ms=(time.perf_counter() - t) * 1000, refused=gate.local.refused)
+                gate.local.on_retry = None
                 VIS.done(v)  # the visitor can start the next run only when this one has really ended
                 events.put(None)
 

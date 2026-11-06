@@ -19,6 +19,8 @@ export interface Run {
   sumcheck?: Events["sumcheck"];
   stored?: Events["stored"];
   done?: Events["done"];
+  /** The latest retry of a model call in this run, if any. */
+  retry?: Events["retry"];
   error?: Events["error"];
   /** True while the stream is open. */
   active: boolean;

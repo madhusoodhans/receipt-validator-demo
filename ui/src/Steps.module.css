@@ -7,11 +7,36 @@
 .stoppedText { color: var(--text-secondary); }
 .answerText { font-size: var(--text-lg); color: var(--text-secondary); min-width: 0; overflow-wrap: anywhere; }
 
+/* While the photo is checking or the LLM is reading: how long the photo check took, then what is happening now. */
+.progressLine { flex: 1 1 14rem; display: flex; flex-direction: column; gap: 2px; font-size: var(--text-lg); color: var(--text-secondary); min-width: 0; }
+.progressDone { font-size: var(--text-xl); color: var(--foreground); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+/* The stepper stays in view (sticky in the scrolling column) while the run is going. */
+.bar { --bar-pad: var(--space-2); }
+.bar[data-live] { position: sticky; top: calc(-1 * var(--space-5)); z-index: 5; margin-block: calc(-1 * var(--bar-pad)); padding-block: var(--bar-pad); background: var(--background); }
+@media (max-width: 1000px) { .bar[data-live] { top: 0; } }
+/* a short fade under the stuck stepper, so cards slide under it instead of being cut by a hard edge */
+.bar[data-live]::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: var(--space-3); pointer-events: none; background: linear-gradient(var(--background), transparent); }
+
+/* Checks (size, D3) then the result; the route last. With room for two columns: checks and route left, result right. */
 .cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); align-items: start; }
-@container (min-width: 900px) { .cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@container (min-width: 900px) {
+  .cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "check result" "route result"; }
+  .list[data-area="check"] { grid-area: check; }
+  .list[data-area="result"] { grid-area: result; }
+  .list[data-area="route"] { grid-area: route; }
+}
 .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.list:empty { display: none; }
 .step { border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface); padding: var(--space-4) var(--space-5); min-width: 0; }
 .step[data-pending] { background: var(--surface-muted); border-style: dashed; }
+.step { scroll-margin-top: calc(var(--bar-h, 0px) + var(--space-3)); scroll-margin-bottom: var(--space-4); }
+.step[data-compact] { padding-block: var(--space-3); }
+.step[data-compact] .title { font-size: var(--text-base); }
+.step[data-compact] .body { margin-top: var(--space-1); }
+.step[data-compact] .time { font-size: var(--text-base); align-items: center; }
+.sizeValue { font-variant-numeric: tabular-nums; }
+.sizeRule { font-size: var(--text-sm); color: var(--text-secondary); padding-left: calc(18px + var(--space-3)); }
 .step[data-skipped] { background: transparent; border-style: dashed; color: var(--text-secondary); padding-block: var(--space-3); }
 .head { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
 .icon { display: inline-flex; color: var(--text-secondary); flex: none; }
@@ -42,8 +67,6 @@
 .check[data-status="bad"] .fill { background: var(--danger); }
 .marker { position: absolute; top: -2px; bottom: -2px; width: 2px; margin-left: -1px; background: var(--foreground); }
 .prob { font-variant-numeric: tabular-nums; text-align: right; font-weight: 500; white-space: nowrap; }
-/* The size row's value is a pixel size, wider than a percentage; right-aligned, so it still lines up. */
-.check[data-size] { grid-template-columns: minmax(0, 1fr) auto 6rem; }
 
 /* Route: three lanes, the taken one filled. */
 .lanes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
@@ -78,6 +101,25 @@
 .reasons { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .summary { font-size: var(--text-lg); margin-right: var(--space-2); }
 
+/* The LLM at work: one line on what it does (or why it is slow), and a still outline of the fields it will fill. */
+.waitLine { font-size: var(--text-sm); color: var(--text-secondary); }
+.waitLine[data-tone="warning"] { color: var(--foreground); padding-left: var(--space-3); border-left: 2px solid var(--warning); }
+.skeleton { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-control); background: var(--surface); border: 1px solid var(--border-subtle); }
+.boneRow, .boneTotal { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); align-items: center; gap: var(--space-3); }
+.boneTotal { padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); }
+.boneTotal .bone { justify-self: end; height: 14px; }
+.boneItems { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); gap: var(--space-2) var(--space-3); align-items: center; }
+.boneItems > .boneLabel { grid-row: 1 / span 3; align-self: start; }
+.boneItem { grid-column: 2; display: flex; justify-content: space-between; gap: var(--space-3); }
+.boneLabel { font-size: var(--text-xs); color: var(--text-muted); }
+.bone { display: block; height: 10px; border-radius: var(--radius-pill); background: color-mix(in oklab, var(--foreground) 9%, var(--surface)); }
+@media (prefers-reduced-motion: no-preference) {
+  .bone { animation: breathe 1.8s var(--ease-in-out) infinite; }
+  .boneItem:nth-child(3) .bone, .boneTotal .bone { animation-delay: .25s; }
+  .boneItem:nth-child(4) .bone { animation-delay: .5s; }
+}
+@keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+
 /* 4B message, styled like an in-app notice. */
 .notice { margin: 0; max-width: 34rem; padding: var(--space-4) var(--space-5); border-radius: var(--radius-panel); background: var(--surface-raised); border: 1px solid var(--border); box-shadow: var(--shadow-raised); }
 .noticeHead { display: flex; justify-content: space-between; font-size: var(--text-sm); color: var(--text-secondary); }
@@ -109,7 +151,6 @@
 
 @container (max-width: 560px) {
   .check { grid-template-columns: minmax(0, 1fr) 3rem 5.5rem; }
-  .check[data-size] { grid-template-columns: minmax(0, 1fr) auto 5.5rem; }
   .items { font-size: var(--text-sm); }
   .items th, .items td { padding: 4px 6px; }
   .items tfoot tr[data-total] > * { font-size: var(--text-lg); }

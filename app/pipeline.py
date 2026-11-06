@@ -83,8 +83,12 @@ def run(con, upload_id, file, image_bytes, mime, size, image_sha256=None, cancel
     t0 = time.perf_counter()
     steps = {}
     image_sha256 = image_sha256 or db.sha256(image_bytes)
+    t = time.perf_counter()
+    size_gate = readable.judge(size)  # before D3, no model: too few pixels to read is a reason of its own
+    size_ms = round((time.perf_counter() - t) * 1000, 2)
     yield "received", {"id": upload_id, "file": file, "width": size[0], "height": size[1],
-                       "image_url": db.image_url({"upload_id": upload_id, "file": file})}
+                       "image_url": db.image_url({"upload_id": upload_id, "file": file}),
+                       "size": {**size_gate, "ms": size_ms}}
     def go(next_step):
         if cancelled():
             raise Cancelled
@@ -93,7 +97,6 @@ def run(con, upload_id, file, image_bytes, mime, size, image_sha256=None, cancel
     step = "d3"
     try:
         step = go("d3")
-        size_gate = readable.judge(size)  # before D3, no model: too few pixels to read is a reason of its own
         answers, steps["d3"], d3_tokens = check.ask_d3(image_bytes, mime, with_tokens=True)
         d3, route = check.decide(answers, size_gate)
         d3 = {"model": check.MODEL, "ms": steps["d3"], "tokens": d3_tokens, **d3}

@@ -1,0 +1,65 @@
+/* Stepper: a compact vertical list in a narrow result column, five columns in a row when there is room. */
+.wrap { border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); }
+.stepper { list-style: none; margin: 0; padding: var(--space-3) var(--space-4); display: grid; gap: 2px; }
+/* the active step's line, under the row in the wide layout (inside the step in the list layout) */
+.footer { display: none; }
+.item {
+  position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: center;
+  column-gap: var(--space-3); min-height: 28px; color: var(--text-secondary);
+}
+/* the line from one step's mark down to the next */
+.item:not(:last-child)::after {
+  content: ""; position: absolute; left: 9.25px; top: 22px; bottom: -8px; width: 1.5px; background: var(--border);
+}
+.item[data-state="done"]:not(:last-child)::after { background: color-mix(in oklab, var(--success) 55%, var(--border)); }
+.item[data-state="done"], .item[data-state="active"], .item[data-state="failed"] { color: var(--foreground); }
+.item[data-state="skipped"], .item[data-state="stopped"] { color: var(--text-muted); }
+.item[data-state="skipped"] .label { text-decoration: line-through; text-decoration-color: var(--border-strong); }
+
+.name { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 var(--space-2); min-width: 0; }
+.label { font-size: var(--text-base); }
+.item[data-state="active"] .label { font-weight: 500; }
+.tag { font-size: var(--text-xs); color: var(--text-secondary); padding: 0 6px; border: 1px solid var(--border); border-radius: var(--radius-pill); line-height: 1.5; }
+.value { font-size: var(--text-sm); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.item[data-state="done"] .value { font-weight: 500; }
+.item[data-state="active"] .value { font-weight: 500; color: var(--foreground); }
+.item[data-state="failed"] .value { color: var(--danger); font-weight: 500; }
+.value[data-tone="warning"], .hint[data-tone="warning"] .hintNote { color: var(--warning); }
+.hint { grid-column: 2 / -1; font-size: var(--text-sm); color: var(--text-secondary); padding-bottom: 4px; }
+.hintNote::before { content: " · "; color: var(--text-muted); }
+
+/* Marks: waiting is an empty ring, active a turning arc, done a filled check, failed a cross, skipped a dash. */
+.mark {
+  position: relative; z-index: 1; width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center;
+  border: 1.5px solid var(--border-strong); background: var(--surface); color: var(--surface); align-self: center;
+}
+.item:has(.hint) .mark { align-self: start; margin-top: 4px; }
+.mark[data-state="done"] { background: var(--success); border-color: var(--success); }
+.mark[data-state="failed"] { background: var(--danger); border-color: var(--danger); }
+.mark[data-state="skipped"], .mark[data-state="stopped"] { border-style: dashed; color: var(--text-muted); background: var(--surface); }
+.mark[data-state="active"] { border-color: color-mix(in oklab, var(--accent) 25%, var(--border)); }
+.mark[data-state="active"]::before {
+  content: ""; position: absolute; inset: -1.5px; border-radius: 50%; border: 2px solid transparent; border-top-color: var(--accent);
+  border-right-color: var(--accent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mark[data-state="active"]::before { animation: spin .9s linear infinite; }
+}
+/* No turning arc with reduced motion: a still, filled centre dot says "this one" instead. */
+@media (prefers-reduced-motion: reduce) {
+  .mark[data-state="active"]::before { border-color: var(--accent); }
+  .mark[data-state="active"]::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Room for a row: five columns, the mark and a line to the next step on top, the name, time and hint under it. */
+@container (min-width: 620px) {
+  .stepper { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0 var(--space-2); }
+  .item { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; row-gap: 4px; align-items: start; align-content: start; }
+  .item:not(:last-child)::after { left: 26px; right: calc(-1 * var(--space-2) + 6px); top: 9.25px; bottom: auto; width: auto; height: 1.5px; }
+  .item:has(.hint) .mark { margin-top: 0; }
+  .value { text-align: left; }
+  .item .hint { display: none; }
+  .footer { display: block; margin: 0; padding: var(--space-2) var(--space-4) var(--space-3); border-top: 1px solid var(--border-subtle); }
+  .footer .hint { padding: 0; }
+}

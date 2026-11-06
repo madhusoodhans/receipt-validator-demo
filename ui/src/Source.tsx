@@ -31,9 +31,9 @@ export function Upload({ busy, locked, onFile }: { busy: boolean; locked?: boole
 }
 
 const EXPECTED_TEXT: Record<RouteName, string> = { extract: "Should be extracted", review: "Should need review", reject: "Should be rejected" };
-const GROUPS: [DemoItem["group"], string][] = [["good", "Good receipts"], ["borderline", "Borderline"], ["bad", "Bad uploads"]];
+const GROUPS: [DemoItem["group"], string][] = [["bad", "Bad uploads"], ["borderline", "Borderline"], ["good", "Good receipts"]];
 
-/** Left pane: the demo set as a vertical list of thumbnails in their groups (good, borderline, bad), each with its label
+/** Left pane: the demo set as a vertical list of thumbnails in their groups (bad, borderline, good), each with its label
  * and expected outcome, and a dot for the last outcome; Play all (when on) at the bottom. It scrolls on its own. */
 export function SamplePane(props: {
   demo: DemoItem[]; demoError: string | null; current: string | null; busy: boolean; playing: boolean;

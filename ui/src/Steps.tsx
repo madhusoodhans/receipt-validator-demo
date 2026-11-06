@@ -1,7 +1,7 @@
 /* The pipeline for the current image, one step per streamed event, each with its time. */
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { ArrowRight, Check, CircleAlert, CircleStop, Database, Eye, MessageSquareText, ScanSearch, Square, X } from "lucide-react";
+import { ArrowRight, Check, CircleAlert, CircleStop, Database, Eye, MessageSquareText, Ruler, ScanSearch, Square, X } from "lucide-react";
 import { Button } from "./components/arc/button/button";
 import { Badge } from "./components/arc/badge/badge";
 import { TextShimmer } from "./components/arc/text-shimmer/text-shimmer";
@@ -9,12 +9,15 @@ import { motionTokens } from "./components/arc/lib/motion-tokens";
 import type { Check as D3Check, Config, D3, Events, Receipt, Routed, RouteName, SizeGate, Status } from "./api";
 import { kindLabel, money, ms, pct, pctNear, reasonBadge, receiptWhole } from "./format";
 import type { Run } from "./run";
+import { elapsedSince, llmStatus, seconds, Stepper, useTick } from "./Progress";
 import styles from "./Steps.module.css";
 
 const TONE: Record<Status, "success" | "warning" | "danger"> = { ok: "success", borderline: "warning", bad: "danger" };
 const STATUS_TEXT: Record<Status, string> = { ok: "Ok", borderline: "Borderline", bad: "Bad" };
 
-function Step({ icon, title, time, pending, skipped, children, label }: { icon: ReactNode; title: ReactNode; time?: ReactNode; pending?: boolean; skipped?: boolean; children?: ReactNode; label: string }) {
+function Step({ icon, title, time, pending, skipped, children, label, follow, compact }: { icon: ReactNode; title: ReactNode; time?: ReactNode; pending?: boolean; skipped?: boolean; children?: ReactNode; label: string;
+  /** The card to keep in view while it is the newest thing happening. */
+  follow?: boolean; compact?: boolean }) {
   const reduce = useReducedMotion();
   return (
     <motion.li
@@ -22,6 +25,8 @@ function Step({ icon, title, time, pending, skipped, children, label }: { icon: 
       aria-label={label}
       data-pending={pending || undefined}
       data-skipped={skipped || undefined}
+      data-follow={follow || undefined}
+      data-compact={compact || undefined}
       initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={reduce ? { duration: motionTokens.duration.fast } : motionTokens.spring.smooth}
@@ -36,24 +41,52 @@ function Step({ icon, title, time, pending, skipped, children, label }: { icon: 
   );
 }
 
-/** Elapsed time since `from` (ms since the run started), ticking while the step is pending. */
-function useElapsed(run: Run, from: number | undefined) {
-  const [, tick] = useState(0);
-  useEffect(() => {
-    if (!run.active) return;
-    const t = setInterval(() => tick((n) => n + 1), 100);
-    return () => clearInterval(t);
-  }, [run.active]);
-  const base = run.startedAt + (from ?? 0);
-  return Math.max(0, Date.now() - base);
-}
-
 function Pending({ run, text, from, model }: { run: Run; text: string; from?: number; model?: string }) {
-  const elapsed = useElapsed(run, from);
+  useTick(run.active);
   return (
     <Step icon={<ScanSearch size={18} strokeWidth={1.75} />} pending label={text}
-      title={<TextShimmer>{text}</TextShimmer>} time={<span className="num">{ms(elapsed)}</span>}>
+      title={<TextShimmer>{text}</TextShimmer>} time={<span className="num">{seconds(elapsedSince(run, from))}</span>}>
       {model && <p className="muted">{model}</p>}
+    </Step>
+  );
+}
+
+/** While the LLM works: what it is doing, a live counter, and a still outline of what it will fill in (the receipt's
+ * store, date, items and total, or the retake message). Honest about a retry or a slow answer. */
+function LlmWaiting({ run, model, timeouts }: { run: Run; model?: string; timeouts?: Config["timeouts_s"] }) {
+  useTick(run.active);
+  const reject = run.route?.route === "reject";
+  const elapsed = elapsedSince(run, run.at.route);
+  const status = llmStatus(run, elapsed, timeouts);
+  const text = reject ? "The LLM is writing the message" : "The LLM is reading the receipt";
+  return (
+    <Step icon={reject ? <MessageSquareText size={18} strokeWidth={1.75} /> : <Eye size={18} strokeWidth={1.75} />} pending follow
+      label={text}
+      title={<><TextShimmer>{text}</TextShimmer>{model && <span className={styles.model}>{model}</span>}</>}
+      time={<span className="num">{seconds(elapsed)}</span>}>
+      <p className={styles.waitLine} data-tone={status.tone}>
+        {status.line ?? (reject ? "It turns the photo check's reasons into a short note for the user. Usually a few seconds."
+          : "It reads every line from the photo and fills in the fields below. Usually 5 to 15 s.")}
+      </p>
+      {reject ? (
+        <div className={styles.skeleton} aria-hidden="true">
+          <span className={styles.bone} style={{ width: "40%" }} />
+          <span className={styles.bone} style={{ width: "92%" }} />
+          <span className={styles.bone} style={{ width: "70%" }} />
+        </div>
+      ) : (
+        <div className={styles.skeleton} aria-hidden="true">
+          <div className={styles.boneRow}><span className={styles.boneLabel}>Store</span><span className={styles.bone} style={{ width: "55%" }} /></div>
+          <div className={styles.boneRow}><span className={styles.boneLabel}>Date</span><span className={styles.bone} style={{ width: "30%" }} /></div>
+          <div className={styles.boneItems}>
+            <span className={styles.boneLabel}>Items</span>
+            {[62, 48, 56].map((w, i) => (
+              <div key={i} className={styles.boneItem}><span className={styles.bone} style={{ width: `${w}%` }} /><span className={styles.bone} style={{ width: "18%" }} /></div>
+            ))}
+          </div>
+          <div className={styles.boneTotal}><span className={styles.boneLabel}>Total</span><span className={styles.bone} style={{ width: "24%" }} /></div>
+        </div>
+      )}
     </Step>
   );
 }
@@ -90,30 +123,17 @@ function CheckBar({ c }: { c: D3Check }) {
   );
 }
 
-/** The size gate (no model, before D3) in the same row layout as a check: the bar runs from 0 to twice the review size,
- * with the reject size as its marker; the value is the pixel size. */
-function SizeRow({ s }: { s: SizeGate }) {
-  const reduce = useReducedMotion();
-  const scale = s.borderline_from * 2;
-  const thr = Math.min(1, s.threshold / scale);
-  const rule = `bad below ${s.threshold} px`;
+/** The size check: code, no model, run before D3. A small step of its own; a bad or borderline size is still a route
+ * reason. */
+function SizeStep({ s }: { s: SizeGate & { ms?: number } }) {
   return (
-    <li className={styles.check} data-status={s.status} data-size>
-      <div className={styles.checkLabel}>
-        <span>Image size</span>
-        <span className={styles.rule}>{rule}</span>
-      </div>
-      <div className={styles.track} role="meter" aria-label="Image size" aria-valuemin={0} aria-valuemax={scale}
-        aria-valuenow={Math.min(scale, s.px)} aria-valuetext={`${s.px} px, ${rule}, ${STATUS_TEXT[s.status]}`}>
-        <span className={styles.zone} style={{ left: 0, width: `${thr * 100}%` }} />
-        <motion.span className={styles.fill}
-          initial={{ scaleX: 0 }} animate={{ scaleX: Math.min(1, Math.max(0, s.px / scale)) }}
-          transition={reduce ? { duration: 0 } : motionTokens.spring.smooth} />
-        <span className={styles.marker} style={{ left: `${thr * 100}%` }} />
-      </div>
-      <span className={styles.prob}>{`${s.px} px`}</span>
-      <Badge tone={TONE[s.status]} size="sm">{STATUS_TEXT[s.status]}</Badge>
-    </li>
+    <Step icon={<Ruler size={18} strokeWidth={1.75} />} compact label={`Size check: ${s.px} px, ${STATUS_TEXT[s.status]}`}
+      title="Size check"
+      time={<><span className={styles.sizeValue}>{`${s.px} px`}</span><Badge tone={TONE[s.status]} size="sm">{STATUS_TEXT[s.status]}</Badge></>}>
+      <p className={styles.sizeRule}>
+        {s.status === "ok" ? "Code, no model, before D3." : `Code, no model, before D3. Bad below ${s.threshold} px; read but flagged for review below ${s.borderline_from} px.`}
+      </p>
+    </Step>
   );
 }
 
@@ -129,7 +149,6 @@ function D3Body({ d3 }: { d3: D3 }) {
         {others.length > 0 && <span className="muted">{others.map(([k, p]) => `${kindLabel(k).toLowerCase()} ${pct(p)}`).join(", ")}</span>}
       </div>
       <ul className={styles.checks} aria-label="Image checks">
-        {d3.size && <SizeRow s={d3.size} />}
         {d3.checks.map((c) => <CheckBar key={c.key} c={c} />)}
       </ul>
     </>
@@ -196,7 +215,7 @@ function RoutedLine({ asked, routed }: { asked: string; routed?: Routed }) {
 
 function Failed({ title, error }: { title: ReactNode; error: Events["error"] }) {
   return (
-    <Step icon={<CircleAlert size={18} strokeWidth={1.75} />} label="Failed step"
+    <Step icon={<CircleAlert size={18} strokeWidth={1.75} />} label="Failed step" follow
       title={<>{title} <Badge tone="danger" size="sm">{REASON[error.reason ?? "error"] ?? "Failed"}</Badge></>}>
       {error.detail && <p className={styles.error}>{error.detail}</p>}
       <p>{error.message}</p>
@@ -284,40 +303,97 @@ const errorTitle = (e: Events["error"]) => (e.reason === "key" ? "API key proble
 /** Failures shown on their own step, with the steps after them marked skipped. */
 const MODEL_STEP = new Set(["d3", "extract", "message"]);
 
-export function Steps({ run, onStop, models }: { run: Run; onStop: () => void; models?: Config["models"] }) {
-  const { d3, route, message, extract, sumcheck, stored, done, error, at } = run;
+/** The nearest scrolling ancestor (the main column on wide screens), or null for the page itself. */
+function scroller(el: HTMLElement | null): HTMLElement | null {
+  for (let p = el?.parentElement; p; p = p.parentElement) {
+    const o = getComputedStyle(p).overflowY;
+    if ((o === "auto" || o === "scroll") && p.scrollHeight > p.clientHeight) return p;
+  }
+  return null;
+}
+
+/** The headline: the time to answer once done; while the LLM works, how long the photo check took and what is happening. */
+function Headline({ run }: { run: Run }) {
+  const { d3, route, extract, done, error } = run;
+  const reject = route?.route === "reject";
+  if (done) {
+    return (
+      <>
+        <span className={styles.answerNum}>{ms(done.total_ms)}</span>
+        <span className={styles.answerText}>
+          {reject ? "to tell the user what is wrong" : route?.route === "review" ? "to read it and flag it for review" : "to read, check and store it"}
+        </span>
+      </>
+    );
+  }
+  if (error) return <span className={styles.answerText}>{errorTitle(error)}</span>;
+  if (run.stopped) return <span className={styles.answerText}>Stopped. Nothing was stored.</span>;
+  if (d3) {
+    const doing = extract ? `receipt read in ${ms(extract.ms)}, saving…` : reject ? "the LLM is writing the message…" : route ? "the LLM is reading the receipt…" : "routing…";
+    return (
+      <span className={styles.progressLine}>
+        <span className={styles.progressDone}>{`Photo checked in ${ms(d3.ms)}`}</span>
+        <span className="srOnly">, </span>
+        <TextShimmer>{doing}</TextShimmer>
+      </span>
+    );
+  }
+  return <span className={styles.answerText}><TextShimmer>{run.received ? "Checking the photo…" : `Uploading ${run.name}…`}</TextShimmer></span>;
+}
+
+export function Steps({ run, onStop, models, timeouts }: { run: Run; onStop: () => void; models?: Config["models"]; timeouts?: Config["timeouts_s"] }) {
+  const { received, d3, route, message, extract, sumcheck, stored, error } = run;
   const live = run.active && !error && !run.stopped;  // pending steps only while the run is going
-  const steps = done?.steps || {};
-  const reading = route && route.route !== "reject";
-  const answerMs = done?.total_ms;
-  const cols = useRef<HTMLDivElement>(null);
+  const steps = run.done?.steps || {};
+  const size = received?.size ?? d3?.size;
+  const root = useRef<HTMLElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
-  const count = Object.keys(at).length + (error ? 1 : 0);
   const failedAt = error && MODEL_STEP.has(error.step) ? error.step : null;
   const skipped = (keys: string[]) => (error?.skipped ?? []).filter((k) => keys.includes(k)).map((k) => <Skipped key={k} step={k} />);
-  // Keep the newest step in view: on a projector the result usually lands below the fold.
+  const waitingLlm = live && !!route && !message && !extract;
+  // The card to keep in view: the LLM placeholder while it works, then its result (or the failure, or Stopped).
+  const follow = waitingLlm ? "wait" : extract ? "extract" : message ? "message" : error ? "error" : run.stopped ? "stopped" : null;
+
+  // Follow the run down the column, gently, until the visitor scrolls on their own; each new run follows again.
+  const userScrolled = useRef(false);
   useEffect(() => {
-    const items = cols.current?.querySelectorAll("li[aria-label]");
-    const last = items?.[items.length - 1];
-    if (last && count > 1) last.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
-  }, [count, reduce]);
+    userScrolled.current = false;
+    const el = scroller(root.current?.parentElement ?? null) ?? document.documentElement;
+    const target: EventTarget = el === document.documentElement ? window : el;
+    const mark = () => { userScrolled.current = true; };
+    const keys = (e: Event) => { if (["PageDown", "PageUp", "ArrowDown", "ArrowUp", "Home", "End", " "].includes((e as KeyboardEvent).key)) mark(); };
+    const grab = (e: Event) => { if (e.target === el) mark(); };  // dragging the scrollbar
+    target.addEventListener("wheel", mark, { passive: true });
+    target.addEventListener("touchmove", mark, { passive: true });
+    target.addEventListener("pointerdown", grab);
+    window.addEventListener("keydown", keys);
+    return () => {
+      target.removeEventListener("wheel", mark); target.removeEventListener("touchmove", mark);
+      target.removeEventListener("pointerdown", grab); window.removeEventListener("keydown", keys);
+    };
+  }, [run.key]);
+  useEffect(() => {
+    if (!follow || userScrolled.current) return;
+    const card = root.current?.querySelector<HTMLElement>("li[data-follow]");
+    if (!card) return;
+    // after the card's entry animation has laid it out
+    const t = setTimeout(() => card.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" }), 120);
+    return () => clearTimeout(t);
+  }, [follow, reduce]);
+  // Cards scrolled into view stop below the sticky stepper, not under it.
+  useEffect(() => {
+    const b = bar.current, r = root.current;
+    if (!b || !r) return;
+    const ro = new ResizeObserver(() => r.style.setProperty("--bar-h", `${b.offsetHeight}px`));
+    ro.observe(b);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <section className={styles.root} aria-label="Pipeline steps">
+    <section className={styles.root} aria-label="Pipeline steps" ref={root}>
       <div className={styles.answer} aria-live="polite">
-        {done ? (
-          <>
-            <span className={styles.answerNum}>{ms(answerMs)}</span>
-            <span className={styles.answerText}>
-              {route?.route === "reject" ? "to tell the user what is wrong" : route?.route === "review" ? "to read it and flag it for review" : "to read, check and store it"}
-            </span>
-          </>
-        ) : error ? (
-          <span className={styles.answerText}>{errorTitle(error)}</span>
-        ) : run.stopped ? (
-          <span className={styles.answerText}>Stopped. Nothing was stored.</span>
-        ) : (
-          <span className={styles.answerText}><TextShimmer>{`Checking ${run.name}`}</TextShimmer></span>
-        )}
+        <Headline run={run} />
         {run.active && !run.stopped && (
           <Button variant="secondary" size="sm" className={styles.stop} onClick={onStop}>
             <Square size={14} strokeWidth={2} aria-hidden="true" />
@@ -326,9 +402,14 @@ export function Steps({ run, onStop, models }: { run: Run; onStop: () => void; m
         )}
       </div>
 
-      <div className={styles.cols} ref={cols}>
-      <ol className={styles.list} aria-label="Check and route">
-        {!d3 && live && <Pending run={run} text="D3 checks the image" model={models?.d3} />}
+      <div className={styles.bar} ref={bar} data-live={live || undefined}>
+        <Stepper run={run} timeouts={timeouts} />
+      </div>
+
+      <div className={styles.cols}>
+      <ol className={styles.list} data-area="check" aria-label="Checks">
+        {size && <SizeStep s={size} />}
+        {!d3 && live && received && <Pending run={run} text="D3 checks the photo" from={run.at.received} model={models?.d3} />}
         {d3 && (
           <Step icon={<ScanSearch size={18} strokeWidth={1.75} />} label="D3 check"
             title={<>D3 check <span className={styles.model}>{d3.model}</span></>} time={ms(d3.ms)}>
@@ -336,17 +417,11 @@ export function Steps({ run, onStop, models }: { run: Run; onStop: () => void; m
           </Step>
         )}
         {failedAt === "d3" && <Failed title={<>D3 check {models?.d3 && <span className={styles.model}>{models.d3}</span>}</>} error={error!} />}
-        {route && (
-          <Step icon={<ArrowRight size={18} strokeWidth={1.75} />} label="Route" title="Route">
-            <RouteBody route={route} d3={d3} />
-          </Step>
-        )}
-        {skipped(["route"])}
       </ol>
-      <ol className={styles.list} aria-label="Result">
-        {route?.route === "reject" && !message && live && <Pending run={run} text="The LLM writes a message" from={at.route} model={models?.message} />}
+      <ol className={styles.list} data-area="result" aria-label="Result">
+        {waitingLlm && <LlmWaiting run={run} model={route!.route === "reject" ? models?.message : models?.extract} timeouts={timeouts} />}
         {message && (
-          <Step icon={<MessageSquareText size={18} strokeWidth={1.75} />} label="Message to the user"
+          <Step icon={<MessageSquareText size={18} strokeWidth={1.75} />} label="Message to the user" follow={follow === "message"}
             title={<>Message to the user <span className={styles.model}>{message.fallback ? "standard message" : message.routed?.model ?? message.model}</span></>}
             time={message.fallback ? undefined : ms(message.ms)}>
             {message.fallback && <p><Badge tone="warning" size="sm">{`fallback: ${message.fallback}`}</Badge></p>}
@@ -355,10 +430,9 @@ export function Steps({ run, onStop, models }: { run: Run; onStop: () => void; m
           </Step>
         )}
         {failedAt === "message" && <Failed title={<>Message to the user {models?.message && <span className={styles.model}>{models.message}</span>}</>} error={error!} />}
-        {reading && !extract && live && <Pending run={run} text="The LLM reads the receipt" from={at.route} model={models?.extract} />}
         {failedAt === "extract" && <Failed title={<>Read the receipt {models?.extract && <span className={styles.model}>{models.extract}</span>}</>} error={error!} />}
         {extract && (
-          <Step icon={<Eye size={18} strokeWidth={1.75} />} label="Extracted receipt"
+          <Step icon={<Eye size={18} strokeWidth={1.75} />} label="Extracted receipt" follow={follow === "extract"}
             title={<>Extracted receipt <span className={styles.model}>{extract.routed?.model ?? extract.model}</span></>}
             time={<>{ms(extract.ms)}{extract.completion_tokens ? <span className={styles.tokens}>{extract.completion_tokens} tokens</span> : null}</>}>
             <RoutedLine asked={extract.model} routed={extract.routed} />
@@ -381,16 +455,24 @@ export function Steps({ run, onStop, models }: { run: Run; onStop: () => void; m
             time={steps.db != null ? ms(steps.db) : undefined} />
         )}
         {run.stopped && !error && (
-          <Step icon={<CircleStop size={18} strokeWidth={1.75} />} label="Stopped" title="Stopped by you">
+          <Step icon={<CircleStop size={18} strokeWidth={1.75} />} label="Stopped" title="Stopped by you" follow>
             <p className={styles.stoppedText}>The server cancels the run after its current step; nothing is stored or counted.</p>
           </Step>
         )}
         {skipped(["model", "sumcheck", "stored"])}
         {error && !failedAt && (
-          <Step icon={<CircleAlert size={18} strokeWidth={1.75} />} label="Error" title={errorTitle(error)}>
+          <Step icon={<CircleAlert size={18} strokeWidth={1.75} />} label="Error" title={errorTitle(error)} follow>
             <p className={styles.error}>{error.message}</p>
           </Step>
         )}
+      </ol>
+      <ol className={styles.list} data-area="route" aria-label="Route">
+        {route && (
+          <Step icon={<ArrowRight size={18} strokeWidth={1.75} />} label="Route" title={<>Route <span className={styles.model}>rule on D3&apos;s answers</span></>}>
+            <RouteBody route={route} d3={d3} />
+          </Step>
+        )}
+        {skipped(["route"])}
       </ol>
       </div>
     </section>

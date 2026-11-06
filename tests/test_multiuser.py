@@ -90,6 +90,8 @@ def test_isolation():
     code, ev = upload(a)
     assert code == 200 and "stored" in ev, ev
     url = ev["received"]["image_url"]
+    sz = ev["received"]["size"]  # the size check runs before D3 and is sent with `received`
+    assert sz["key"] == "size" and sz["status"] in ("ok", "borderline", "bad") and sz["px"] > 0 and "ms" in sz, sz
     assert get(url, a).status_code == 200
     assert get(url, b).status_code == 404, "B must not fetch A's upload"
     assert get(url).status_code == 404, "no visitor id, no upload"
@@ -255,8 +257,12 @@ def test_gate_and_retry():
     try:
         answers = [Fake(429, "2"), Fake(200)]
         gate.requests.post = lambda *a, **k: answers.pop(0)
-        r, _ms = gate.post("chat", "u", {}, 1, sleep=slept.append)
+        told = []
+        gate.local.on_retry = lambda *a: told.append(a)  # the run's stream sends a `retry` event
+        r, _ms = gate.post("chat", "u", {}, 1, sleep=slept.append, model="extract")
+        gate.local.on_retry = None
         assert r.status_code == 200 and len(slept) == 1 and 1.9 < slept[0] <= 2.0, slept
+        assert told == [("extract", 429, 2.0)], told
         gate.GATES["chat"].hold_until = 0.0  # the fake sleep did not wait it out
         answers = [Fake(429, "60"), Fake(200)]
         n = len(slept)
@@ -361,6 +367,7 @@ def test_endpoints():
     assert get("/healthz").json() == {"ok": True}
     c = get("/api/config").json()
     assert c["play_all"] is False and "measure_baseline" not in c
+    assert set(c["timeouts_s"]) == {"d3", "extract", "message"} and c["timeouts_s"]["extract"] > 0, c
     assert get("/api/baseline/abc").status_code == 404, "no baseline endpoint"
     m = get("/api/metrics").json()
     assert {"visitors", "uploads_last_hour", "model_calls", "model_429_503", "upload_disk_bytes"} <= set(m), m
