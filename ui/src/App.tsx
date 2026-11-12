@@ -169,7 +169,7 @@ export function App() {
           )}
         </div>
         <div className={styles.title}>
-          <h1 title="D3 checks each image; MoM (vllm-sr/auto) reads the receipts that pass">Receipt intake demo · vllm-sr with D3 and MoM</h1>
+          <h1 title="System One (D3) checks each image; System Two (vllm-sr/auto) reads the receipts that pass">Receipt intake demo · System Duo with D3</h1>
         </div>
         <div className={styles.actions}>
           <HealthBadge health={health} error={healthError} />
@@ -212,7 +212,7 @@ export function App() {
             </Alert>
           )}
           {keyOk && !showPanel && (
-            <Alert tone="success" title="Key works for decisions and chat" onDismiss={() => setKeyOk(false)}>
+            <Alert tone="success" title="Key works for System One and System Two" onDismiss={() => setKeyOk(false)}>
               Every check in this tab now runs on the hosted vllm-sr API with your key.
             </Alert>
           )}
